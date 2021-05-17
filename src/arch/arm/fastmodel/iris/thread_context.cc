@@ -515,9 +515,15 @@ ThreadContext::initMemProxies(gem5::ThreadContext *tc)
 void
 ThreadContext::sendFunctional(PacketPtr pkt)
 {
-    auto *iris_cpu = dynamic_cast<Iris::BaseCPU *>(getCpuPtr());
-    assert(iris_cpu);
-    iris_cpu->evs_base_cpu->sendFunc(pkt);
+    auto addr = pkt->getAddr();
+    auto size = pkt->getSize();
+    auto data = pkt->getPtr<uint8_t>();
+
+    pkt->makeResponse();
+    if (pkt->isRead())
+        readMem(addr, data, size);
+    else
+        writeMem(addr, data, size);
 }
 
 ThreadContext::Status
