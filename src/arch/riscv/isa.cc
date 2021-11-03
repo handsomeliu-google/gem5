@@ -180,6 +180,10 @@ GEM5_VAR_USED const std::array<const char *, NUM_MISCREGS> MiscRegNames = {{
     [MISCREG_UTVAL]         = "UTVAL",
     [MISCREG_FFLAGS]        = "FFLAGS",
     [MISCREG_FRM]           = "FRM",
+
+    [MISCREG_NMIVEC]        = "NMIVEC",
+    [MISCREG_NMIE]          = "NMIE",
+    [MISCREG_NMIP]          = "NMIP",
 }};
 
 ISA::ISA(const Params &p) : BaseISA(p)
@@ -227,6 +231,8 @@ void ISA::clear()
     // don't set it to zero; software may try to determine the supported
     // triggers, starting at zero. simply set a different value here.
     miscRegFile[MISCREG_TSELECT] = 1;
+    // NMI is always enabled.
+    miscRegFile[MISCREG_NMIE] = 1;
 }
 
 bool
