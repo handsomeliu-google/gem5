@@ -89,7 +89,7 @@ class ISA : public BaseISA
     void setMiscRegNoEffect(RegIndex idx, RegVal val) override;
     void setMiscReg(RegIndex idx, RegVal val) override;
 
-    bool inUserMode() const override { return true; }
+    bool inUserMode() const override;
     void copyRegsFrom(ThreadContext *src) override;
 
     void serialize(CheckpointOut &cp) const override;
