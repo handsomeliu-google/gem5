@@ -41,9 +41,8 @@
 
 #include "cpu/simple/atomic.hh"
 
-#include "arch/locked_mem.hh"
+#include "arch/generic/decoder.hh"
 #include "base/output.hh"
-#include "config/the_isa.hh"
 #include "cpu/exetrace.hh"
 #include "cpu/utils.hh"
 #include "debug/Drain.hh"
@@ -52,7 +51,7 @@
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
 #include "mem/physical.hh"
-#include "params/AtomicSimpleCPU.hh"
+#include "params/BaseAtomicSimpleCPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
 #include "sim/system.hh"
@@ -72,7 +71,7 @@ AtomicSimpleCPU::init()
     data_amo_req->setContext(cid);
 }
 
-AtomicSimpleCPU::AtomicSimpleCPU(const AtomicSimpleCPUParams &p)
+AtomicSimpleCPU::AtomicSimpleCPU(const BaseAtomicSimpleCPUParams &p)
     : BaseSimpleCPU(p),
       tickEvent([this]{ tick(); }, "AtomicSimpleCPU tick",
                 false, Event::CPU_Tick_Pri),
@@ -133,8 +132,8 @@ AtomicSimpleCPU::threadSnoop(PacketPtr pkt, ThreadID sender)
                 wakeup(tid);
             }
 
-            TheISA::handleLockedSnoop(threadInfo[tid]->thread,
-                                      pkt, dcachePort.cacheBlockMask);
+            threadInfo[tid]->thread->getIsaPtr()->handleLockedSnoop(pkt,
+                    dcachePort.cacheBlockMask);
         }
     }
 }
@@ -298,7 +297,8 @@ AtomicSimpleCPU::AtomicCPUDPort::recvAtomicSnoop(PacketPtr pkt)
         DPRINTF(SimpleCPU, "received invalidation for addr:%#x\n",
                 pkt->getAddr());
         for (auto &t_info : cpu->threadInfo) {
-            TheISA::handleLockedSnoop(t_info->thread, pkt, cacheBlockMask);
+            t_info->thread->getIsaPtr()->handleLockedSnoop(pkt,
+                    cacheBlockMask);
         }
     }
 
@@ -324,7 +324,8 @@ AtomicSimpleCPU::AtomicCPUDPort::recvFunctionalSnoop(PacketPtr pkt)
         DPRINTF(SimpleCPU, "received invalidation for addr:%#x\n",
                 pkt->getAddr());
         for (auto &t_info : cpu->threadInfo) {
-            TheISA::handleLockedSnoop(t_info->thread, pkt, cacheBlockMask);
+            t_info->thread->getIsaPtr()->handleLockedSnoop(pkt,
+                    cacheBlockMask);
         }
     }
 }
@@ -407,7 +408,7 @@ AtomicSimpleCPU::readMem(Addr addr, uint8_t *data, unsigned size,
             assert(!pkt.isError());
 
             if (req->isLLSC()) {
-                TheISA::handleLockedRead(thread, req);
+                thread->getIsaPtr()->handleLockedRead(req);
             }
         }
 
@@ -482,9 +483,8 @@ AtomicSimpleCPU::writeMem(uint8_t *data, unsigned size, Addr addr,
 
             if (req->isLLSC()) {
                 assert(curr_frag_id == 0);
-                do_access =
-                    TheISA::handleLockedWrite(thread, req,
-                                              dcachePort.cacheBlockMask);
+                do_access = thread->getIsaPtr()->handleLockedWrite(req,
+                        dcachePort.cacheBlockMask);
             } else if (req->isSwap()) {
                 assert(curr_frag_id == 0);
                 if (req->isCondSwap()) {
@@ -650,10 +650,9 @@ AtomicSimpleCPU::tick()
 
         Fault fault = NoFault;
 
-        TheISA::PCState pcState = thread->pcState();
+        const PCStateBase &pc = thread->pcState();
 
-        bool needToFetch = !isRomMicroPC(pcState.microPC()) &&
-                           !curMacroStaticInst;
+        bool needToFetch = !isRomMicroPC(pc.microPC()) && !curMacroStaticInst;
         if (needToFetch) {
             ifetch_req->taskId(taskId());
             setupFetchRequest(ifetch_req);
@@ -749,7 +748,7 @@ AtomicSimpleCPU::fetchInstMem()
 
     // ifetch_req is initialized to read the instruction
     // directly into the CPU object's inst field.
-    pkt.dataStatic(decoder.moreBytesPtr());
+    pkt.dataStatic(decoder->moreBytesPtr());
 
     Tick latency = sendPacket(icachePort, &pkt);
     assert(!pkt.isError());

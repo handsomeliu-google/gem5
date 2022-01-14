@@ -76,17 +76,17 @@ def cmd_line_template():
 
 def build_test_system(np):
     cmdline = cmd_line_template()
-    if buildEnv['TARGET_ISA'] == "mips":
+    if buildEnv['USE_MIPS']:
         test_sys = makeLinuxMipsSystem(test_mem_mode, bm[0], cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == "sparc":
+    elif buildEnv['USE_SPARC']:
         test_sys = makeSparcSystem(test_mem_mode, bm[0], cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == "riscv":
+    elif buildEnv['USE_RISCV']:
         test_sys = makeBareMetalRiscvSystem(test_mem_mode, bm[0],
                                             cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == "x86":
+    elif buildEnv['USE_X86']:
         test_sys = makeLinuxX86System(test_mem_mode, np, bm[0], args.ruby,
                                       cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == "arm":
+    elif buildEnv['USE_ARM']:
         test_sys = makeArmSystem(
             test_mem_mode,
             args.machine_type,
@@ -97,14 +97,13 @@ def build_test_system(np):
             cmdline=cmdline,
             external_memory=args.external_memory_system,
             ruby=args.ruby,
-            security=args.enable_security_extensions,
             vio_9p=args.vio_9p,
             bootloader=args.bootloader,
         )
         if args.enable_context_switch_stats_dump:
             test_sys.enable_context_switch_stats_dump = True
     else:
-        fatal("Incapable of building %s full system!", buildEnv['TARGET_ISA'])
+        fatal("Incapable of building full system!")
 
     # Set the cache line size for the entire system
     test_sys.cache_line_size = args.cacheline_size
@@ -124,19 +123,13 @@ def build_test_system(np):
                                              voltage_domain =
                                              test_sys.cpu_voltage_domain)
 
-    if buildEnv['TARGET_ISA'] == 'riscv':
+    if buildEnv['USE_RISCV']:
         test_sys.workload.bootloader = args.kernel
     elif args.kernel is not None:
         test_sys.workload.object_file = binary(args.kernel)
 
     if args.script is not None:
         test_sys.readfile = args.script
-
-    if args.lpae:
-        test_sys.have_lpae = True
-
-    if args.virtualisation:
-        test_sys.have_virtualization = True
 
     test_sys.init_param = args.init_param
 
@@ -240,14 +233,14 @@ def build_drive_system(np):
     DriveMemClass = SimpleMemory
 
     cmdline = cmd_line_template()
-    if buildEnv['TARGET_ISA'] == 'mips':
+    if buildEnv['USE_MIPS']:
         drive_sys = makeLinuxMipsSystem(drive_mem_mode, bm[1], cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == 'sparc':
+    elif buildEnv['USE_SPARC']:
         drive_sys = makeSparcSystem(drive_mem_mode, bm[1], cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == 'x86':
+    elif buildEnv['USE_X86']:
         drive_sys = makeLinuxX86System(drive_mem_mode, np, bm[1],
                                        cmdline=cmdline)
-    elif buildEnv['TARGET_ISA'] == 'arm':
+    elif buildEnv['USE_ARM']:
         drive_sys = makeArmSystem(drive_mem_mode, args.machine_type, np,
                                   bm[1], args.dtb_filename, cmdline=cmdline)
 
@@ -365,8 +358,7 @@ if args.timesync:
 if args.frame_capture:
     VncServer.frame_capture = True
 
-if buildEnv['TARGET_ISA'] == "arm" and not args.bare_metal \
-        and not args.dtb_filename:
+if buildEnv['USE_ARM'] and not args.bare_metal and not args.dtb_filename:
     if args.machine_type not in ["VExpress_GEM5",
                                     "VExpress_GEM5_V1",
                                     "VExpress_GEM5_V2",
@@ -382,6 +374,9 @@ if buildEnv['TARGET_ISA'] == "arm" and not args.bare_metal \
             sys.workload.dtb_filename = \
                 os.path.join(m5.options.outdir, '%s.dtb' % sysname)
             sys.generateDtb(sys.workload.dtb_filename)
+
+if args.wait_gdb:
+    test_sys.workload.wait_for_remote_gdb = True
 
 Simulation.setWorkCountOptions(test_sys, args)
 Simulation.run(args, root, test_sys, FutureClass)

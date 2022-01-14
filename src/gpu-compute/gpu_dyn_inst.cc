@@ -284,6 +284,18 @@ GPUDynInst::seqNum() const
     return _seqNum;
 }
 
+Addr
+GPUDynInst::pc()
+{
+    return wavefront()->pc();
+}
+
+void
+GPUDynInst::pc(Addr _pc)
+{
+    wavefront()->pc(_pc);
+}
+
 enums::StorageClassType
 GPUDynInst::executedAs()
 {
@@ -414,6 +426,12 @@ bool
 GPUDynInst::isFlat() const
 {
     return _staticInst->isFlat();
+}
+
+bool
+GPUDynInst::isFlatGlobal() const
+{
+    return _staticInst->isFlatGlobal();
 }
 
 bool
@@ -834,7 +852,10 @@ GPUDynInst::resolveFlatSegment(const VectorMask &mask)
             if (mask[lane]) {
                 // flat address calculation goes here.
                 // addr[lane] = segmented address
-                panic("Flat group memory operation is unimplemented!\n");
+                addr[lane] = addr[lane] -
+                    wavefront()->computeUnit->shader->ldsApe().base;
+                assert(addr[lane] <
+                  wavefront()->computeUnit->getLds().getAddrRange().size());
             }
         }
         wavefront()->execUnitId =  wavefront()->flatLmUnitId;

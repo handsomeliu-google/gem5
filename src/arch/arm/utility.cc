@@ -41,10 +41,12 @@
 
 #include "arch/arm/faults.hh"
 #include "arch/arm/interrupts.hh"
+#include "arch/arm/isa.hh"
 #include "arch/arm/mmu.hh"
 #include "arch/arm/page_size.hh"
 #include "arch/arm/regs/cc.hh"
 #include "arch/arm/regs/int.hh"
+#include "arch/arm/regs/vec.hh"
 #include "arch/arm/system.hh"
 #include "base/compiler.hh"
 #include "cpu/base.hh"
@@ -127,7 +129,7 @@ bool
 longDescFormatInUse(ThreadContext *tc)
 {
     TTBCR ttbcr = tc->readMiscReg(MISCREG_TTBCR);
-    return ArmSystem::haveLPAE(tc) && ttbcr.eae;
+    return ArmSystem::has(ArmExtension::LPAE, tc) && ttbcr.eae;
 }
 
 RegVal
@@ -144,7 +146,7 @@ readMPIDR(ArmSystem *arm_sys, ThreadContext *tc)
         // be part of the table even if MPIDR is not accessible in user
         // mode.
         warn_once("Trying to read MPIDR at EL0\n");
-        GEM5_FALLTHROUGH;
+        [[fallthrough]];
       case EL1:
         if (ArmSystem::haveEL(tc, EL2) && !is_secure)
             return tc->readMiscReg(MISCREG_VMPIDR_EL2);
@@ -287,8 +289,7 @@ ELIs64(ThreadContext *tc, ExceptionLevel el)
 bool
 ELIs32(ThreadContext *tc, ExceptionLevel el)
 {
-    bool known, aarch32;
-    std::tie(known, aarch32) = ELUsingAArch32K(tc, el);
+    auto [known, aarch32] = ELUsingAArch32K(tc, el);
     panic_if(!known, "EL state is UNKNOWN");
     return aarch32;
 }
@@ -306,7 +307,7 @@ ELIsInHost(ThreadContext *tc, ExceptionLevel el)
 std::pair<bool, bool>
 ELUsingAArch32K(ThreadContext *tc, ExceptionLevel el)
 {
-    bool secure  = isSecureBelowEL3(tc);
+    bool secure = isSecureBelowEL3(tc);
     return ELStateUsingAArch32K(tc, el, secure);
 }
 
@@ -328,8 +329,8 @@ std::pair<bool, bool>
 ELStateUsingAArch32K(ThreadContext *tc, ExceptionLevel el, bool secure)
 {
     // Return true if the specified EL is in aarch32 state.
-    const bool have_el3 = ArmSystem::haveSecurity(tc);
-    const bool have_el2 = ArmSystem::haveVirtualization(tc);
+    const bool have_el3 = ArmSystem::haveEL(tc, EL3);
+    const bool have_el2 = ArmSystem::haveEL(tc, EL2);
 
     panic_if(el == EL2 && !have_el2, "Asking for EL2 when it doesn't exist");
     panic_if(el == EL3 && !have_el3, "Asking for EL3 when it doesn't exist");
@@ -367,19 +368,18 @@ ELStateUsingAArch32K(ThreadContext *tc, ExceptionLevel el, bool secure)
             aarch32 = (cpsr.width == 1);
         } else {
             known = true;
-            aarch32 = (aarch32_below_el3 && el != EL3)
-                      || (aarch32_at_el1 && (el == EL0 || el == EL1) );
+            aarch32 = (aarch32_below_el3 && el != EL3) ||
+                (aarch32_at_el1 && (el == EL0 || el == EL1) );
         }
     }
 
     return std::make_pair(known, aarch32);
 }
 
-bool ELStateUsingAArch32(ThreadContext *tc, ExceptionLevel el, bool secure)
+bool
+ELStateUsingAArch32(ThreadContext *tc, ExceptionLevel el, bool secure)
 {
-
-    bool known, aarch32;
-    std::tie(known, aarch32) = ELStateUsingAArch32K(tc, el, secure);
+    auto [known, aarch32] = ELStateUsingAArch32K(tc, el, secure);
     panic_if(!known, "EL state is UNKNOWN");
     return aarch32;
 }
@@ -512,13 +512,13 @@ bool
 mcrMrc15TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc, uint32_t iss,
                   ExceptionClass *ec)
 {
-    bool        isRead;
-    uint32_t    crm;
-    IntRegIndex rt;
-    uint32_t    crn;
-    uint32_t    opc1;
-    uint32_t    opc2;
-    bool        trapToHype = false;
+    bool isRead;
+    uint32_t crm;
+    RegIndex rt;
+    uint32_t crn;
+    uint32_t opc1;
+    uint32_t opc2;
+    bool trapToHype = false;
 
     const CPSR cpsr = tc->readMiscReg(MISCREG_CPSR);
     const HCR hcr = tc->readMiscReg(MISCREG_HCR);
@@ -533,8 +533,8 @@ mcrMrc15TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc, uint32_t iss,
         trapToHype |= hdcr.tpm  && (crn == 9) && (crm >= 12);
         trapToHype |= hcr.tidcp && (
             ((crn ==  9) && ((crm <= 2) || ((crm >= 5) && (crm <= 8)))) ||
-            ((crn == 10) && ((crm <= 1) ||  (crm == 4) || (crm == 8)))  ||
-            ((crn == 11) && ((crm <= 8) ||  (crm == 15)))               );
+            ((crn == 10) && ((crm <= 1) || (crm == 4) || (crm == 8))) ||
+            ((crn == 11) && ((crm <= 8) || (crm == 15))));
 
         if (!trapToHype) {
             switch (unflattenMiscReg(miscReg)) {
@@ -669,13 +669,13 @@ bool
 mcrMrc14TrapToHyp(const MiscRegIndex miscReg, HCR hcr, CPSR cpsr, SCR scr,
                   HDCR hdcr, HSTR hstr, HCPTR hcptr, uint32_t iss)
 {
-    bool        isRead;
-    uint32_t    crm;
-    IntRegIndex rt;
-    uint32_t    crn;
-    uint32_t    opc1;
-    uint32_t    opc2;
-    bool        trapToHype = false;
+    bool isRead;
+    uint32_t crm;
+    RegIndex rt;
+    uint32_t crn;
+    uint32_t opc1;
+    uint32_t opc2;
+    bool trapToHype = false;
 
     if (!inSecureState(scr, cpsr) && (cpsr.mode != MODE_HYP)) {
         mcrMrcIssExtract(iss, isRead, crm, rt, crn, opc1, opc2);
@@ -729,13 +729,13 @@ bool
 mcrrMrrc15TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc,
                     uint32_t iss, ExceptionClass *ec)
 {
-    uint32_t    crm;
-    IntRegIndex rt;
-    uint32_t    crn;
-    uint32_t    opc1;
-    uint32_t    opc2;
-    bool        isRead;
-    bool        trapToHype = false;
+    uint32_t crm;
+    RegIndex rt;
+    uint32_t crn;
+    uint32_t opc1;
+    uint32_t opc2;
+    bool isRead;
+    bool trapToHype = false;
 
     const CPSR cpsr = tc->readMiscReg(MISCREG_CPSR);
     const HCR hcr = tc->readMiscReg(MISCREG_HCR);
@@ -747,7 +747,7 @@ mcrrMrrc15TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc,
         // the moment because we only need one field, which overlaps with the
         // mcrmrc layout
         mcrMrcIssExtract(iss, isRead, crm, rt, crn, opc1, opc2);
-        trapToHype = ((uint32_t) hstr) & (1 << crm);
+        trapToHype = ((uint32_t)hstr) & (1 << crm);
 
         if (!trapToHype) {
             switch (unflattenMiscReg(miscReg)) {
@@ -773,8 +773,9 @@ mcrrMrrc15TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc,
                 // CNTFRQ may be trapped only on reads
                 // CNTPCT and CNTVCT are read-only
                 if (MISCREG_CNTFRQ <= miscReg && miscReg <= MISCREG_CNTVCT &&
-                    !isRead)
+                    !isRead) {
                     break;
+                }
                 trapToHype = isGenericTimerHypTrap(miscReg, tc, ec);
                 break;
               // No default action needed
@@ -991,8 +992,8 @@ isGenericTimerPhysEL0SystemAccessTrapEL2(const MiscRegIndex miscReg,
 {
     const HCR hcr = tc->readMiscReg(MISCREG_HCR_EL2);
     bool trap_cond_0 = condGenericTimerPhysEL1SystemAccessTrapEL2(miscReg, tc);
-    bool trap_cond_1 = condGenericTimerCommonEL1SystemAccessTrapEL2(miscReg,
-                                                                    tc);
+    bool trap_cond_1 = condGenericTimerCommonEL1SystemAccessTrapEL2(
+            miscReg, tc);
     switch (miscReg) {
       case MISCREG_CNTPCT:
       case MISCREG_CNTPCT_EL0:
@@ -1136,35 +1137,34 @@ decodeMrsMsrBankedReg(uint8_t sysM, bool r, bool &isIntReg, int &regIdx,
     isIntReg = !r;
     // Loosely based on ARM ARM issue C section B9.3.10
     if (r) {
-        switch (sysM)
-        {
+        switch (sysM) {
           case 0xE:
             regIdx = MISCREG_SPSR_FIQ;
-            mode   = MODE_FIQ;
+            mode = MODE_FIQ;
             break;
           case 0x10:
             regIdx = MISCREG_SPSR_IRQ;
-            mode   = MODE_IRQ;
+            mode = MODE_IRQ;
             break;
           case 0x12:
             regIdx = MISCREG_SPSR_SVC;
-            mode   = MODE_SVC;
+            mode = MODE_SVC;
             break;
           case 0x14:
             regIdx = MISCREG_SPSR_ABT;
-            mode   = MODE_ABORT;
+            mode = MODE_ABORT;
             break;
           case 0x16:
             regIdx = MISCREG_SPSR_UND;
-            mode   = MODE_UNDEFINED;
+            mode = MODE_UNDEFINED;
             break;
           case 0x1C:
             regIdx = MISCREG_SPSR_MON;
-            mode   = MODE_MON;
+            mode = MODE_MON;
             break;
           case 0x1E:
             regIdx = MISCREG_SPSR_HYP;
-            mode   = MODE_HYP;
+            mode = MODE_HYP;
             break;
           default:
             ok = false;
@@ -1175,52 +1175,51 @@ decodeMrsMsrBankedReg(uint8_t sysM, bool r, bool &isIntReg, int &regIdx,
 
         if (sysM4To3 == 0) {
             mode = MODE_USER;
-            regIdx = intRegInMode(mode, bits(sysM, 2, 0) + 8);
+            regIdx = int_reg::regInMode(mode, bits(sysM, 2, 0) + 8);
         } else if (sysM4To3 == 1) {
             mode = MODE_FIQ;
-            regIdx = intRegInMode(mode, bits(sysM, 2, 0) + 8);
+            regIdx = int_reg::regInMode(mode, bits(sysM, 2, 0) + 8);
         } else if (sysM4To3 == 3) {
             if (bits(sysM, 1) == 0) {
                 mode = MODE_MON;
-                regIdx = intRegInMode(mode, 14 - bits(sysM, 0));
+                regIdx = int_reg::regInMode(mode, 14 - bits(sysM, 0));
             } else {
                 mode = MODE_HYP;
                 if (bits(sysM, 0) == 1) {
-                    regIdx = intRegInMode(mode, 13); // R13 in HYP
+                    regIdx = int_reg::regInMode(mode, 13); // R13 in HYP
                 } else {
                     isIntReg = false;
-                    regIdx   = MISCREG_ELR_HYP;
+                    regIdx = MISCREG_ELR_HYP;
                 }
             }
         } else { // Other Banked registers
             int sysM2 = bits(sysM, 2);
             int sysM1 = bits(sysM, 1);
 
-            mode  = (OperatingMode) ( ((sysM2 ||  sysM1) << 0) |
-                                      (1                 << 1) |
-                                      ((sysM2 && !sysM1) << 2) |
-                                      ((sysM2 &&  sysM1) << 3) |
-                                      (1                 << 4) );
-            regIdx = intRegInMode(mode, 14 - bits(sysM, 0));
+            mode  = (OperatingMode)(((sysM2 || sysM1) << 0) |
+                                    (1 << 1) |
+                                    ((sysM2 && !sysM1) << 2) |
+                                    ((sysM2 && sysM1) << 3) |
+                                    (1 << 4));
+            regIdx = int_reg::regInMode(mode, 14 - bits(sysM, 0));
             // Don't flatten the register here. This is going to go through
-            // setIntReg() which will do the flattening
+            // setReg() which will do the flattening
             ok &= mode != cpsr.mode;
         }
     }
 
     // Check that the requested register is accessable from the current mode
     if (ok && checkSecurity && mode != cpsr.mode) {
-        switch (cpsr.mode)
-        {
+        switch (cpsr.mode) {
           case MODE_USER:
             ok = false;
             break;
           case MODE_FIQ:
-            ok &=  mode != MODE_HYP;
+            ok &= mode != MODE_HYP;
             ok &= (mode != MODE_MON) || !scr.ns;
             break;
           case MODE_HYP:
-            ok &=  mode != MODE_MON;
+            ok &= mode != MODE_MON;
             ok &= (mode != MODE_FIQ) || !nsacr.rfr;
             break;
           case MODE_IRQ:
@@ -1228,7 +1227,7 @@ decodeMrsMsrBankedReg(uint8_t sysM, bool r, bool &isIntReg, int &regIdx,
           case MODE_ABORT:
           case MODE_UNDEFINED:
           case MODE_SYSTEM:
-            ok &=  mode != MODE_HYP;
+            ok &= mode != MODE_HYP;
             ok &= (mode != MODE_MON) || !scr.ns;
             ok &= (mode != MODE_FIQ) || !nsacr.rfr;
             break;
@@ -1240,38 +1239,38 @@ decodeMrsMsrBankedReg(uint8_t sysM, bool r, bool &isIntReg, int &regIdx,
             break;
         }
     }
-    return (ok);
+    return ok;
 }
 
 bool
-isUnpriviledgeAccess(ThreadContext * tc)
+isUnpriviledgeAccess(ThreadContext *tc)
 {
     const HCR hcr = tc->readMiscReg(MISCREG_HCR_EL2);
+    const CPSR cpsr = tc->readMiscReg(MISCREG_CPSR);
+
     // NV Extension not implemented yet
     bool have_nv_ext = false;
     bool unpriv_el1 = currEL(tc) == EL1 &&
-                               !(ArmSystem::haveVirtualization(tc) &&
-                                 have_nv_ext && hcr.nv == 1 && hcr.nv1 == 1);
+        !(ArmSystem::haveEL(tc, EL2) &&
+            have_nv_ext && hcr.nv == 1 && hcr.nv1 == 1);
     bool unpriv_el2 = ArmSystem::haveEL(tc, EL2) && HaveVirtHostExt(tc) &&
                       currEL(tc) == EL2 && hcr.e2h == 1 && hcr.tge == 1;
 
-    // User Access override, or UAO not implemented yet.
-    bool user_access_override = false;
-    return (unpriv_el1 || unpriv_el2) && !user_access_override;
+    return (unpriv_el1 || unpriv_el2) && !cpsr.uao;
 }
 
 bool
-SPAlignmentCheckEnabled(ThreadContext* tc)
+SPAlignmentCheckEnabled(ThreadContext *tc)
 {
     ExceptionLevel regime = s1TranslationRegime(tc, currEL(tc));
 
     switch (currEL(tc)) {
       case EL3:
-        return ((SCTLR) tc->readMiscReg(MISCREG_SCTLR_EL3)).sa;
+        return ((SCTLR)tc->readMiscReg(MISCREG_SCTLR_EL3)).sa;
       case EL2:
-        return ((SCTLR) tc->readMiscReg(MISCREG_SCTLR_EL2)).sa;
+        return ((SCTLR)tc->readMiscReg(MISCREG_SCTLR_EL2)).sa;
       case EL1:
-        return ((SCTLR) tc->readMiscReg(MISCREG_SCTLR_EL1)).sa;
+        return ((SCTLR)tc->readMiscReg(MISCREG_SCTLR_EL1)).sa;
       case EL0:
         {
           SCTLR sc = (regime == EL2) ? tc->readMiscReg(MISCREG_SCTLR_EL2):
@@ -1327,6 +1326,32 @@ encodePhysAddrRange64(int pa_size)
         return 0x6;
       default:
         panic("Invalid phys. address range");
+    }
+}
+
+void
+syncVecRegsToElems(ThreadContext *tc)
+{
+    int ei = 0;
+    for (int ri = 0; ri < NumVecRegs; ri++) {
+        VecRegContainer reg;
+        tc->getReg(vecRegClass[ri], &reg);
+        for (int j = 0; j < NumVecElemPerVecReg; j++, ei++)
+            tc->setReg(vecElemClass[ei], reg.as<VecElem>()[j]);
+    }
+}
+
+void
+syncVecElemsToRegs(ThreadContext *tc)
+{
+    int ei = 0;
+    for (int ri = 0; ri < NumVecRegs; ri++) {
+        VecRegContainer reg;
+        for (int j = 0; j < NumVecElemPerVecReg; j++, ei++) {
+            RegId elem_id = vecElemClass[ei];
+            reg.as<VecElem>()[j] = tc->getReg(elem_id);
+        }
+        tc->setReg(vecRegClass[ri], &reg);
     }
 }
 

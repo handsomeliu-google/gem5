@@ -189,7 +189,8 @@ class IllegalInstFault : public InstFault
 
   public:
     IllegalInstFault(std::string r, const ExtMachInst inst)
-        : InstFault("Illegal instruction", inst)
+        : InstFault("Illegal instruction", inst),
+          reason(r)
     {}
 
     void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;
@@ -242,8 +243,9 @@ class BreakpointFault : public RiscvFault
     const PCState pcState;
 
   public:
-    BreakpointFault(const PCState &pc)
-        : RiscvFault("Breakpoint", FaultType::OTHERS, BREAKPOINT), pcState(pc)
+    BreakpointFault(const PCStateBase &pc)
+        : RiscvFault("Breakpoint", FaultType::OTHERS, BREAKPOINT),
+        pcState(pc.as<PCState>())
     {}
 
     RegVal trap_value() const override { return pcState.pc(); }

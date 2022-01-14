@@ -82,8 +82,6 @@ class Scoreboard : public Named
      *  [NumIntRegs+NumCCRegs, NumFloatRegs+NumIntRegs+NumCCRegs-1] */
     const unsigned numRegs;
 
-    const RegIndex zeroReg;
-
     /** Type to use when indexing numResults */
     typedef unsigned short int Index;
 
@@ -96,6 +94,7 @@ class Scoreboard : public Named
 
     /** Index of the FU generating this result */
     std::vector<int> fuIndices;
+    static constexpr int invalidFUIndex = -1;
 
     /** The estimated cycle number that the result will be presented.
      *  This can be offset from to allow forwarding to be simulated as
@@ -113,15 +112,14 @@ class Scoreboard : public Named
         Named(name),
         regClasses(reg_classes),
         intRegOffset(0),
-        floatRegOffset(intRegOffset + reg_classes.at(IntRegClass).size()),
-        ccRegOffset(floatRegOffset + reg_classes.at(FloatRegClass).size()),
-        vecRegOffset(ccRegOffset + reg_classes.at(CCRegClass).size()),
-        vecPredRegOffset(vecRegOffset + reg_classes.at(VecElemClass).size()),
-        numRegs(vecPredRegOffset + reg_classes.at(VecPredRegClass).size()),
-        zeroReg(reg_classes.at(IntRegClass).zeroReg()),
+        floatRegOffset(intRegOffset + reg_classes.at(IntRegClass)->size()),
+        ccRegOffset(floatRegOffset + reg_classes.at(FloatRegClass)->size()),
+        vecRegOffset(ccRegOffset + reg_classes.at(CCRegClass)->size()),
+        vecPredRegOffset(vecRegOffset + reg_classes.at(VecElemClass)->size()),
+        numRegs(vecPredRegOffset + reg_classes.at(VecPredRegClass)->size()),
         numResults(numRegs, 0),
         numUnpredictableResults(numRegs, 0),
-        fuIndices(numRegs, 0),
+        fuIndices(numRegs, invalidFUIndex),
         returnCycle(numRegs, Cycles(0)),
         writingInst(numRegs, 0)
     { }

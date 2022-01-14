@@ -40,6 +40,8 @@
 
 #include <map>
 
+#include "arch/x86/regs/int.hh"
+#include "arch/x86/regs/misc.hh"
 #include "arch/x86/utility.hh"
 #include "base/compiler.hh"
 #include "kern/linux/flag_tables.hh"
@@ -64,12 +66,12 @@ class X86Linux : public Linux
         ctc->getIsaPtr()->copyRegsFrom(ptc);
 
         if (flags & TGT_CLONE_SETTLS) {
-            ctc->setMiscRegNoEffect(X86ISA::MISCREG_FS_BASE, tls);
-            ctc->setMiscRegNoEffect(X86ISA::MISCREG_FS_EFF_BASE, tls);
+            ctc->setMiscRegNoEffect(X86ISA::misc_reg::FsBase, tls);
+            ctc->setMiscRegNoEffect(X86ISA::misc_reg::FsEffBase, tls);
         }
 
         if (stack)
-            ctc->setIntReg(X86ISA::INTREG_RSP, stack);
+            ctc->setReg(X86ISA::int_reg::Rsp, stack);
     }
 
     class SyscallABI {};
@@ -81,8 +83,7 @@ namespace guest_abi
 
 template <typename ABI>
 struct Result<ABI, SyscallReturn,
-    typename std::enable_if_t<std::is_base_of<
-        X86Linux::SyscallABI, ABI>::value>>
+    typename std::enable_if_t<std::is_base_of_v<X86Linux::SyscallABI, ABI>>>
 {
     static void
     store(ThreadContext *tc, const SyscallReturn &ret)
@@ -90,7 +91,7 @@ struct Result<ABI, SyscallReturn,
         if (ret.suppressed() || ret.needsRetry())
             return;
 
-        tc->setIntReg(X86ISA::INTREG_RAX, ret.encodedValue());
+        tc->setReg(X86ISA::int_reg::Rax, ret.encodedValue());
     }
 };
 

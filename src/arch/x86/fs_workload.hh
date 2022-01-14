@@ -72,8 +72,8 @@ class ConfigTable;
 
 } // namespace intelmp
 
-void installSegDesc(ThreadContext *tc, SegmentRegIndex seg,
-                    SegDescriptor desc, bool longmode);
+void installSegDesc(ThreadContext *tc, int seg, SegDescriptor desc,
+        bool longmode);
 
 class FsWorkload : public KernelWorkload
 {
@@ -90,6 +90,8 @@ class FsWorkload : public KernelWorkload
         KernelWorkload::setSystem(sys);
         gdb = BaseRemoteGDB::build<RemoteGDB>(system);
     }
+
+    ByteOrder byteOrder() const override { return ByteOrder::little; }
 
   protected:
 

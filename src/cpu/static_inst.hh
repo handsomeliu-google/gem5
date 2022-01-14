@@ -47,10 +47,9 @@
 #include <memory>
 #include <string>
 
-#include "arch/pcstate.hh"
+#include "arch/generic/pcstate.hh"
 #include "base/logging.hh"
 #include "base/refcnt.hh"
-#include "config/the_isa.hh"
 #include "cpu/op_class.hh"
 #include "cpu/reg_class.hh"
 #include "cpu/static_inst_fwd.hh"
@@ -106,51 +105,29 @@ class StaticInst : public RefCounted, public StaticInstFlags
     OpClass _opClass;
 
     /// See numSrcRegs().
-    int8_t _numSrcRegs = 0;
+    uint8_t _numSrcRegs = 0;
 
     /// See numDestRegs().
-    int8_t _numDestRegs = 0;
+    uint8_t _numDestRegs = 0;
 
-    /// The following are used to track physical register usage
-    /// for machines with separate int & FP reg files.
-    //@{
-    int8_t _numFPDestRegs = 0;
-    int8_t _numIntDestRegs = 0;
-    int8_t _numCCDestRegs = 0;
-    //@}
-
-    /** To use in architectures with vector register file. */
-    /** @{ */
-    int8_t _numVecDestRegs = 0;
-    int8_t _numVecElemDestRegs = 0;
-    int8_t _numVecPredDestRegs = 0;
-    /** @} */
+    std::array<uint8_t, MiscRegClass + 1> _numTypedDestRegs = {};
 
   public:
 
     /// @name Register information.
-    /// The sum of numFPDestRegs(), numIntDestRegs(), numVecDestRegs(),
-    /// numVecElemDestRegs() and numVecPredDestRegs() equals numDestRegs().
-    /// The former two functions are used to track physical register usage for
-    /// machines with separate int & FP reg files, the next three are for
-    /// machines with vector and predicate register files.
+    /// The sum of the different numDestRegs([type])-s equals numDestRegs().
+    /// The per-type function is used to track physical register usage.
     //@{
     /// Number of source registers.
-    int8_t numSrcRegs()  const { return _numSrcRegs; }
+    uint8_t numSrcRegs()  const { return _numSrcRegs; }
     /// Number of destination registers.
-    int8_t numDestRegs() const { return _numDestRegs; }
-    /// Number of floating-point destination regs.
-    int8_t numFPDestRegs()  const { return _numFPDestRegs; }
-    /// Number of integer destination regs.
-    int8_t numIntDestRegs() const { return _numIntDestRegs; }
-    /// Number of vector destination regs.
-    int8_t numVecDestRegs() const { return _numVecDestRegs; }
-    /// Number of vector element destination regs.
-    int8_t numVecElemDestRegs() const { return _numVecElemDestRegs; }
-    /// Number of predicate destination regs.
-    int8_t numVecPredDestRegs() const { return _numVecPredDestRegs; }
-    /// Number of coprocesor destination regs.
-    int8_t numCCDestRegs() const { return _numCCDestRegs; }
+    uint8_t numDestRegs() const { return _numDestRegs; }
+    /// Number of destination registers of a particular type.
+    uint8_t
+    numDestRegs(RegClassType type) const
+    {
+        return _numTypedDestRegs[type];
+    }
     //@}
 
     /// @name Flag accessors.
@@ -320,11 +297,11 @@ class StaticInst : public RefCounted, public StaticInstFlags
         panic("completeAcc not defined!");
     }
 
-    virtual void advancePC(TheISA::PCState &pc_state) const = 0;
+    virtual void advancePC(PCStateBase &pc_state) const = 0;
+    virtual void advancePC(ThreadContext *tc) const;
 
-    virtual TheISA::PCState
-    buildRetPC(const TheISA::PCState &cur_pc,
-            const TheISA::PCState &call_pc) const
+    virtual std::unique_ptr<PCStateBase>
+    buildRetPC(const PCStateBase &cur_pc, const PCStateBase &call_pc) const
     {
         panic("buildRetPC not defined!");
     }
@@ -340,7 +317,8 @@ class StaticInst : public RefCounted, public StaticInstFlags
      * Invalid if not a PC-relative branch (i.e. isDirectCtrl()
      * should be true).
      */
-    virtual TheISA::PCState branchTarget(const TheISA::PCState &pc) const;
+    virtual std::unique_ptr<PCStateBase> branchTarget(
+            const PCStateBase &pc) const;
 
     /**
      * Return the target address for an indirect branch (jump).  The
@@ -349,14 +327,8 @@ class StaticInst : public RefCounted, public StaticInstFlags
      * execute the branch in question.  Invalid if not an indirect
      * branch (i.e. isIndirectCtrl() should be true).
      */
-    virtual TheISA::PCState branchTarget(ThreadContext *tc) const;
-
-    /**
-     * Return true if the instruction is a control transfer, and if so,
-     * return the target address as well.
-     */
-    bool hasBranchTarget(const TheISA::PCState &pc, ThreadContext *tc,
-            TheISA::PCState &tgt) const;
+    virtual std::unique_ptr<PCStateBase> branchTarget(
+            ThreadContext *tc) const;
 
     /**
      * Return string representation of disassembled instruction.

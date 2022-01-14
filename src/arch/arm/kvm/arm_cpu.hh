@@ -41,6 +41,7 @@
 #include <set>
 #include <vector>
 
+#include "arch/arm/pcstate.hh"
 #include "cpu/kvm/base.hh"
 #include "params/ArmKvmCPU.hh"
 
@@ -75,7 +76,7 @@ class ArmKvmCPU : public BaseKvmCPU
         /** KVM ID */
         const uint64_t id;
         /** gem5 index */
-        const ArmISA::IntRegIndex idx;
+        const RegIndex idx;
         /** Name in debug output */
         const char *name;
     };
@@ -96,6 +97,11 @@ class ArmKvmCPU : public BaseKvmCPU
 
     void updateKvmState();
     void updateThreadContext();
+    void
+    stutterPC(PCStateBase &pc) const
+    {
+        pc.as<X86ISA::PCState>().setNPC(pc->instAddr());
+    }
 
     /**
      * Get a list of registers supported by getOneReg() and setOneReg().

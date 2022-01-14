@@ -43,6 +43,7 @@ Source('base_gen.cc')
 Source('dram_gen.cc')
 Source('dram_rot_gen.cc')
 Source('exit_gen.cc')
+Source('gups_gen.cc')
 Source('hybrid_gen.cc')
 Source('idle_gen.cc')
 Source('linear_gen.cc')
@@ -53,6 +54,9 @@ Source('strided_gen.cc')
 
 DebugFlag('TrafficGen')
 SimObject('BaseTrafficGen.py')
+
+DebugFlag('GUPSGen')
+SimObject('GUPSGen.py')
 
 if env['USE_PYTHON']:
     Source('pygen.cc', add_tags='python')

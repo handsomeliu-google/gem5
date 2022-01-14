@@ -46,7 +46,9 @@ class SEWorkload : public gem5::SEWorkload
   public:
     using Params = MipsSEWorkloadParams;
 
-    SEWorkload(const Params &p) : gem5::SEWorkload(p) {}
+    SEWorkload(const Params &p, Addr page_shift) :
+        gem5::SEWorkload(p, page_shift)
+    {}
 
     void
     setSystem(System *sys) override
@@ -59,7 +61,7 @@ class SEWorkload : public gem5::SEWorkload
 
     struct SyscallABI : public GenericSyscallABI64
     {
-        static const std::vector<int> ArgumentRegs;
+        static const std::vector<RegId> ArgumentRegs;
     };
 };
 
@@ -80,15 +82,15 @@ struct Result<MipsISA::SEWorkload::SyscallABI, SyscallReturn>
 
         if (ret.successful()) {
             // no error
-            tc->setIntReg(MipsISA::SyscallSuccessReg, 0);
-            tc->setIntReg(MipsISA::ReturnValueReg, ret.returnValue());
+            tc->setReg(MipsISA::int_reg::SyscallSuccess, (RegVal)0);
+            tc->setReg(MipsISA::int_reg::V0, ret.returnValue());
         } else {
             // got an error, return details
-            tc->setIntReg(MipsISA::SyscallSuccessReg, (uint32_t)(-1));
-            tc->setIntReg(MipsISA::ReturnValueReg, ret.errnoValue());
+            tc->setReg(MipsISA::int_reg::SyscallSuccess, (uint32_t)(-1));
+            tc->setReg(MipsISA::int_reg::V0, ret.errnoValue());
         }
         if (ret.count() > 1)
-            tc->setIntReg(MipsISA::SyscallPseudoReturnReg, ret.value2());
+            tc->setReg(MipsISA::int_reg::V1, ret.value2());
     }
 };
 

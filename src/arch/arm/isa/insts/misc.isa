@@ -124,10 +124,10 @@ let {{
     SCR  scr  = Scr;
 
     // Filter out the various cases where this instruction isn't defined
-    if (!FullSystem || !ArmSystem::haveVirtualization(xc->tcBase()) ||
+    if (!FullSystem || !ArmSystem::haveEL(xc->tcBase(), EL2) ||
         (cpsr.mode == MODE_USER) ||
         (isSecure(xc->tcBase()) && !IsSecureEL2Enabled(xc->tcBase())) ||
-        (ArmSystem::haveSecurity(xc->tcBase()) ? !scr.hce : hcr.hcd)) {
+        (ArmSystem::haveEL(xc->tcBase(), EL3) ? !scr.hce : hcr.hcd)) {
         fault = disabledFault();
     } else {
         fault = std::make_shared<HypervisorCall>(machInst, imm);
@@ -290,7 +290,7 @@ let {{
                 // you look at the generated C code you'll find that they are.
                 // However this is safe as DecodedBankedIntReg (which is used
                 // in operands.isa to get the index of DecodedBankedIntReg)
-                // will return INTREG_DUMMY if its not a valid integer
+                // will return int_reg::Zero if its not a valid integer
                 // register, so redirecting the write to somewhere we don't
                 // care about.
                 DecodedBankedIntReg = Op1;
@@ -889,11 +889,10 @@ let {{
     exec_output += PredOpExecute.subst(bfiIop)
 
     mrc14code = '''
-    MiscRegIndex miscReg = (MiscRegIndex) xc->tcBase()->flattenRegId(
-                               RegId(MiscRegClass, op1)).index();
-    bool can_read, undefined;
-    std::tie(can_read, undefined) = canReadCoprocReg(miscReg, Scr, Cpsr,
-                                                     xc->tcBase());
+    auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+    auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(op1);
+    auto [can_read, undefined] = canReadCoprocReg(miscReg, Scr, Cpsr,
+                                                  xc->tcBase());
     if (!can_read || undefined) {
         return std::make_shared<UndefinedInstruction>(machInst, false,
                                                       mnemonic);
@@ -915,11 +914,10 @@ let {{
 
 
     mcr14code = '''
-    MiscRegIndex miscReg = (MiscRegIndex) xc->tcBase()->flattenRegId(
-                               RegId(MiscRegClass, dest)).index();
-    bool can_write, undefined;
-    std::tie(can_write, undefined) = canWriteCoprocReg(miscReg, Scr, Cpsr,
-                                                       xc->tcBase());
+    auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+    auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(dest);
+    auto [can_write, undefined] = canWriteCoprocReg(miscReg, Scr, Cpsr,
+                                                    xc->tcBase());
     if (undefined || !can_write) {
         return std::make_shared<UndefinedInstruction>(machInst, false,
                                                       mnemonic);
@@ -941,15 +939,13 @@ let {{
 
     mrc15code = '''
     int preFlatOp1 = snsBankedIndex(op1, xc->tcBase());
-    MiscRegIndex miscReg = (MiscRegIndex)
-                           xc->tcBase()->flattenRegId(RegId(MiscRegClass,
-                                                      preFlatOp1)).index();
+    auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+    auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(preFlatOp1);
 
     Fault fault = mcrMrc15Trap(miscReg, machInst, xc->tcBase(), imm);
 
-    bool can_read, undefined;
-    std::tie(can_read, undefined) = canReadCoprocReg(miscReg, Scr, Cpsr,
-                                                     xc->tcBase());
+    auto [can_read, undefined] = canReadCoprocReg(miscReg, Scr, Cpsr,
+                                                  xc->tcBase());
     // if we're in non secure PL1 mode then we can trap regargless of whether
     // the register is accessable, in other modes we trap if only if the register
     // IS accessable.
@@ -974,15 +970,13 @@ let {{
 
     mcr15code = '''
     int preFlatDest = snsBankedIndex(dest, xc->tcBase());
-    MiscRegIndex miscReg = (MiscRegIndex)
-                       xc->tcBase()->flattenRegId(RegId(MiscRegClass,
-                                                  preFlatDest)).index();
+    auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+    auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(preFlatDest);
 
     Fault fault = mcrMrc15Trap(miscReg, machInst, xc->tcBase(), imm);
 
-    bool can_write, undefined;
-    std::tie(can_write, undefined) = canWriteCoprocReg(miscReg, Scr, Cpsr,
-                                                       xc->tcBase());
+    auto [can_write, undefined] = canWriteCoprocReg(miscReg, Scr, Cpsr,
+                                                    xc->tcBase());
 
     // if we're in non secure PL1 mode then we can trap regargless of whether
     // the register is accessable, in other modes we trap if only if the register
@@ -1008,15 +1002,13 @@ let {{
 
     mrrc15code = '''
     int preFlatOp1 = snsBankedIndex(op1, xc->tcBase());
-    MiscRegIndex miscReg = (MiscRegIndex)
-                           xc->tcBase()->flattenRegId(RegId(MiscRegClass,
-                                                      preFlatOp1)).index();
+    auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+    auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(preFlatOp1);
 
     Fault fault = mcrrMrrc15Trap(miscReg, machInst, xc->tcBase(), imm);
 
-    bool can_read, undefined;
-    std::tie(can_read, undefined) = canReadCoprocReg(miscReg, Scr, Cpsr,
-                                                     xc->tcBase());
+    auto [can_read, undefined] = canReadCoprocReg(miscReg, Scr, Cpsr,
+                                                  xc->tcBase());
     // if we're in non secure PL1 mode then we can trap regargless of whether
     // the register is accessable, in other modes we trap if only if the register
     // IS accessable.
@@ -1041,15 +1033,13 @@ let {{
 
     mcrr15code = '''
     int preFlatDest = snsBankedIndex(dest, xc->tcBase());
-    MiscRegIndex miscReg = (MiscRegIndex)
-                           xc->tcBase()->flattenRegId(RegId(MiscRegClass,
-                                                      preFlatDest)).index();
+    auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+    auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(preFlatDest);
 
     Fault fault = mcrrMrrc15Trap(miscReg, machInst, xc->tcBase(), imm);
 
-    bool can_write, undefined;
-    std::tie(can_write, undefined) = canWriteCoprocReg(miscReg, Scr, Cpsr,
-                                                       xc->tcBase());
+    auto [can_write, undefined] = canWriteCoprocReg(miscReg, Scr, Cpsr,
+                                                    xc->tcBase());
 
     // if we're in non secure PL1 mode then we can trap regargless of whether
     // the register is accessable, in other modes we trap if only if the register
@@ -1120,14 +1110,13 @@ let {{
 
     McrDcCheckCode = '''
         int preFlatDest = snsBankedIndex(dest, xc->tcBase());
-        MiscRegIndex miscReg = (MiscRegIndex) xc->tcBase()->flattenRegId(
-            RegId(MiscRegClass, preFlatDest)).index();
+        auto *isa = static_cast<ArmISA::ISA *>(xc->tcBase()->getIsaPtr());
+        auto miscReg = (MiscRegIndex)isa->flattenMiscIndex(preFlatDest);
 
         bool hypTrap = mcrMrc15TrapToHyp(miscReg, xc->tcBase(), imm);
 
-        bool can_write, undefined;
-        std::tie(can_write, undefined) = canWriteCoprocReg(miscReg, Scr, Cpsr,
-                                                           xc->tcBase());
+        auto [can_write, undefined] = canWriteCoprocReg(miscReg, Scr, Cpsr,
+                                                        xc->tcBase());
 
         // if we're in non secure PL1 mode then we can trap regardless
         // of whether the register is accessible, in other modes we

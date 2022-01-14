@@ -917,7 +917,8 @@ BaseCache::updateCompressionData(CacheBlk *&blk, const uint64_t* data,
 
     // Get previous compressed size
     CompressionBlk* compression_blk = static_cast<CompressionBlk*>(blk);
-    GEM5_VAR_USED const std::size_t prev_size = compression_blk->getSizeBits();
+    [[maybe_unused]] const std::size_t prev_size =
+        compression_blk->getSizeBits();
 
     // If compressed size didn't change enough to modify its co-allocatability
     // there is nothing to do. Otherwise we may be facing a data expansion
@@ -1156,9 +1157,9 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
     // sanity check
     assert(pkt->isRequest());
 
-    chatty_assert(!(isReadOnly && pkt->isWrite()),
-                  "Should never see a write in a read-only cache %s\n",
-                  name());
+    gem5_assert(!(isReadOnly && pkt->isWrite()),
+                "Should never see a write in a read-only cache %s\n",
+                name());
 
     // Access block in the tags
     Cycles tag_latency(0);
@@ -1438,7 +1439,7 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
     Addr addr = pkt->getAddr();
     bool is_secure = pkt->isSecure();
     const bool has_old_data = blk && blk->isValid();
-    const std::string old_state = blk ? blk->print() : "";
+    const std::string old_state = (debug::Cache && blk) ? blk->print() : "";
 
     // When handling a fill, we should have no writes to this line.
     assert(addr == pkt->getBlockAddr(blkSize));
@@ -1501,8 +1502,8 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
             // owners copy
             blk->setCoherenceBits(CacheBlk::DirtyBit);
 
-            chatty_assert(!isReadOnly, "Should never see dirty snoop response "
-                          "in read-only cache %s\n", name());
+            gem5_assert(!isReadOnly, "Should never see dirty snoop response "
+                        "in read-only cache %s\n", name());
 
         }
     }
@@ -1615,8 +1616,8 @@ BaseCache::evictBlock(CacheBlk *blk, PacketList &writebacks)
 PacketPtr
 BaseCache::writebackBlk(CacheBlk *blk)
 {
-    chatty_assert(!isReadOnly || writebackClean,
-                  "Writeback from read-only cache");
+    gem5_assert(!isReadOnly || writebackClean,
+                "Writeback from read-only cache");
     assert(blk && blk->isValid() &&
         (blk->isSet(CacheBlk::DirtyBit) || writebackClean));
 
@@ -2453,7 +2454,7 @@ BaseCache::CpuSidePort::recvTimingReq(PacketPtr pkt)
     if (cache->system->bypassCaches()) {
         // Just forward the packet if caches are disabled.
         // @todo This should really enqueue the packet rather
-        GEM5_VAR_USED bool success = cache->memSidePort.sendTimingReq(pkt);
+        [[maybe_unused]] bool success = cache->memSidePort.sendTimingReq(pkt);
         assert(success);
         return true;
     } else if (tryTiming(pkt)) {

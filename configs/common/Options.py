@@ -260,9 +260,6 @@ def addCommonOptions(parser):
                       Elastic Trace probe in a capture simulation and
                       Trace CPU in a replay simulation""", default="")
 
-    parser.add_argument("-l", "--lpae", action="store_true")
-    parser.add_argument("-V", "--virtualisation", action="store_true")
-
     # dist-gem5 options
     parser.add_argument("--dist", action="store_true",
                         help="Parallel distributed gem5 simulation.")
@@ -470,7 +467,7 @@ def addFSOptions(parser):
     # System options
     parser.add_argument("--kernel", action="store", type=str)
     parser.add_argument("--os-type", action="store",
-                        choices=os_types[str(buildEnv['TARGET_ISA'])],
+                        choices=os_types,
                         default="linux",
                         help="Specifies type of OS to boot")
     parser.add_argument("--script", action="store", type=str)
@@ -479,7 +476,7 @@ def addFSOptions(parser):
         help="Stores changed frame buffers from the VNC server to compressed "
         "files in the gem5 output directory")
 
-    if buildEnv['TARGET_ISA'] == "arm":
+    if buildEnv['USE_ARM']:
         parser.add_argument(
             "--bare-metal", action="store_true",
             help="Provide the raw system without the linux specific bits")
@@ -493,9 +490,6 @@ def addFSOptions(parser):
             "--dtb-filename", action="store", type=str,
             help="Specifies device tree blob file to use with device-tree-"
             "enabled kernels")
-        parser.add_argument(
-            "--enable-security-extensions", action="store_true",
-            help="Turn on the ARM Security Extensions")
         parser.add_argument(
             "--enable-context-switch-stats-dump", action="store_true",
             help="Enable stats dump at context "
@@ -533,3 +527,7 @@ def addFSOptions(parser):
     parser.add_argument(
         "--command-line-file", action="store", default=None, type=str,
         help="File with a template for the kernel command line")
+
+    # Debug option
+    parser.add_argument("--wait-gdb", default=False, action='store_true',
+                        help="Wait for remote GDB to connect.")

@@ -50,7 +50,6 @@
 
 #include "base/refcnt.hh"
 #include "base/trace.hh"
-#include "config/the_isa.hh"
 #include "cpu/checker/cpu.hh"
 #include "cpu/exec_context.hh"
 #include "cpu/exetrace.hh"
@@ -75,13 +74,17 @@ namespace o3
 
 class DynInst : public ExecContext, public RefCounted
 {
+  private:
+    DynInst(const StaticInstPtr &staticInst, const StaticInstPtr &macroop,
+            InstSeqNum seq_num, CPU *cpu);
+
   public:
     // The list of instructions iterator type.
     typedef typename std::list<DynInstPtr>::iterator ListIt;
 
     /** BaseDynInst constructor given a binary instruction. */
     DynInst(const StaticInstPtr &staticInst, const StaticInstPtr
-            &macroop, TheISA::PCState pc, TheISA::PCState predPC,
+            &macroop, const PCStateBase &pc, const PCStateBase &pred_pc,
             InstSeqNum seq_num, CPU *cpu);
 
     /** BaseDynInst constructor given a static inst pointer. */
@@ -182,7 +185,7 @@ class DynInst : public ExecContext, public RefCounted
     std::queue<InstResult> instResult;
 
     /** PC state for this instruction. */
-    TheISA::PCState pc;
+    std::unique_ptr<PCStateBase> pc;
 
     /** Values to be written to the destination misc. registers. */
     std::vector<RegVal> _destMiscRegVal;
@@ -361,7 +364,7 @@ class DynInst : public ExecContext, public RefCounted
 
     ////////////////////// Branch Data ///////////////
     /** Predicted PC state after this instruction. */
-    TheISA::PCState predPC;
+    std::unique_ptr<PCStateBase> predPC;
 
     /** The Macroop if one exists */
     const StaticInstPtr macroop;
@@ -400,7 +403,7 @@ class DynInst : public ExecContext, public RefCounted
      * Saved memory request (needed when the DTB address translation is
      * delayed due to a hw page table walk).
      */
-    LSQ::LSQRequest *savedReq;
+    LSQ::LSQRequest *savedRequest;
 
     /////////////////////// Checker //////////////////////
     // Need a copy of main request pointer to verify on writes.
@@ -551,18 +554,9 @@ class DynInst : public ExecContext, public RefCounted
     bool doneTargCalc() { return false; }
 
     /** Set the predicted target of this current instruction. */
-    void setPredTarg(const TheISA::PCState &_predPC) { predPC = _predPC; }
+    void setPredTarg(const PCStateBase &pred_pc) { set(predPC, pred_pc); }
 
-    const TheISA::PCState &readPredTarg() { return predPC; }
-
-    /** Returns the predicted PC immediately after the branch. */
-    Addr predInstAddr() { return predPC.instAddr(); }
-
-    /** Returns the predicted PC two instructions after the branch */
-    Addr predNextInstAddr() { return predPC.nextInstAddr(); }
-
-    /** Returns the predicted micro PC after the branch */
-    Addr predMicroPC() { return predPC.microPC(); }
+    const PCStateBase &readPredTarg() { return *predPC; }
 
     /** Returns whether the instruction was predicted taken or not. */
     bool readPredTaken() { return instFlags[PredTaken]; }
@@ -577,9 +571,9 @@ class DynInst : public ExecContext, public RefCounted
     bool
     mispredicted()
     {
-        TheISA::PCState tempPC = pc;
-        staticInst->advancePC(tempPC);
-        return !(tempPC == predPC);
+        std::unique_ptr<PCStateBase> next_pc(pc->clone());
+        staticInst->advancePC(*next_pc);
+        return *next_pc != *predPC;
     }
 
     //
@@ -638,7 +632,7 @@ class DynInst : public ExecContext, public RefCounted
     getHtmTransactionUid() const override
     {
         assert(instFlags[HtmFromTransaction]);
-        return this->htmUid;
+        return htmUid;
     }
 
     uint64_t
@@ -658,7 +652,7 @@ class DynInst : public ExecContext, public RefCounted
     getHtmTransactionalDepth() const override
     {
         if (inHtmTransactionalState())
-            return this->htmDepth;
+            return htmDepth;
         else
             return 0;
     }
@@ -717,10 +711,10 @@ class DynInst : public ExecContext, public RefCounted
     OpClass opClass() const { return staticInst->opClass(); }
 
     /** Returns the branch target address. */
-    TheISA::PCState
+    std::unique_ptr<PCStateBase>
     branchTarget() const
     {
-        return staticInst->branchTarget(pc);
+        return staticInst->branchTarget(*pc);
     }
 
     /** Returns the number of source registers. */
@@ -729,21 +723,10 @@ class DynInst : public ExecContext, public RefCounted
     /** Returns the number of destination registers. */
     size_t numDestRegs() const { return regs.numDests(); }
 
-    // the following are used to track physical register usage
-    // for machines with separate int & FP reg files
-    int8_t numFPDestRegs()  const { return staticInst->numFPDestRegs(); }
-    int8_t numIntDestRegs() const { return staticInst->numIntDestRegs(); }
-    int8_t numCCDestRegs() const { return staticInst->numCCDestRegs(); }
-    int8_t numVecDestRegs() const { return staticInst->numVecDestRegs(); }
-    int8_t
-    numVecElemDestRegs() const
+    size_t
+    numDestRegs(RegClassType type) const
     {
-        return staticInst->numVecElemDestRegs();
-    }
-    int8_t
-    numVecPredDestRegs() const
-    {
-        return staticInst->numVecPredDestRegs();
+        return staticInst->numDestRegs(type);
     }
 
     /** Returns the logical register index of the i'th destination register. */
@@ -771,47 +754,12 @@ class DynInst : public ExecContext, public RefCounted
 
     /** Pushes a result onto the instResult queue. */
     /** @{ */
-    /** Scalar result. */
     template<typename T>
     void
-    setScalarResult(T &&t)
+    setResult(const RegClass &reg_class, T &&t)
     {
         if (instFlags[RecordResult]) {
-            instResult.push(InstResult(std::forward<T>(t),
-                        InstResult::ResultType::Scalar));
-        }
-    }
-
-    /** Full vector result. */
-    template<typename T>
-    void
-    setVecResult(T &&t)
-    {
-        if (instFlags[RecordResult]) {
-            instResult.push(InstResult(std::forward<T>(t),
-                        InstResult::ResultType::VecReg));
-        }
-    }
-
-    /** Vector element result. */
-    template<typename T>
-    void
-    setVecElemResult(T &&t)
-    {
-        if (instFlags[RecordResult]) {
-            instResult.push(InstResult(std::forward<T>(t),
-                        InstResult::ResultType::VecElem));
-        }
-    }
-
-    /** Predicate result. */
-    template<typename T>
-    void
-    setVecPredResult(T &&t)
-    {
-        if (instFlags[RecordResult]) {
-            instResult.push(InstResult(std::forward<T>(t),
-                            InstResult::ResultType::VecPredReg));
+            instResult.emplace(reg_class, std::forward<T>(t));
         }
     }
     /** @} */
@@ -976,19 +924,14 @@ class DynInst : public ExecContext, public RefCounted
     }
 
     /** Read the PC state of this instruction. */
-    TheISA::PCState pcState() const override { return pc; }
+    const PCStateBase &
+    pcState() const override
+    {
+        return *pc;
+    }
 
     /** Set the PC state of this instruction. */
-    void pcState(const TheISA::PCState &val) override { pc = val; }
-
-    /** Read the PC of this instruction. */
-    Addr instAddr() const { return pc.instAddr(); }
-
-    /** Read the PC of the next instruction. */
-    Addr nextInstAddr() const { return pc.nextInstAddr(); }
-
-    /**Read the micro PC of this instruction. */
-    Addr microPC() const { return pc.microPC(); }
+    void pcState(const PCStateBase &val) override { set(pc, val); }
 
     bool readPredicate() const override { return instFlags[Predicate]; }
 
@@ -1107,7 +1050,7 @@ class DynInst : public ExecContext, public RefCounted
     RegVal
     readMiscReg(int misc_reg) override
     {
-        return this->cpu->readMiscReg(misc_reg, this->threadNumber);
+        return cpu->readMiscReg(misc_reg, threadNumber);
     }
 
     /** Sets a misc. register, including any side-effects the write
@@ -1139,7 +1082,7 @@ class DynInst : public ExecContext, public RefCounted
     {
         const RegId& reg = si->srcRegIdx(idx);
         assert(reg.is(MiscRegClass));
-        return this->cpu->readMiscReg(reg.index(), this->threadNumber);
+        return cpu->readMiscReg(reg.index(), threadNumber);
     }
 
     /** Sets a misc. register, including any side-effects the write
@@ -1161,54 +1104,31 @@ class DynInst : public ExecContext, public RefCounted
         // using the TC during an instruction's execution (specifically for
         // instructions that have side-effects that use the TC).  Fix this.
         // See cpu/o3/dyn_inst_impl.hh.
-        bool no_squash_from_TC = this->thread->noSquashFromTC;
-        this->thread->noSquashFromTC = true;
+        bool no_squash_from_TC = thread->noSquashFromTC;
+        thread->noSquashFromTC = true;
 
         for (int i = 0; i < _destMiscRegIdx.size(); i++)
-            this->cpu->setMiscReg(
-                _destMiscRegIdx[i], _destMiscRegVal[i], this->threadNumber);
+            cpu->setMiscReg(
+                _destMiscRegIdx[i], _destMiscRegVal[i], threadNumber);
 
-        this->thread->noSquashFromTC = no_squash_from_TC;
+        thread->noSquashFromTC = no_squash_from_TC;
     }
 
     void
     forwardOldRegs()
     {
 
-        for (int idx = 0; idx < this->numDestRegs(); idx++) {
-            PhysRegIdPtr prev_phys_reg = this->regs.prevDestIdx(idx);
-            const RegId& original_dest_reg = this->staticInst->destRegIdx(idx);
-            switch (original_dest_reg.classValue()) {
-              case IntRegClass:
-                this->setIntRegOperand(this->staticInst.get(), idx,
-                        this->cpu->readIntReg(prev_phys_reg));
-                break;
-              case FloatRegClass:
-                this->setFloatRegOperandBits(this->staticInst.get(), idx,
-                        this->cpu->readFloatReg(prev_phys_reg));
-                break;
-              case VecRegClass:
-                this->setVecRegOperand(this->staticInst.get(), idx,
-                        this->cpu->readVecReg(prev_phys_reg));
-                break;
-              case VecElemClass:
-                this->setVecElemOperand(this->staticInst.get(), idx,
-                        this->cpu->readVecElem(prev_phys_reg));
-                break;
-              case VecPredRegClass:
-                this->setVecPredRegOperand(this->staticInst.get(), idx,
-                        this->cpu->readVecPredReg(prev_phys_reg));
-                break;
-              case CCRegClass:
-                this->setCCRegOperand(this->staticInst.get(), idx,
-                        this->cpu->readCCReg(prev_phys_reg));
-                break;
-              case MiscRegClass:
-                // no need to forward misc reg values
-                break;
-              default:
-                panic("Unknown register class: %d",
-                        (int)original_dest_reg.classValue());
+        for (int idx = 0; idx < numDestRegs(); idx++) {
+            PhysRegIdPtr prev_phys_reg = regs.prevDestIdx(idx);
+            const RegId& original_dest_reg = staticInst->destRegIdx(idx);
+            const auto bytes = original_dest_reg.regClass().regBytes();
+            if (bytes == sizeof(RegVal)) {
+                setRegOperand(staticInst.get(), idx,
+                        cpu->getReg(prev_phys_reg));
+            } else {
+                uint8_t val[original_dest_reg.regClass().regBytes()];
+                cpu->getReg(prev_phys_reg, val);
+                setRegOperand(staticInst.get(), idx, val);
             }
         }
     }
@@ -1229,104 +1149,45 @@ class DynInst : public ExecContext, public RefCounted
     // to do).
 
     RegVal
-    readIntRegOperand(const StaticInst *si, int idx) override
+    getRegOperand(const StaticInst *si, int idx) override
     {
-        return this->cpu->readIntReg(this->regs.renamedSrcIdx(idx));
+        const PhysRegIdPtr reg = regs.renamedSrcIdx(idx);
+        if (reg->is(InvalidRegClass))
+            return 0;
+        return cpu->getReg(reg);
     }
 
-    RegVal
-    readFloatRegOperandBits(const StaticInst *si, int idx) override
+    void
+    getRegOperand(const StaticInst *si, int idx, void *val) override
     {
-        return this->cpu->readFloatReg(this->regs.renamedSrcIdx(idx));
+        cpu->getReg(regs.renamedSrcIdx(idx), val);
     }
 
-    const TheISA::VecRegContainer&
-    readVecRegOperand(const StaticInst *si, int idx) const override
+    void *
+    getWritableRegOperand(const StaticInst *si, int idx) override
     {
-        return this->cpu->readVecReg(this->regs.renamedSrcIdx(idx));
-    }
-
-    /**
-     * Read destination vector register operand for modification.
-     */
-    TheISA::VecRegContainer&
-    getWritableVecRegOperand(const StaticInst *si, int idx) override
-    {
-        return this->cpu->getWritableVecReg(this->regs.renamedDestIdx(idx));
-    }
-
-    TheISA::VecElem
-    readVecElemOperand(const StaticInst *si, int idx) const override
-    {
-        return this->cpu->readVecElem(this->regs.renamedSrcIdx(idx));
-    }
-
-    const TheISA::VecPredRegContainer&
-    readVecPredRegOperand(const StaticInst *si, int idx) const override
-    {
-        return this->cpu->readVecPredReg(this->regs.renamedSrcIdx(idx));
-    }
-
-    TheISA::VecPredRegContainer&
-    getWritableVecPredRegOperand(const StaticInst *si, int idx) override
-    {
-        return this->cpu->getWritableVecPredReg(
-                this->regs.renamedDestIdx(idx));
-    }
-
-    RegVal
-    readCCRegOperand(const StaticInst *si, int idx) override
-    {
-        return this->cpu->readCCReg(this->regs.renamedSrcIdx(idx));
+        return cpu->getWritableReg(regs.renamedDestIdx(idx));
     }
 
     /** @todo: Make results into arrays so they can handle multiple dest
      *  registers.
      */
     void
-    setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
+    setRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        this->cpu->setIntReg(this->regs.renamedDestIdx(idx), val);
-        setScalarResult(val);
+        const PhysRegIdPtr reg = regs.renamedDestIdx(idx);
+        if (reg->is(InvalidRegClass))
+            return;
+        cpu->setReg(reg, val);
+        setResult(reg->regClass(), val);
     }
 
     void
-    setFloatRegOperandBits(const StaticInst *si, int idx, RegVal val) override
+    setRegOperand(const StaticInst *si, int idx, const void *val) override
     {
-        this->cpu->setFloatReg(this->regs.renamedDestIdx(idx), val);
-        setScalarResult(val);
-    }
-
-    void
-    setVecRegOperand(const StaticInst *si, int idx,
-                     const TheISA::VecRegContainer& val) override
-    {
-        this->cpu->setVecReg(this->regs.renamedDestIdx(idx), val);
-        setVecResult(val);
-    }
-
-    void
-    setVecElemOperand(const StaticInst *si, int idx,
-            const TheISA::VecElem val) override
-    {
-        int reg_idx = idx;
-        this->cpu->setVecElem(this->regs.renamedDestIdx(reg_idx), val);
-        setVecElemResult(val);
-    }
-
-    void
-    setVecPredRegOperand(const StaticInst *si, int idx,
-                         const TheISA::VecPredRegContainer& val) override
-    {
-        this->cpu->setVecPredReg(this->regs.renamedDestIdx(idx), val);
-        setVecPredResult(val);
-    }
-
-    void
-    setCCRegOperand(const StaticInst *si, int idx, RegVal val) override
-    {
-        this->cpu->setCCReg(this->regs.renamedDestIdx(idx), val);
-        setScalarResult(val);
+        const PhysRegIdPtr reg = regs.renamedDestIdx(idx);
+        cpu->setReg(reg, val);
+        setResult(reg->regClass(), val);
     }
 };
 

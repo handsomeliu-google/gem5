@@ -44,14 +44,10 @@ from m5.proxy import *
 
 from m5.objects.DVFSHandler import *
 from m5.objects.SimpleMemory import *
+from m5.objects.Workload import StubWorkload
 
 class MemoryMode(Enum): vals = ['invalid', 'atomic', 'timing',
                                 'atomic_noncaching']
-
-if buildEnv['TARGET_ISA'] in ('sparc', 'power'):
-    default_byte_order = 'big'
-else:
-    default_byte_order = 'little'
 
 class System(SimObject):
     type = 'System'
@@ -95,9 +91,6 @@ class System(SimObject):
 
     cache_line_size = Param.Unsigned(64, "Cache line size in bytes")
 
-    byte_order = Param.ByteOrder(default_byte_order,
-                                 "Default byte order of system components")
-
     redirect_paths = VectorParam.RedirectPath([], "Path redirections")
 
     exit_on_work_items = Param.Bool(False, "Exit from the simulation loop when "
@@ -117,7 +110,7 @@ class System(SimObject):
     work_cpus_ckpt_count = Param.Counter(0,
         "create checkpoint when active cpu count value is reached")
 
-    workload = Param.Workload(NULL, "Workload to run on this system")
+    workload = Param.Workload(StubWorkload(), "Workload to run on this system")
     init_param = Param.UInt64(0, "numerical value to pass into simulator")
     readfile = Param.String("", "file to read startup script from")
     symbolfile = Param.String("", "file to get the symbols from")
@@ -131,10 +124,8 @@ class System(SimObject):
 
     # SE mode doesn't use the ISA System subclasses, and so we need to set an
     # ISA specific value in this class directly.
-    m5ops_base = Param.Addr(
-        0xffff0000 if buildEnv['TARGET_ISA'] == 'x86' else 0,
-        "Base of the 64KiB PA range used for memory-mapped m5ops. Set to 0 "
-        "to disable.")
+    m5ops_base = Param.Addr(0, "Base of the 64KiB PA range used for "
+       "memory-mapped m5ops. Set to 0 to disable.")
 
     if buildEnv['USE_KVM']:
         kvm_vm = Param.KvmVM(NULL, 'KVM VM (i.e., shared memory domain)')

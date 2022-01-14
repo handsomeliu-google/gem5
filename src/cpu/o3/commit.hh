@@ -59,7 +59,7 @@
 namespace gem5
 {
 
-struct O3CPUParams;
+struct BaseO3CPUParams;
 
 namespace o3
 {
@@ -132,7 +132,7 @@ class Commit
 
   public:
     /** Construct a Commit with the given parameters. */
-    Commit(CPU *_cpu, const O3CPUParams &params);
+    Commit(CPU *_cpu, const BaseO3CPUParams &params);
 
     /** Returns the name of the Commit. */
     std::string name() const;
@@ -306,20 +306,10 @@ class Commit
 
   public:
     /** Reads the PC of a specific thread. */
-    TheISA::PCState pcState(ThreadID tid) { return pc[tid]; }
+    const PCStateBase &pcState(ThreadID tid) { return *pc[tid]; }
 
     /** Sets the PC of a specific thread. */
-    void pcState(const TheISA::PCState &val, ThreadID tid)
-    { pc[tid] = val; }
-
-    /** Returns the PC of a specific thread. */
-    Addr instAddr(ThreadID tid) { return pc[tid].instAddr(); }
-
-    /** Returns the next PC of a specific thread. */
-    Addr nextInstAddr(ThreadID tid) { return pc[tid].nextInstAddr(); }
-
-    /** Reads the micro PC of a specific thread. */
-    Addr microPC(ThreadID tid) { return pc[tid].microPC(); }
+    void pcState(const PCStateBase &val, ThreadID tid) { set(pc[tid], val); }
 
   private:
     /** Time buffer interface. */
@@ -431,7 +421,7 @@ class Commit
     /** The commit PC state of each thread.  Refers to the instruction that
      * is currently being processed/committed.
      */
-    TheISA::PCState pc[MaxThreads];
+    std::unique_ptr<PCStateBase> pc[MaxThreads];
 
     /** The sequence number of the youngest valid instruction in the ROB. */
     InstSeqNum youngestSeqNum[MaxThreads];

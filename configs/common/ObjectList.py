@@ -35,6 +35,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import m5.objects
+import m5.internal.params
 import inspect
 import sys
 from textwrap import TextWrapper
@@ -133,7 +134,21 @@ class CPUList(ObjectList):
 
         from m5.defines import buildEnv
         from importlib import import_module
-        for package in [ "generic", buildEnv['TARGET_ISA']]:
+        if buildEnv['USE_ARM']:
+            isa = 'arm'
+        elif buildEnv['USE_MIPS']:
+            isa = 'mips'
+        elif buildEnv['USE_POWER']:
+            isa = 'power'
+        elif buildEnv['USE_RISCV']:
+            isa = 'riscv'
+        elif buildEnv['USE_SPARC']:
+            isa = 'sparc'
+        elif buildEnv['USE_X86']:
+            isa = 'x86'
+        elif buildEnv['USE_NULL']:
+            isa = 'null'
+        for package in [ "generic", isa ]:
             try:
                 package = import_module(".cores." + package,
                                         package=__name__.rpartition('.')[0])

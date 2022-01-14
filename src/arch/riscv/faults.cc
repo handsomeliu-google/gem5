@@ -51,16 +51,16 @@ namespace RiscvISA
 void
 RiscvFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 {
-    panic("Fault %s encountered at pc 0x%016llx.", name(), tc->pcState().pc());
+    panic("Fault %s encountered at pc %s.", name(), tc->pcState());
 }
 
 void
 RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
-    PCState pcState = tc->pcState();
+    auto pc_state = tc->pcState().as<PCState>();
 
     DPRINTFS(Fault, tc->getCpuPtr(), "Fault (%s) at PC: %s\n",
-             name(), pcState);
+             name(), pc_state);
 
     if (FullSystem) {
         PrivilegeMode pp = (PrivilegeMode)tc->readMiscReg(MISCREG_PRV);
@@ -141,7 +141,7 @@ RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
            _cause |= (1L << 63);
         }
         tc->setMiscReg(cause, _cause);
-        tc->setMiscReg(epc, tc->instAddr());
+        tc->setMiscReg(epc, tc->pcState().instAddr());
         tc->setMiscReg(tval, trap_value());
         tc->setMiscReg(MISCREG_PRV, prv);
         tc->setMiscReg(MISCREG_STATUS, status);
@@ -156,15 +156,16 @@ RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
         Addr addr = mbits(tc->readMiscReg(tvec), 63, 2);
         if (isInterrupt() && bits(tc->readMiscReg(tvec), 1, 0) == 1)
             addr += 4 * _code;
-        pcState.set(addr);
+        pc_state.set(addr);
     } else {
         invokeSE(tc, inst);
-        inst->advancePC(pcState);
+        inst->advancePC(pc_state);
     }
-    tc->pcState(pcState);
+    tc->pcState(pc_state);
 }
 
-void Reset::invoke(ThreadContext *tc, const StaticInstPtr &inst)
+void
+Reset::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
     tc->setMiscReg(MISCREG_PRV, PRV_M);
     STATUS status = tc->readMiscReg(MISCREG_STATUS);
@@ -175,7 +176,7 @@ void Reset::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 
     // Advance the PC to the implementation-defined reset vector
     auto workload = dynamic_cast<Workload *>(tc->getSystemPtr()->workload);
-    PCState pc = workload->getEntry();
+    PCState pc(workload->getEntry());
     tc->pcState(pc);
 }
 
@@ -183,31 +184,29 @@ void
 UnknownInstFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 {
     auto *rsi = static_cast<RiscvStaticInst *>(inst.get());
-    panic("Unknown instruction 0x%08x at pc 0x%016llx", rsi->machInst,
-        tc->pcState().pc());
+    panic("Unknown instruction 0x%08x at pc %s", rsi->machInst,
+        tc->pcState());
 }
 
 void
 IllegalInstFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 {
     auto *rsi = static_cast<RiscvStaticInst *>(inst.get());
-    panic("Illegal instruction 0x%08x at pc 0x%016llx: %s", rsi->machInst,
-        tc->pcState().pc(), reason.c_str());
+    panic("Illegal instruction 0x%08x at pc %s: %s", rsi->machInst,
+        tc->pcState(), reason.c_str());
 }
 
 void
-UnimplementedFault::invokeSE(ThreadContext *tc,
-        const StaticInstPtr &inst)
+UnimplementedFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 {
-    panic("Unimplemented instruction %s at pc 0x%016llx", instName,
-        tc->pcState().pc());
+    panic("Unimplemented instruction %s at pc %s", instName, tc->pcState());
 }
 
 void
 IllegalFrmFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 {
-    panic("Illegal floating-point rounding mode 0x%x at pc 0x%016llx.",
-            frm, tc->pcState().pc());
+    panic("Illegal floating-point rounding mode 0x%x at pc %s.",
+            frm, tc->pcState());
 }
 
 void

@@ -81,3 +81,45 @@ unit_test prof
 docker run -u $UID:$GID --volume "${gem5_root}":"${gem5_root}" -w \
     "${gem5_root}"/tests --rm gcr.io/gem5-test/ubuntu-20.04_all-dependencies \
         ./main.py run --length long -j${threads} -t${threads}
+
+# Run the GPU tests.
+# For the GPU tests we compile and run GCN3_X86 inside a gcn-gpu container.
+docker pull gcr.io/gem5-test/gcn-gpu:latest
+docker run --rm -u $UID:$GID --volume "${gem5_root}":"${gem5_root}" -w \
+    "${gem5_root}" gcr.io/gem5-test/gcn-gpu:latest bash -c \
+    "scons build/GCN3_X86/gem5.opt -j${threads} \
+        || (rm -rf build && scons build/GCN3_X86/gem5.opt -j${threads})"
+
+# get square
+wget -qN http://dist.gem5.org/dist/develop/test-progs/square/square
+
+mkdir -p tests/testing-results
+
+# Square is the simplest, fastest, more heavily tested GPU application
+# Thus, we always want to run this in the nightly regressions to make sure
+# basic GPU functionality is working.
+docker run --rm -u $UID:$GID --volume "${gem5_root}":"${gem5_root}" -w \
+    "${gem5_root}" gcr.io/gem5-test/gcn-gpu:latest build/GCN3_X86/gem5.opt \
+    configs/example/apu_se.py --reg-alloc-policy=dynamic -n3 -c square
+
+# get HeteroSync
+wget -qN http://dist.gem5.org/dist/develop/test-progs/heterosync/gcn3/allSyncPrims-1kernel
+
+# run HeteroSync sleepMutex -- 16 WGs (4 per CU in default config), each doing
+# 10 Ld/St per thread and 4 iterations of the critical section is a reasonable
+# moderate contention case for the default 4 CU GPU config and help ensure GPU
+# atomics are tested.
+docker run --rm -u $UID:$GID --volume "${gem5_root}":"${gem5_root}" -w \
+    "${gem5_root}" gcr.io/gem5-test/gcn-gpu:latest build/GCN3_X86/gem5.opt \
+    configs/example/apu_se.py --reg-alloc-policy=dynamic -n3 -c \
+    allSyncPrims-1kernel --options="sleepMutex 10 16 4"
+
+# run HeteroSync LFBarr -- similar setup to sleepMutex above -- 16 WGs
+# accessing unique data and then joining a lock-free barrier, 10 Ld/St per
+# thread, 4 iterations of critical section.  Again this is representative of a
+# moderate contention case for the default 4 CU GPU config and help ensure GPU
+# atomics are tested.
+docker run --rm -u $UID:$GID --volume "${gem5_root}":"${gem5_root}" -w \
+    "${gem5_root}" gcr.io/gem5-test/gcn-gpu:latest build/GCN3_X86/gem5.opt \
+    configs/example/apu_se.py --reg-alloc-policy=dynamic -n3 -c \
+    allSyncPrims-1kernel --options="lfTreeBarrUniq 10 16 4"

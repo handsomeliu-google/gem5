@@ -83,8 +83,6 @@ class BaseSimpleCPU : public BaseCPU
     ThreadID curThread;
     branch_prediction::BPredUnit *branchPred;
 
-    const RegIndex zeroReg;
-
     void checkPcEventQueue();
     void swapActiveThread();
 
@@ -92,7 +90,6 @@ class BaseSimpleCPU : public BaseCPU
     BaseSimpleCPU(const BaseSimpleCPUParams &params);
     virtual ~BaseSimpleCPU();
     void wakeup(ThreadID tid) override;
-    void init() override;
   public:
     Trace::InstRecord *traceData;
     CheckerCPU *checker;
@@ -129,6 +126,8 @@ class BaseSimpleCPU : public BaseCPU
      * the record as coming from a faulting instruction.
      */
     void traceFault();
+
+    std::unique_ptr<PCStateBase> preExecuteTempPC;
 
   public:
     void checkForInterrupts();
@@ -191,16 +190,6 @@ class BaseSimpleCPU : public BaseCPU
      * neither really (true) loads nor stores. For this reason the interface
      * is extended and initiateHtmCmd() is used to instigate the command. */
     virtual Fault initiateHtmCmd(Request::Flags flags) = 0;
-
-    /** This function is used to instruct the memory subsystem that a
-     * transaction should be aborted and the speculative state should be
-     * thrown away.  This is called in the transaction's very last breath in
-     * the core.  Afterwards, the core throws away its speculative state and
-     * resumes execution at the point the transaction started, i.e. reverses
-     * time.  When instruction execution resumes, the core expects the
-     * memory subsystem to be in a stable, i.e. pre-speculative, state as
-     * well. */
-    virtual void htmSendAbortSignal(HtmFailureFaultCause cause) = 0;
 };
 
 } // namespace gem5

@@ -40,6 +40,7 @@
 #define __ARCH_X86_LINUX_SE_WORKLOAD_HH__
 
 #include "arch/x86/linux/linux.hh"
+#include "arch/x86/regs/int.hh"
 #include "arch/x86/remote_gdb.hh"
 #include "params/X86EmuLinux.hh"
 #include "sim/process.hh"
@@ -68,6 +69,7 @@ class EmuLinux : public SEWorkload
     }
 
     loader::Arch getArch() const override { return loader::X86_64; }
+    ByteOrder byteOrder() const override { return ByteOrder::little; }
 
     void syscall(ThreadContext *tc) override;
     void event(ThreadContext *tc) override;
@@ -77,13 +79,13 @@ class EmuLinux : public SEWorkload
     struct SyscallABI64 :
         public GenericSyscallABI64, public X86Linux::SyscallABI
     {
-        static const std::vector<IntRegIndex> ArgumentRegs;
+        static const std::vector<RegId> ArgumentRegs;
     };
 
     struct SyscallABI32 :
         public GenericSyscallABI32, public X86Linux::SyscallABI
     {
-        static const std::vector<IntRegIndex> ArgumentRegs;
+        static const std::vector<RegId> ArgumentRegs;
     };
 
   private:
@@ -99,8 +101,8 @@ namespace guest_abi
 
 template <typename Arg>
 struct Argument<X86ISA::EmuLinux::SyscallABI32, Arg,
-    typename std::enable_if_t<std::is_integral<Arg>::value &&
-        X86ISA::EmuLinux::SyscallABI32::IsWide<Arg>::value>>
+    typename std::enable_if_t<std::is_integral_v<Arg> &&
+        X86ISA::EmuLinux::SyscallABI32::IsWideV<Arg>>>
 {
     using ABI = X86ISA::EmuLinux::SyscallABI32;
 

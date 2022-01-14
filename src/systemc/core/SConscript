@@ -71,7 +71,8 @@ if env['USE_SYSTEMC']:
                     break
         Source('sc_time_python.cc', append=append)
 
-    # Disable the false positive warning for the event members of the scheduler.
+    # Disable the false positive warning for the event members of the
+    # scheduler.
     with gem5_scons.Configure(main) as conf:
         flag = '-Wno-free-nonheap-object'
         append = {}

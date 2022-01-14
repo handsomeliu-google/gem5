@@ -46,7 +46,9 @@ class SEWorkload : public gem5::SEWorkload
   public:
     using Params = RiscvSEWorkloadParams;
 
-    SEWorkload(const Params &p) : gem5::SEWorkload(p) {}
+    SEWorkload(const Params &p, Addr page_shift) :
+        gem5::SEWorkload(p, page_shift)
+    {}
 
     void
     setSystem(System *sys) override
@@ -78,10 +80,10 @@ struct Result<RiscvISA::SEWorkload::SyscallABI, SyscallReturn>
 
         if (ret.successful()) {
             // no error
-            tc->setIntReg(RiscvISA::ReturnValueReg, ret.returnValue());
+            tc->setReg(RiscvISA::ReturnValueReg, ret.returnValue());
         } else {
             // got an error, return details
-            tc->setIntReg(RiscvISA::ReturnValueReg, ret.encodedValue());
+            tc->setReg(RiscvISA::ReturnValueReg, ret.encodedValue());
         }
     }
 };

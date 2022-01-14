@@ -46,7 +46,9 @@ class SEWorkload : public gem5::SEWorkload
 {
   public:
     using Params = PowerSEWorkloadParams;
-    SEWorkload(const Params &p) : gem5::SEWorkload(p) {}
+    SEWorkload(const Params &p, Addr page_shift) :
+        gem5::SEWorkload(p, page_shift)
+    {}
 
     void
     setSystem(System *sys) override
@@ -59,7 +61,7 @@ class SEWorkload : public gem5::SEWorkload
 
     struct SyscallABI : public GenericSyscallABI64
     {
-        static const std::vector<int> ArgumentRegs;
+        static const std::vector<RegId> ArgumentRegs;
     };
 };
 
@@ -78,14 +80,14 @@ struct Result<PowerISA::SEWorkload::SyscallABI, SyscallReturn>
         if (ret.suppressed() || ret.needsRetry())
             return;
 
-        PowerISA::Cr cr = tc->readIntReg(PowerISA::INTREG_CR);
+        PowerISA::Cr cr = tc->getReg(PowerISA::int_reg::Cr);
         if (ret.successful()) {
             cr.cr0.so = 0;
         } else {
             cr.cr0.so = 1;
         }
-        tc->setIntReg(PowerISA::INTREG_CR, cr);
-        tc->setIntReg(PowerISA::ReturnValueReg, ret.encodedValue());
+        tc->setReg(PowerISA::int_reg::Cr, cr);
+        tc->setReg(PowerISA::ReturnValueReg, ret.encodedValue());
     }
 };
 

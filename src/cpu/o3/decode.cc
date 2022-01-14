@@ -40,16 +40,15 @@
 
 #include "cpu/o3/decode.hh"
 
-#include "arch/pcstate.hh"
+#include "arch/generic/pcstate.hh"
 #include "base/trace.hh"
-#include "config/the_isa.hh"
 #include "cpu/inst_seq.hh"
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/limits.hh"
 #include "debug/Activity.hh"
 #include "debug/Decode.hh"
 #include "debug/O3PipeView.hh"
-#include "params/O3CPU.hh"
+#include "params/BaseO3CPU.hh"
 #include "sim/full_system.hh"
 
 // clang complains about std::set being overloaded with Packet::set if
@@ -62,7 +61,7 @@ namespace gem5
 namespace o3
 {
 
-Decode::Decode(CPU *_cpu, const O3CPUParams &params)
+Decode::Decode(CPU *_cpu, const BaseO3CPUParams &params)
     : cpu(_cpu),
       renameToDecodeDelay(params.renameToDecodeDelay),
       iewToDecodeDelay(params.iewToDecodeDelay),
@@ -292,7 +291,7 @@ Decode::squash(const DynInstPtr &inst, ThreadID tid)
     toFetch->decodeInfo[tid].mispredictInst = inst;
     toFetch->decodeInfo[tid].squash = true;
     toFetch->decodeInfo[tid].doneSeqNum = inst->seqNum;
-    toFetch->decodeInfo[tid].nextPC = inst->branchTarget();
+    set(toFetch->decodeInfo[tid].nextPC, *inst->branchTarget());
 
     // Looking at inst->pcState().branching()
     // may yield unexpected results if the branch
@@ -715,21 +714,21 @@ Decode::decodeInsts(ThreadID tid)
         {
             ++stats.branchResolved;
 
-            if (!(inst->branchTarget() == inst->readPredTarg())) {
+            std::unique_ptr<PCStateBase> target = inst->branchTarget();
+            if (*target != inst->readPredTarg()) {
                 ++stats.branchMispred;
 
                 // Might want to set some sort of boolean and just do
                 // a check at the end
                 squash(inst, inst->threadNumber);
-                TheISA::PCState target = inst->branchTarget();
 
                 DPRINTF(Decode,
                         "[tid:%i] [sn:%llu] "
                         "Updating predictions: Wrong predicted target: %s \
                         PredPC: %s\n",
-                        tid, inst->seqNum, inst->readPredTarg(), target);
+                        tid, inst->seqNum, inst->readPredTarg(), *target);
                 //The micro pc after an instruction level branch should be 0
-                inst->setPredTarg(target);
+                inst->setPredTarg(*target);
                 break;
             }
         }

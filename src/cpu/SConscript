@@ -64,6 +64,7 @@ DebugFlag('ExecAsid', 'Format: Include ASID in trace')
 DebugFlag('ExecFlags', 'Format: Include instruction flags in trace')
 DebugFlag('Fetch')
 DebugFlag('HtmCpu', 'Hardware Transactional Memory (CPU side)')
+DebugFlag('InvalidReg')
 DebugFlag('O3PipeView')
 DebugFlag('PCEvent')
 DebugFlag('Quiesce')
@@ -79,13 +80,14 @@ CompoundFlag('Exec', [ 'ExecEnable', 'ExecOpClass', 'ExecThread',
     'ExecFaulting', 'ExecUser', 'ExecKernel' ])
 CompoundFlag('ExecNoTicks', [ 'Exec', 'FmtTicksOff' ])
 
+Source('func_unit.cc')
 Source('pc_event.cc')
 
-if env['TARGET_ISA'] == 'null':
-    Return()
+SimObject('FuncUnit.py')
+SimObject('StaticInstFlags.py')
 
-# Only build the protocol buffer instructions tracer if we have protobuf support
-if env['HAVE_PROTOBUF'] and env['TARGET_ISA'] != 'x86':
+# Only build the protobuf instructions tracer if we have protobuf support.
+if env['HAVE_PROTOBUF']:
     SimObject('InstPBTrace.py')
     Source('inst_pb_trace.cc')
 
@@ -93,13 +95,11 @@ SimObject('CheckerCPU.py')
 
 SimObject('BaseCPU.py')
 SimObject('CPUTracers.py')
-SimObject('FuncUnit.py')
 SimObject('TimingExpr.py')
 
 Source('activity.cc')
 Source('base.cc')
 Source('exetrace.cc')
-Source('func_unit.cc')
 Source('inteltrace.cc')
 Source('nativetrace.cc')
 Source('nop_static_inst.cc')
@@ -113,6 +113,5 @@ Source('thread_state.cc')
 Source('timing_expr.cc')
 
 SimObject('DummyChecker.py')
-SimObject('StaticInstFlags.py')
 Source('checker/cpu.cc')
 DebugFlag('Checker')

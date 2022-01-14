@@ -277,10 +277,10 @@
                 // no prefix
                 0x0: decode OPCODE_OP_BOTTOM3 {
                     0x0: CondInst::MOV(
-                        {{isValidMiscReg(MISCREG_CR(MODRM_REG))}},Rd,Cd);
+                        {{misc_reg::isValid(misc_reg::cr(MODRM_REG))}},Rd,Cd);
                     0x1: MOV(Rd,Dd);
                     0x2: CondInst::MOV(
-                        {{isValidMiscReg(MISCREG_CR(MODRM_REG))}},Cd,Rd);
+                        {{misc_reg::isValid(misc_reg::cr(MODRM_REG))}},Cd,Rd);
                     0x3: MOV(Dd,Rd);
                     default: UD2();
                 }
@@ -354,14 +354,17 @@
             0x6: Inst::UD2();
             0x7: getsec();
         }
-        0x07: decode OPCODE_OP_BOTTOM3 {
-            0x0: M5InternalError::error(
-                {{"Three byte opcode shouldn't be handled by "
-                  "two_byte_opcodes.isa!"}});
-            0x2: M5InternalError::error(
-                {{"Three byte opcode shouldn't be handled by "
-                  "two_byte_opcodes.isa!"}});
-            default: UD2();
+        0x07: decode VEX_PRESENT {
+            0x0: decode OPCODE_OP_BOTTOM3 {
+                0x0: M5InternalError::error(
+                    {{"Three byte opcode shouldn't be handled by "
+                      "two_byte_opcodes.isa!"}});
+                0x2: M5InternalError::error(
+                    {{"Three byte opcode shouldn't be handled by "
+                      "two_byte_opcodes.isa!"}});
+                default: UD2();
+            }
+            0x1: UD2();
         }
         format Inst {
             0x08: decode OPCODE_OP_BOTTOM3 {

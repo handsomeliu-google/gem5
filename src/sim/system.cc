@@ -44,19 +44,17 @@
 #include <algorithm>
 
 #include "base/compiler.hh"
+#include "base/cprintf.hh"
 #include "base/loader/object_file.hh"
 #include "base/loader/symtab.hh"
 #include "base/str.hh"
 #include "base/trace.hh"
-#include "config/the_isa.hh"
 #include "config/use_kvm.hh"
 #if USE_KVM
 #include "cpu/kvm/base.hh"
 #include "cpu/kvm/vm.hh"
 #endif
-#if THE_ISA != NULL_ISA
 #include "cpu/base.hh"
-#endif
 #include "cpu/thread_context.hh"
 #include "debug/Loader.hh"
 #include "debug/Quiesce.hh"
@@ -66,8 +64,8 @@
 #include "params/System.hh"
 #include "sim/byteswap.hh"
 #include "sim/debug.hh"
-#include "sim/full_system.hh"
 #include "sim/redirect_path.hh"
+#include "sim/serialize_handlers.hh"
 
 namespace gem5
 {
@@ -77,10 +75,8 @@ std::vector<System *> System::systemList;
 void
 System::Threads::Thread::resume()
 {
-#   if THE_ISA != NULL_ISA
     DPRINTFS(Quiesce, context->getCpuPtr(), "activating\n");
     context->activate();
-#   endif
 }
 
 std::string
@@ -95,9 +91,7 @@ void
 System::Threads::Thread::quiesce() const
 {
     context->suspend();
-    auto *workload = context->getSystemPtr()->workload;
-    if (workload)
-        workload->recordQuiesce();
+    context->getSystemPtr()->workload->recordQuiesce();
 }
 
 void
@@ -133,13 +127,11 @@ System::Threads::replace(ThreadContext *tc, ContextID id)
 {
     auto &t = thread(id);
     panic_if(!t.context, "Can't replace a context which doesn't exist.");
-#   if THE_ISA != NULL_ISA
     if (t.resumeEvent->scheduled()) {
         Tick when = t.resumeEvent->when();
         t.context->getCpuPtr()->deschedule(t.resumeEvent);
         tc->getCpuPtr()->schedule(t.resumeEvent, when);
     }
-#   endif
     t.context = tc;
 }
 
@@ -171,17 +163,14 @@ void
 System::Threads::quiesce(ContextID id)
 {
     auto &t = thread(id);
-#   if THE_ISA != NULL_ISA
-    GEM5_VAR_USED BaseCPU *cpu = t.context->getCpuPtr();
+    [[maybe_unused]] BaseCPU *cpu = t.context->getCpuPtr();
     DPRINTFS(Quiesce, cpu, "quiesce()\n");
-#   endif
     t.quiesce();
 }
 
 void
 System::Threads::quiesceTick(ContextID id, Tick when)
 {
-#   if THE_ISA != NULL_ISA
     auto &t = thread(id);
     BaseCPU *cpu = t.context->getCpuPtr();
 
@@ -189,7 +178,6 @@ System::Threads::quiesceTick(ContextID id, Tick when)
     t.quiesce();
 
     cpu->reschedule(t.resumeEvent, when, true);
-#   endif
 }
 
 int System::numSystemsRunning = 0;
@@ -216,8 +204,9 @@ System::System(const Params &p)
                  AddrRange(1, 0)), // Create an empty range if disabled
       redirectPaths(p.redirect_paths)
 {
-    if (workload)
-        workload->setSystem(this);
+    panic_if(!workload, "No workload set for system %s "
+            "(could use StubWorkload?).", name());
+    workload->setSystem(this);
 
     // add self to global system list
     systemList.push_back(this);
@@ -228,21 +217,6 @@ System::System(const Params &p)
     }
 #endif
 
-    if (!FullSystem) {
-        AddrRangeList memories = physmem.getConfAddrRanges();
-        assert(!memories.empty());
-        for (const auto &mem : memories) {
-            assert(!mem.interleaved());
-            memPools.emplace_back(this, mem.start(), mem.end());
-        }
-
-        /*
-         * Set freePage to what it was before Gabe Black's page table changes
-         * so allocations don't trample the page table entries.
-         */
-        memPools[0].setFreePage(memPools[0].freePage() + 70);
-    }
-
     // check if the cache line size is a value known to work
     if (_cacheLineSize != 16 && _cacheLineSize != 32 &&
         _cacheLineSize != 64 && _cacheLineSize != 128) {
@@ -250,7 +224,7 @@ System::System(const Params &p)
     }
 
     // Get the generic system requestor IDs
-    GEM5_VAR_USED RequestorID tmp_id;
+    [[maybe_unused]] RequestorID tmp_id;
     tmp_id = getRequestorId(this, "writebacks");
     assert(tmp_id == Request::wbRequestorId);
     tmp_id = getRequestorId(this, "functional");
@@ -291,8 +265,7 @@ System::registerThreadContext(ThreadContext *tc, ContextID assigned)
 {
     threads.insert(tc, assigned);
 
-    if (workload)
-        workload->registerThreadContext(tc);
+    workload->registerThreadContext(tc);
 
     for (auto *e: liveEvents)
         tc->schedule(e);
@@ -324,8 +297,7 @@ System::replaceThreadContext(ThreadContext *tc, ContextID context_id)
     auto *otc = threads[context_id];
     threads.replace(tc, context_id);
 
-    if (workload)
-        workload->replaceThreadContext(tc);
+    workload->replaceThreadContext(tc);
 
     for (auto *e: liveEvents) {
         otc->remove(e);
@@ -352,24 +324,9 @@ System::validKvmEnvironment() const
 }
 
 Addr
-System::allocPhysPages(int npages, int poolID)
+System::memSize() const
 {
-    assert(!FullSystem);
-    return memPools[poolID].allocate(npages);
-}
-
-Addr
-System::memSize(int poolID) const
-{
-    assert(!FullSystem);
-    return memPools[poolID].totalBytes();
-}
-
-Addr
-System::freeMemSize(int poolID) const
-{
-    assert(!FullSystem);
-    return memPools[poolID].freeBytes();
+    return physmem.totalSize();
 }
 
 bool
@@ -423,17 +380,6 @@ System::serialize(CheckpointOut &cp) const
         paramOut(cp, csprintf("quiesceEndTick_%d", id), when);
     }
 
-    std::vector<Addr> ptrs;
-    std::vector<Addr> limits;
-
-    for (const auto& memPool : memPools) {
-        ptrs.push_back(memPool.freePageAddr());
-        limits.push_back(memPool.totalBytes());
-    }
-
-    SERIALIZE_CONTAINER(ptrs);
-    SERIALIZE_CONTAINER(limits);
-
     // also serialize the memories in the system
     physmem.serializeSection(cp, "physmem");
 }
@@ -449,20 +395,8 @@ System::unserialize(CheckpointIn &cp)
                 !when || !t.resumeEvent) {
             continue;
         }
-#       if THE_ISA != NULL_ISA
         t.context->getCpuPtr()->schedule(t.resumeEvent, when);
-#       endif
     }
-
-    std::vector<Addr> ptrs;
-    std::vector<Addr> limits;
-
-    UNSERIALIZE_CONTAINER(ptrs);
-    UNSERIALIZE_CONTAINER(limits);
-
-    assert(ptrs.size() == limits.size());
-    for (size_t i = 0; i < ptrs.size(); i++)
-        memPools.emplace_back(this, ptrs[i], limits[i]);
 
     // also unserialize the memories in the system
     physmem.unserializeSection(cp, "physmem");
@@ -504,7 +438,7 @@ System::workItemEnd(uint32_t tid, uint32_t workid)
 bool
 System::trapToGdb(int signal, ContextID ctx_id) const
 {
-    return workload && workload->trapToGdb(signal, ctx_id);
+    return workload->trapToGdb(signal, ctx_id);
 }
 
 void

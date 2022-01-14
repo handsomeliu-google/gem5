@@ -88,7 +88,7 @@ EmuLinux::syscall(ThreadContext *tc)
     // This will move into the base SEWorkload function at some point.
     process->Process::syscall(tc);
 
-    syscallDescs.get(tc->readIntReg(0))->doSyscall(tc);
+    syscallDescs.get(tc->getReg(int_reg::R0))->doSyscall(tc);
 }
 
 /// Target uname() handler.
@@ -192,15 +192,15 @@ SyscallDescTable<PowerISA::SEWorkload::SyscallABI> EmuLinux::syscallDescs = {
     { 82, "reserved#82" },
     { 83, "symlink" },
     { 84, "unused#84" },
-    { 85, "readlink", readlinkFunc },
+    { 85, "readlink", readlinkFunc<PowerLinux> },
     { 86, "uselib" },
     { 87, "swapon", gethostnameFunc },
     { 88, "reboot" },
     { 89, "readdir" },
     { 90, "mmap", mmapFunc<PowerLinux> },
-    { 91, "munmap",munmapFunc },
-    { 92, "truncate", truncateFunc },
-    { 93, "ftruncate", ftruncateFunc },
+    { 91, "munmap",munmapFunc<PowerLinux> },
+    { 92, "truncate", truncateFunc<PowerLinux> },
+    { 93, "ftruncate", ftruncateFunc<PowerLinux> },
     { 94, "fchmod" },
     { 95, "fchown" },
     { 96, "getpriority" },

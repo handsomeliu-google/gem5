@@ -144,7 +144,7 @@ class ArmSemihosting : public SimObject
           public:
             // For 64 bit semihosting, the params are pointer to by X1.
             explicit State(const ThreadContext *tc) :
-                StateBase<uint64_t>(tc, tc->readIntReg(ArmISA::INTREG_X1))
+                StateBase<uint64_t>(tc, tc->getReg(ArmISA::int_reg::X1))
             {}
         };
     };
@@ -158,7 +158,7 @@ class ArmSemihosting : public SimObject
           public:
             // For 32 bit semihosting, the params are pointer to by R1.
             explicit State(const ThreadContext *tc) :
-                StateBase<uint64_t>(tc, tc->readIntReg(ArmISA::INTREG_R1))
+                StateBase<uint64_t>(tc, tc->getReg(ArmISA::int_reg::R1))
             {}
         };
     };
@@ -605,7 +605,7 @@ namespace guest_abi
 
 template <typename Arg>
 struct Argument<ArmSemihosting::Abi64, Arg,
-    typename std::enable_if_t<std::is_integral<Arg>::value>>
+    typename std::enable_if_t<std::is_integral_v<Arg>>>
 {
     static Arg
     get(ThreadContext *tc, ArmSemihosting::Abi64::State &state)
@@ -616,12 +616,12 @@ struct Argument<ArmSemihosting::Abi64, Arg,
 
 template <typename Arg>
 struct Argument<ArmSemihosting::Abi32, Arg,
-    typename std::enable_if_t<std::is_integral<Arg>::value>>
+    typename std::enable_if_t<std::is_integral_v<Arg>>>
 {
     static Arg
     get(ThreadContext *tc, ArmSemihosting::Abi32::State &state)
     {
-        if (std::is_signed<Arg>::value)
+        if (std::is_signed_v<Arg>)
             return sext<32>(state.get(tc));
         else
             return state.get(tc);
@@ -630,7 +630,7 @@ struct Argument<ArmSemihosting::Abi32, Arg,
 
 template <typename Abi>
 struct Argument<Abi, ArmSemihosting::InPlaceArg, typename std::enable_if_t<
-    std::is_base_of<ArmSemihosting::AbiBase, Abi>::value>>
+    std::is_base_of_v<ArmSemihosting::AbiBase, Abi>>>
 {
     static ArmSemihosting::InPlaceArg
     get(ThreadContext *tc, typename Abi::State &state)
@@ -646,7 +646,7 @@ struct Result<ArmSemihosting::Abi32, ArmSemihosting::RetErrno>
     static void
     store(ThreadContext *tc, const ArmSemihosting::RetErrno &err)
     {
-        tc->setIntReg(ArmISA::INTREG_R0, err.first);
+        tc->setReg(ArmISA::int_reg::R0, err.first);
     }
 };
 
@@ -656,7 +656,7 @@ struct Result<ArmSemihosting::Abi64, ArmSemihosting::RetErrno>
     static void
     store(ThreadContext *tc, const ArmSemihosting::RetErrno &err)
     {
-        tc->setIntReg(ArmISA::INTREG_X0, err.first);
+        tc->setReg(ArmISA::int_reg::X0, err.first);
     }
 };
 

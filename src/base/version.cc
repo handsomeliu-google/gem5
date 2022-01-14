@@ -32,6 +32,6 @@ namespace gem5
 /**
  * @ingroup api_base_utils
  */
-const char *gem5Version = "[DEVELOP-FOR-V21.01]";
+const char *gem5Version = "[DEVELOP-FOR-V21.2]";
 
 } // namespace gem5

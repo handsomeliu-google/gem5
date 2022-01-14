@@ -45,7 +45,7 @@
 #include "cpu/simple/base.hh"
 #include "cpu/simple/exec_context.hh"
 #include "cpu/translation.hh"
-#include "params/TimingSimpleCPU.hh"
+#include "params/BaseTimingSimpleCPU.hh"
 
 namespace gem5
 {
@@ -54,7 +54,7 @@ class TimingSimpleCPU : public BaseSimpleCPU
 {
   public:
 
-    TimingSimpleCPU(const TimingSimpleCPUParams &params);
+    TimingSimpleCPU(const BaseTimingSimpleCPUParams &params);
     virtual ~TimingSimpleCPU();
 
     void init() override;
@@ -327,7 +327,8 @@ class TimingSimpleCPU : public BaseSimpleCPU
     /** hardware transactional memory **/
     Fault initiateHtmCmd(Request::Flags flags) override;
 
-    void htmSendAbortSignal(HtmFailureFaultCause) override;
+    void htmSendAbortSignal(ThreadID tid, uint64_t htm_uid,
+                            HtmFailureFaultCause) override;
 
   private:
 
@@ -362,7 +363,7 @@ class TimingSimpleCPU : public BaseSimpleCPU
         SimpleExecContext& t_info = *threadInfo[curThread];
         SimpleThread* thread = t_info.thread;
 
-        return thread->microPC() == 0 && !t_info.stayAtPC &&
+        return thread->pcState().microPC() == 0 && !t_info.stayAtPC &&
                !fetchEvent.scheduled();
     }
 

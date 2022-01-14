@@ -38,6 +38,7 @@
 #include <type_traits>
 
 #include "arch/amdgpu/gcn3/gpu_registers.hh"
+#include "arch/amdgpu/gcn3/tlb.hh"
 #include "gpu-compute/dispatcher.hh"
 #include "gpu-compute/hsa_queue_entry.hh"
 #include "gpu-compute/misc.hh"
@@ -57,7 +58,7 @@ namespace Gcn3ISA
         template<typename T> T
         readConstVal(int opIdx) const
         {
-            panic_if(!std::is_integral<T>::value, "Constant values must "
+            panic_if(!std::is_integral_v<T>, "Constant values must "
                      "be an integer.\n");
             T val(0);
 

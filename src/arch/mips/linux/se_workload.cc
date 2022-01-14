@@ -82,7 +82,7 @@ EmuLinux::syscall(ThreadContext *tc)
     // This will move into the base SEWorkload function at some point.
     process->Process::syscall(tc);
 
-    syscallDescs.get(tc->readIntReg(2))->doSyscall(tc);
+    syscallDescs.get(tc->getReg(int_reg::V0))->doSyscall(tc);
 }
 
 /// Target uname() handler.
@@ -153,7 +153,7 @@ sys_setsysinfoFunc(SyscallDesc *desc, ThreadContext *tc, unsigned op,
 static SyscallReturn
 setThreadAreaFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> addr)
 {
-    tc->setMiscRegNoEffect(MISCREG_TP_VALUE, addr);
+    tc->setMiscRegNoEffect(misc_reg::TpValue, addr);
     return 0;
 }
 
@@ -243,15 +243,15 @@ SyscallDescTable<MipsISA::SEWorkload::SyscallABI> EmuLinux::syscallDescs = {
     { 4082, "reserved#82" },
     { 4083, "symlink" },
     { 4084, "unused#84" },
-    { 4085, "readlink", readlinkFunc },
+    { 4085, "readlink", readlinkFunc<MipsLinux> },
     { 4086, "uselib" },
     { 4087, "swapon", gethostnameFunc },
     { 4088, "reboot" },
     { 4089, "readdir" },
     { 4090, "mmap", mmapFunc<MipsLinux> },
-    { 4091, "munmap",munmapFunc },
-    { 4092, "truncate", truncateFunc },
-    { 4093, "ftruncate", ftruncateFunc },
+    { 4091, "munmap",munmapFunc<MipsLinux> },
+    { 4092, "truncate", truncateFunc<MipsLinux> },
+    { 4093, "ftruncate", ftruncateFunc<MipsLinux> },
     { 4094, "fchmod", fchmodFunc<MipsLinux> },
     { 4095, "fchown", fchownFunc },
     { 4096, "getpriority" },

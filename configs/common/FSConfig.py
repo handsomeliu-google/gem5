@@ -39,23 +39,30 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import m5
+import m5.defines
 from m5.objects import *
 from m5.util import *
 from common.Benchmarks import *
 from common import ObjectList
 
 # Populate to reflect supported os types per target ISA
-os_types = { 'mips'  : [ 'linux' ],
-             'riscv' : [ 'linux' ], # TODO that's a lie
-             'sparc' : [ 'linux' ],
-             'x86'   : [ 'linux' ],
-             'arm'   : [ 'linux',
-                         'android-gingerbread',
-                         'android-ics',
-                         'android-jellybean',
-                         'android-kitkat',
-                         'android-nougat', ],
-           }
+if m5.defines.buildEnv['USE_ARM']:
+    os_types = [ 'linux',
+                 'android-gingerbread',
+                 'android-ics',
+                 'android-jellybean',
+                 'android-kitkat',
+                 'android-nougat', ]
+elif m5.defines.buildEnv['USE_MIPS']:
+    os_types = [ 'linux' ]
+elif m5.defines.buildEnv['USE_POWER']:
+    os_types = [ 'linux' ]
+elif m5.defines.buildEnv['USE_RISCV']:
+    os_types = [ 'linux' ] # TODO that's a lie
+elif m5.defines.buildEnv['USE_SPARC']:
+    os_types = [ 'linux' ]
+elif m5.defines.buildEnv['USE_X86']:
+    os_types = [ 'linux' ]
 
 class CowIdeDisk(IdeDisk):
     image = CowDiskImage(child=RawDiskImage(read_only=True),
@@ -173,7 +180,7 @@ def makeSparcSystem(mem_mode, mdesc=None, cmdline=None):
 
 def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
                   dtb_filename=None, bare_metal=False, cmdline=None,
-                  external_memory="", ruby=False, security=False,
+                  external_memory="", ruby=False,
                   vio_9p=None, bootloader=None):
     assert machine_type
 
@@ -235,8 +242,6 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
         fatal("The currently selected ARM platforms doesn't support" \
               " the amount of DRAM you've selected. Please try" \
               " another platform")
-
-    self.have_security = security
 
     if bare_metal:
         # EOT character on UART will end the simulation
@@ -446,6 +451,8 @@ def connectX86RubySystem(x86_sys):
 
 def makeX86System(mem_mode, numCPUs=1, mdesc=None, workload=None, Ruby=False):
     self = System()
+
+    self.m5ops_base = 0xffff0000
 
     if workload is None:
         workload = X86FsWorkload()

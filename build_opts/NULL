@@ -1,3 +1,2 @@
-TARGET_ISA = 'null'
-CPU_MODELS = ''
+USE_NULL = True
 PROTOCOL='MI_example'

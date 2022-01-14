@@ -52,6 +52,36 @@ class ISA : public BaseISA
         ArmISA::CPSR cpsr = tc->readMiscRegNoEffect(ArmISA::MISCREG_CPSR);
         return ArmISA::inUserMode(cpsr);
     }
+
+    RegVal
+    readMiscRegNoEffect(RegIndex idx) const override
+    {
+        panic("readMiscRegNoEffect not implemented.");
+    }
+
+    RegVal
+    readMiscReg(RegIndex idx) override
+    {
+        panic("readMiscReg not implemented.");
+    }
+
+    void
+    setMiscRegNoEffect(RegIndex idx, RegVal val) override
+    {
+        panic("setMiscRegNoEffect not implemented.");
+    }
+
+    void
+    setMiscReg(RegIndex idx, RegVal val) override
+    {
+        panic("setMiscReg not implemented.");
+    }
+
+    PCStateBase *
+    newPCState(Addr new_inst_addr=0) const override
+    {
+        return new ArmISA::PCState(new_inst_addr);
+    }
 };
 
 } // namespace Iris

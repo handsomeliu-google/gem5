@@ -35,6 +35,7 @@
 
 #include <memory>
 
+#include "arch/x86/page_size.hh"
 #include "base/compiler.hh"
 #include "base/logging.hh"
 #include "base/trace.hh"
@@ -47,8 +48,12 @@
 #include "gpu-compute/gpu_command_processor.hh"
 #include "gpu-compute/shader.hh"
 #include "mem/port_proxy.hh"
+#include "mem/se_translating_port_proxy.hh"
+#include "mem/translating_port_proxy.hh"
 #include "params/GPUComputeDriver.hh"
+#include "sim/full_system.hh"
 #include "sim/process.hh"
+#include "sim/se_workload.hh"
 #include "sim/syscall_emul_buf.hh"
 
 namespace gem5
@@ -169,7 +174,7 @@ GPUComputeDriver::allocateQueue(PortProxy &mem_proxy, Addr ioc_buf)
     auto &hsa_pp = device->hsaPacketProc();
     hsa_pp.setDeviceQueueDesc(args->read_pointer_address,
                               args->ring_base_address, args->queue_id,
-                              args->ring_size, doorbellSize());
+                              args->ring_size, doorbellSize(), gfxVersion);
     args.copyOut(mem_proxy);
 }
 
@@ -221,7 +226,9 @@ GPUComputeDriver::DriverWakeupEvent::process()
 int
 GPUComputeDriver::ioctl(ThreadContext *tc, unsigned req, Addr ioc_buf)
 {
-    auto &virt_proxy = tc->getVirtProxy();
+    TranslatingPortProxy fs_proxy(tc);
+    SETranslatingPortProxy se_proxy(tc);
+    PortProxy &virt_proxy = FullSystem ? fs_proxy : se_proxy;
     auto process = tc->getProcessPtr();
     auto mem_state = process->memState;
 
@@ -722,13 +729,13 @@ GPUComputeDriver::ioctl(ThreadContext *tc, unsigned req, Addr ioc_buf)
             args.copyIn(virt_proxy);
 
             assert(isdGPU || gfxVersion == GfxVersion::gfx902);
-            assert((args->va_addr % TheISA::PageBytes) == 0);
-            GEM5_VAR_USED Addr mmap_offset = 0;
+            assert((args->va_addr % X86ISA::PageBytes) == 0);
+            [[maybe_unused]] Addr mmap_offset = 0;
 
             Request::CacheCoherenceFlags mtype = defaultMtype;
             Addr pa_addr = 0;
 
-            int npages = divCeil(args->size, (int64_t)TheISA::PageBytes);
+            int npages = divCeil(args->size, (int64_t)X86ISA::PageBytes);
             bool cacheable = true;
 
             if (KFD_IOC_ALLOC_MEM_FLAGS_VRAM & args->flags) {
@@ -753,7 +760,8 @@ GPUComputeDriver::ioctl(ThreadContext *tc, unsigned req, Addr ioc_buf)
                 // this as uncacheable from the CPU so that we can implement
                 // direct CPU framebuffer access similar to what we currently
                 // offer in real HW through the so-called Large BAR feature.
-                pa_addr = process->system->allocPhysPages(npages, dGPUPoolID);
+                pa_addr = process->seWorkload->allocPhysPages(
+                        npages, dGPUPoolID);
                 //
                 // TODO: Uncacheable accesses need to be supported by the
                 // CPU-side protocol for this to work correctly.  I believe
@@ -768,7 +776,7 @@ GPUComputeDriver::ioctl(ThreadContext *tc, unsigned req, Addr ioc_buf)
                 mmap_offset = args->mmap_offset;
                 // USERPTR allocations are system memory mapped into GPUVM
                 // space.  The user provides the driver with the pointer.
-                pa_addr = process->system->allocPhysPages(npages);
+                pa_addr = process->seWorkload->allocPhysPages(npages);
 
                 DPRINTF(GPUDriver, "Mapping VA %p to framebuffer PA %p size "
                         "%d\n", args->va_addr, pa_addr, args->size);
@@ -789,7 +797,7 @@ GPUComputeDriver::ioctl(ThreadContext *tc, unsigned req, Addr ioc_buf)
                 // We will lazily map it into host memory on first touch.  The
                 // fixupFault will find the original SVM aperture mapped to the
                 // host.
-                pa_addr = process->system->allocPhysPages(npages);
+                pa_addr = process->seWorkload->allocPhysPages(npages);
 
                 DPRINTF(GPUDriver, "Mapping VA %p to framebuffer PA %p size "
                         "%d\n", args->va_addr, pa_addr, args->size);
@@ -831,7 +839,7 @@ GPUComputeDriver::ioctl(ThreadContext *tc, unsigned req, Addr ioc_buf)
             // of the region.
             //
             // This is a simplified version of regular system VMAs, but for
-            // GPUVM space (non of the clobber/remap nonsense we find in real
+            // GPUVM space (none of the clobber/remap nonsense we find in real
             // OS managed memory).
             allocateGpuVma(mtype, args->va_addr, args->size);
 
@@ -985,7 +993,7 @@ void
 GPUComputeDriver::allocateGpuVma(Request::CacheCoherenceFlags mtype,
                                  Addr start, Addr length)
 {
-    AddrRange range = AddrRange(start, start + length - 1);
+    AddrRange range = AddrRange(start, start + length);
     DPRINTF(GPUDriver, "Registering [%p - %p] with MTYPE %d\n",
             range.start(), range.end(), mtype);
     fatal_if(gpuVmas.insert(range, mtype) == gpuVmas.end(),

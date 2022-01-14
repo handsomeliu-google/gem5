@@ -37,6 +37,7 @@
 #include <vector>
 
 #include "arch/generic/isa.hh"
+#include "arch/riscv/pcstate.hh"
 #include "arch/riscv/types.hh"
 #include "base/types.hh"
 
@@ -74,22 +75,19 @@ class ISA : public BaseISA
   public:
     using Params = RiscvISAParams;
 
-    void clear();
+    void clear() override;
+
+    PCStateBase *
+    newPCState(Addr new_inst_addr=0) const override
+    {
+        return new PCState(new_inst_addr);
+    }
 
   public:
-    RegVal readMiscRegNoEffect(int misc_reg) const;
-    RegVal readMiscReg(int misc_reg);
-    void setMiscRegNoEffect(int misc_reg, RegVal val);
-    void setMiscReg(int misc_reg, RegVal val);
-
-    RegId flattenRegId(const RegId &regId) const { return regId; }
-    int flattenIntIndex(int reg) const { return reg; }
-    int flattenFloatIndex(int reg) const { return reg; }
-    int flattenVecIndex(int reg) const { return reg; }
-    int flattenVecElemIndex(int reg) const { return reg; }
-    int flattenVecPredIndex(int reg) const { return reg; }
-    int flattenCCIndex(int reg) const { return reg; }
-    int flattenMiscIndex(int reg) const { return reg; }
+    RegVal readMiscRegNoEffect(RegIndex idx) const override;
+    RegVal readMiscReg(RegIndex idx) override;
+    void setMiscRegNoEffect(RegIndex idx, RegVal val) override;
+    void setMiscReg(RegIndex idx, RegVal val) override;
 
     bool inUserMode() const override { return true; }
     void copyRegsFrom(ThreadContext *src) override;
@@ -98,6 +96,15 @@ class ISA : public BaseISA
     void unserialize(CheckpointIn &cp) override;
 
     ISA(const Params &p);
+
+    void handleLockedRead(const RequestPtr &req) override;
+
+    bool handleLockedWrite(const RequestPtr &req,
+            Addr cacheBlockMask) override;
+
+    void handleLockedSnoop(PacketPtr pkt, Addr cacheBlockMask) override;
+
+    void globalClearExclusive() override;
 };
 
 } // namespace RiscvISA

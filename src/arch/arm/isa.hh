@@ -42,17 +42,18 @@
 #define __ARCH_ARM_ISA_HH__
 
 #include "arch/arm/isa_device.hh"
+#include "arch/arm/mmu.hh"
+#include "arch/arm/pcstate.hh"
 #include "arch/arm/regs/int.hh"
 #include "arch/arm/regs/misc.hh"
+#include "arch/arm/regs/vec.hh"
 #include "arch/arm/self_debug.hh"
 #include "arch/arm/system.hh"
-#include "arch/arm/tlb.hh"
 #include "arch/arm/types.hh"
 #include "arch/arm/utility.hh"
 #include "arch/generic/isa.hh"
 #include "debug/Checkpoint.hh"
 #include "enums/DecoderFlavor.hh"
-#include "enums/VecRegRenameMode.hh"
 #include "sim/sim_object.hh"
 
 namespace gem5
@@ -88,21 +89,14 @@ namespace ArmISA
 
         // Cached copies of system-level properties
         bool highestELIs64;
-        bool haveSecurity;
-        bool haveLPAE;
-        bool haveVirtualization;
-        bool haveCrypto;
         bool haveLargeAsid64;
         uint8_t physAddrRange;
-        bool haveSVE;
-        bool haveLSE;
-        bool haveVHE;
-        bool havePAN;
-        bool haveSecEL2;
-        bool haveTME;
 
         /** SVE vector length in quadwords */
         unsigned sveVL;
+
+        /** This could be either a FS or a SE release */
+        const ArmRelease *release;
 
         /**
          * If true, accesses to IMPLEMENTATION DEFINED registers are treated
@@ -457,40 +451,43 @@ namespace ArmISA
 
         void initializeMiscRegMetadata();
 
+        BaseISADevice &getGenericTimer();
+        BaseISADevice &getGICv3CPUInterface();
+
         RegVal miscRegs[NUM_MISCREGS];
-        const IntRegIndex *intRegMap;
+        const RegId *intRegMap;
 
         void
         updateRegMap(CPSR cpsr)
         {
             if (cpsr.width == 0) {
-                intRegMap = IntReg64Map;
+                intRegMap = int_reg::Reg64Map;
             } else {
                 switch (cpsr.mode) {
                   case MODE_USER:
                   case MODE_SYSTEM:
-                    intRegMap = IntRegUsrMap;
+                    intRegMap = int_reg::RegUsrMap;
                     break;
                   case MODE_FIQ:
-                    intRegMap = IntRegFiqMap;
+                    intRegMap = int_reg::RegFiqMap;
                     break;
                   case MODE_IRQ:
-                    intRegMap = IntRegIrqMap;
+                    intRegMap = int_reg::RegIrqMap;
                     break;
                   case MODE_SVC:
-                    intRegMap = IntRegSvcMap;
+                    intRegMap = int_reg::RegSvcMap;
                     break;
                   case MODE_MON:
-                    intRegMap = IntRegMonMap;
+                    intRegMap = int_reg::RegMonMap;
                     break;
                   case MODE_ABORT:
-                    intRegMap = IntRegAbtMap;
+                    intRegMap = int_reg::RegAbtMap;
                     break;
                   case MODE_HYP:
-                    intRegMap = IntRegHypMap;
+                    intRegMap = int_reg::RegHypMap;
                     break;
                   case MODE_UNDEFINED:
-                    intRegMap = IntRegUndMap;
+                    intRegMap = int_reg::RegUndMap;
                     break;
                   default:
                     panic("Unrecognized mode setting in CPSR.\n");
@@ -498,15 +495,15 @@ namespace ArmISA
             }
         }
 
-        BaseISADevice &getGenericTimer();
-        BaseISADevice &getGICv3CPUInterface();
+      public:
+        const RegId &mapIntRegId(RegIndex idx) const { return intRegMap[idx]; }
 
       private:
         void assert32() { assert(((CPSR)readMiscReg(MISCREG_CPSR)).width); }
         void assert64() { assert(!((CPSR)readMiscReg(MISCREG_CPSR)).width); }
 
       public:
-        void clear();
+        void clear() override;
 
       protected:
         void clear32(const ArmISAParams &p, const SCTLR &sctlr_rst);
@@ -514,9 +511,9 @@ namespace ArmISA
         void initID32(const ArmISAParams &p);
         void initID64(const ArmISAParams &p);
 
-        void addressTranslation(TLB::ArmTranslationType tran_type,
+        void addressTranslation(MMU::ArmTranslationType tran_type,
             BaseMMU::Mode mode, Request::Flags flags, RegVal val);
-        void addressTranslation64(TLB::ArmTranslationType tran_type,
+        void addressTranslation64(MMU::ArmTranslationType tran_type,
             BaseMMU::Mode mode, Request::Flags flags, RegVal val);
 
       public:
@@ -533,101 +530,10 @@ namespace ArmISA
             return arm_isa->getSelfDebug();
         }
 
-        RegVal readMiscRegNoEffect(int misc_reg) const;
-        RegVal readMiscReg(int misc_reg);
-        void setMiscRegNoEffect(int misc_reg, RegVal val);
-        void setMiscReg(int misc_reg, RegVal val);
-
-        RegId
-        flattenRegId(const RegId& regId) const
-        {
-            switch (regId.classValue()) {
-              case IntRegClass:
-                return RegId(IntRegClass, flattenIntIndex(regId.index()));
-              case FloatRegClass:
-                return RegId(FloatRegClass, flattenFloatIndex(regId.index()));
-              case VecRegClass:
-                return RegId(VecRegClass, flattenVecIndex(regId.index()));
-              case VecElemClass:
-                return RegId(VecElemClass, flattenVecElemIndex(regId.index()),
-                             regId.elemIndex());
-              case VecPredRegClass:
-                return RegId(VecPredRegClass,
-                             flattenVecPredIndex(regId.index()));
-              case CCRegClass:
-                return RegId(CCRegClass, flattenCCIndex(regId.index()));
-              case MiscRegClass:
-                return RegId(MiscRegClass, flattenMiscIndex(regId.index()));
-            }
-            return RegId();
-        }
-
-        int
-        flattenIntIndex(int reg) const
-        {
-            assert(reg >= 0);
-            if (reg < NUM_ARCH_INTREGS) {
-                return intRegMap[reg];
-            } else if (reg < NUM_INTREGS) {
-                return reg;
-            } else if (reg == INTREG_SPX) {
-                CPSR cpsr = miscRegs[MISCREG_CPSR];
-                ExceptionLevel el = opModeToEL(
-                    (OperatingMode) (uint8_t) cpsr.mode);
-                if (!cpsr.sp && el != EL0)
-                    return INTREG_SP0;
-                switch (el) {
-                  case EL3:
-                    return INTREG_SP3;
-                  case EL2:
-                    return INTREG_SP2;
-                  case EL1:
-                    return INTREG_SP1;
-                  case EL0:
-                    return INTREG_SP0;
-                  default:
-                    panic("Invalid exception level");
-                    return 0;  // Never happens.
-                }
-            } else {
-                return flattenIntRegModeIndex(reg);
-            }
-        }
-
-        int
-        flattenFloatIndex(int reg) const
-        {
-            assert(reg >= 0);
-            return reg;
-        }
-
-        int
-        flattenVecIndex(int reg) const
-        {
-            assert(reg >= 0);
-            return reg;
-        }
-
-        int
-        flattenVecElemIndex(int reg) const
-        {
-            assert(reg >= 0);
-            return reg;
-        }
-
-        int
-        flattenVecPredIndex(int reg) const
-        {
-            assert(reg >= 0);
-            return reg;
-        }
-
-        int
-        flattenCCIndex(int reg) const
-        {
-            assert(reg >= 0);
-            return reg;
-        }
+        RegVal readMiscRegNoEffect(RegIndex idx) const override;
+        RegVal readMiscReg(RegIndex idx) override;
+        void setMiscRegNoEffect(RegIndex idx, RegVal val) override;
+        void setMiscReg(RegIndex, RegVal val) override;
 
         int
         flattenMiscIndex(int reg) const
@@ -735,10 +641,11 @@ namespace ArmISA
                 }
             } else {
                 if (miscRegInfo[reg][MISCREG_BANKED]) {
-                    bool secureReg = haveSecurity && !highestELIs64 &&
-                                     inSecureState(miscRegs[MISCREG_SCR],
-                                                   miscRegs[MISCREG_CPSR]);
-                    flat_idx += secureReg ? 2 : 1;
+                    bool secure_reg = release->has(ArmExtension::SECURITY) &&
+                                      !highestELIs64 &&
+                                      inSecureState(miscRegs[MISCREG_SCR],
+                                                    miscRegs[MISCREG_CPSR]);
+                    flat_idx += secure_reg ? 2 : 1;
                 } else {
                     flat_idx = snsBankedIndex64((MiscRegIndex)reg,
                         !inSecureState(miscRegs[MISCREG_SCR],
@@ -759,7 +666,7 @@ namespace ArmISA
             if (hcr.e2h == 0x0 || currEL(tc) != EL2)
                 return misc_reg;
             SCR scr = readMiscRegNoEffect(MISCREG_SCR_EL3);
-            bool sec_el2 = scr.eel2 && haveSecEL2;
+            bool sec_el2 = scr.eel2 && release->has(ArmExtension::FEAT_SEL2);
             switch(misc_reg) {
               case MISCREG_SPSR_EL1:
                   return MISCREG_SPSR_EL2;
@@ -825,7 +732,8 @@ namespace ArmISA
         {
             int reg_as_int = static_cast<int>(reg);
             if (miscRegInfo[reg][MISCREG_BANKED64]) {
-                reg_as_int += (haveSecurity && !ns) ? 2 : 1;
+                reg_as_int += (release->has(ArmExtension::SECURITY) && !ns) ?
+                    2 : 1;
             }
             return reg_as_int;
         }
@@ -840,7 +748,7 @@ namespace ArmISA
             }
 
             // do additional S/NS flattenings if mapped to NS while in S
-            bool S = haveSecurity && !highestELIs64 &&
+            bool S = release->has(ArmExtension::SECURITY) && !highestELIs64 &&
                      inSecureState(miscRegs[MISCREG_SCR],
                                    miscRegs[MISCREG_CPSR]);
             int lower = lookUpMiscReg[flat_idx].lower;
@@ -874,6 +782,12 @@ namespace ArmISA
 
         void setupThreadContext();
 
+        PCStateBase *
+        newPCState(Addr new_inst_addr=0) const override
+        {
+            return new PCState(new_inst_addr);
+        }
+
         void takeOverFrom(ThreadContext *new_tc,
                           ThreadContext *old_tc) override;
 
@@ -887,18 +801,6 @@ namespace ArmISA
             // to an error
             assert(afterStartup);
             return gicv3CpuInterface != nullptr;
-        }
-
-        enums::VecRegRenameMode
-        initVecRegRenameMode() const override
-        {
-            return highestELIs64 ? enums::Full : enums::Elem;
-        }
-
-        enums::VecRegRenameMode
-        vecRegRenameMode(ThreadContext *_tc) const override
-        {
-            return _tc->pcState().aarch64() ? enums::Full : enums::Elem;
         }
 
         PARAMS(ArmISA);
@@ -919,6 +821,23 @@ namespace ArmISA
         }
 
         void copyRegsFrom(ThreadContext *src) override;
+
+        void handleLockedRead(const RequestPtr &req) override;
+        void handleLockedRead(ExecContext *xc, const RequestPtr &req) override;
+
+        bool handleLockedWrite(const RequestPtr &req,
+                Addr cacheBlockMask) override;
+        bool handleLockedWrite(ExecContext *xc, const RequestPtr &req,
+                Addr cacheBlockMask) override;
+
+        void handleLockedSnoop(PacketPtr pkt, Addr cacheBlockMask) override;
+        void handleLockedSnoop(ExecContext *xc, PacketPtr pkt,
+                Addr cacheBlockMask) override;
+        void handleLockedSnoopHit() override;
+        void handleLockedSnoopHit(ExecContext *xc) override;
+
+        void globalClearExclusive() override;
+        void globalClearExclusive(ExecContext *xc) override;
     };
 
 } // namespace ArmISA

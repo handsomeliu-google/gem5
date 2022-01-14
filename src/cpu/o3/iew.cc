@@ -47,7 +47,6 @@
 
 #include <queue>
 
-#include "config/the_isa.hh"
 #include "cpu/checker/cpu.hh"
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/fu_pool.hh"
@@ -57,7 +56,7 @@
 #include "debug/Drain.hh"
 #include "debug/IEW.hh"
 #include "debug/O3PipeView.hh"
-#include "params/O3CPU.hh"
+#include "params/BaseO3CPU.hh"
 
 namespace gem5
 {
@@ -65,7 +64,7 @@ namespace gem5
 namespace o3
 {
 
-IEW::IEW(CPU *_cpu, const O3CPUParams &params)
+IEW::IEW(CPU *_cpu, const BaseO3CPUParams &params)
     : issueToExecQueue(params.backComSize, params.forwardComSize),
       cpu(_cpu),
       instQueue(_cpu, this, params),
@@ -143,7 +142,7 @@ IEW::regProbePoints()
 }
 
 IEW::IEWStats::IEWStats(CPU *cpu)
-    : statistics::Group(cpu),
+    : statistics::Group(cpu, "iew"),
     ADD_STAT(idleCycles, statistics::units::Cycle::get(),
              "Number of cycles IEW is idle"),
     ADD_STAT(squashCycles, statistics::units::Cycle::get(),
@@ -463,10 +462,9 @@ IEW::squashDueToBranch(const DynInstPtr& inst, ThreadID tid)
         toCommit->squashedSeqNum[tid] = inst->seqNum;
         toCommit->branchTaken[tid] = inst->pcState().branching();
 
-        TheISA::PCState pc = inst->pcState();
-        inst->staticInst->advancePC(pc);
+        set(toCommit->pc[tid], inst->pcState());
+        inst->staticInst->advancePC(*toCommit->pc[tid]);
 
-        toCommit->pc[tid] = pc;
         toCommit->mispredictInst[tid] = inst;
         toCommit->includeSquashInst[tid] = false;
 
@@ -491,7 +489,7 @@ IEW::squashDueToMemOrder(const DynInstPtr& inst, ThreadID tid)
         toCommit->squash[tid] = true;
 
         toCommit->squashedSeqNum[tid] = inst->seqNum;
-        toCommit->pc[tid] = inst->pcState();
+        set(toCommit->pc[tid], inst->pcState());
         toCommit->mispredictInst[tid] = NULL;
 
         // Must include the memory violator in the squash.
@@ -1301,13 +1299,13 @@ IEW::executeInsts()
 
                 DPRINTF(IEW, "[tid:%i] [sn:%llu] Execute: "
                         "Branch mispredict detected.\n",
-                        tid,inst->seqNum);
+                        tid, inst->seqNum);
                 DPRINTF(IEW, "[tid:%i] [sn:%llu] "
                         "Predicted target was PC: %s\n",
-                        tid,inst->seqNum,inst->readPredTarg());
+                        tid, inst->seqNum, inst->readPredTarg());
                 DPRINTF(IEW, "[tid:%i] [sn:%llu] Execute: "
                         "Redirecting fetch to PC: %s\n",
-                        tid,inst->seqNum,inst->pcState());
+                        tid, inst->seqNum, inst->pcState());
                 // If incorrect, then signal the ROB that it must be squashed.
                 squashDueToBranch(inst, tid);
 
@@ -1603,17 +1601,12 @@ IEW::checkMisprediction(const DynInstPtr& inst)
 
             DPRINTF(IEW, "[tid:%i] [sn:%llu] Execute: "
                     "Branch mispredict detected.\n",
-                    tid,inst->seqNum);
-            DPRINTF(IEW, "[tid:%i] [sn:%llu] Predicted target "
-                    "was PC:%#x, NPC:%#x\n",
-                    tid,inst->seqNum,
-                    inst->predInstAddr(), inst->predNextInstAddr());
+                    tid, inst->seqNum);
+            DPRINTF(IEW, "[tid:%i] [sn:%llu] Predicted target was PC: %s\n",
+                    tid, inst->seqNum, inst->readPredTarg());
             DPRINTF(IEW, "[tid:%i] [sn:%llu] Execute: "
-                    "Redirecting fetch to PC: %#x, "
-                    "NPC: %#x.\n",
-                    tid,inst->seqNum,
-                    inst->nextInstAddr(),
-                    inst->nextInstAddr());
+                    "Redirecting fetch to PC: %s\n",
+                    tid, inst->seqNum, inst->pcState());
             // If incorrect, then signal the ROB that it must be squashed.
             squashDueToBranch(inst, tid);
 

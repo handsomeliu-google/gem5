@@ -44,7 +44,6 @@
 #include <sstream>
 
 #include "base/loader/symtab.hh"
-#include "config/the_isa.hh"
 #include "cpu/base.hh"
 #include "cpu/static_inst.hh"
 #include "cpu/thread_context.hh"
@@ -76,7 +75,7 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
     if (debug::ExecThread)
         outs << "T" << thread->threadId() << " : ";
 
-    Addr cur_pc = pc.instAddr();
+    Addr cur_pc = pc->instAddr();
     loader::SymbolTable::const_iterator it;
     ccprintf(outs, "%#x", cur_pc);
     if (debug::ExecSymbol && (!FullSystem || !in_user_mode) &&
@@ -90,7 +89,7 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
     }
 
     if (inst->isMicroop()) {
-        ccprintf(outs, ".%2d", pc.microPC());
+        ccprintf(outs, ".%2d", pc->microPC());
     } else {
         ccprintf(outs, "   ");
     }
@@ -115,18 +114,11 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
             outs << "Predicated False";
         }
 
-        if (debug::ExecResult && data_status != DataInvalid) {
-            switch (data_status) {
-              case DataVec:
-                ccprintf(outs, " D=%s", *data.as_vec);
-                break;
-              case DataVecPred:
-                ccprintf(outs, " D=%s", *data.as_pred);
-                break;
-              default:
-                ccprintf(outs, " D=%#018x", data.as_int);
-                break;
-            }
+        if (debug::ExecResult && dataStatus != DataInvalid) {
+            if (dataStatus == DataReg)
+                ccprintf(outs, " D=%s", data.asReg.asString());
+            else
+                ccprintf(outs, " D=%#018x", data.asInt);
         }
 
         if (debug::ExecEffAddr && getMemValid())

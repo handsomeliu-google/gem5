@@ -1384,7 +1384,7 @@ namespace VegaISA
     Inst_SOP2__S_CBRANCH_G_FORK::Inst_SOP2__S_CBRANCH_G_FORK(InFmt_SOP2 *iFmt)
         : Inst_SOP2(iFmt, "s_cbranch_g_fork")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOP2__S_CBRANCH_G_FORK
 
     Inst_SOP2__S_CBRANCH_G_FORK::~Inst_SOP2__S_CBRANCH_G_FORK()
@@ -1903,11 +1903,12 @@ namespace VegaISA
     Inst_SOPK__S_MULK_I32::execute(GPUDynInstPtr gpuDynInst)
     {
         ScalarRegI16 simm16 = instData.SIMM16;
+        ConstScalarOperandI32 src(gpuDynInst, instData.SDST);
         ScalarOperandI32 sdst(gpuDynInst, instData.SDST);
 
-        sdst.read();
+        src.read();
 
-        sdst = sdst.rawData() * (ScalarRegI32)simm16;
+        sdst = src.rawData() * (ScalarRegI32)simm16;
 
         sdst.write();
     } // execute
@@ -1916,7 +1917,7 @@ namespace VegaISA
     Inst_SOPK__S_CBRANCH_I_FORK::Inst_SOPK__S_CBRANCH_I_FORK(InFmt_SOPK *iFmt)
         : Inst_SOPK(iFmt, "s_cbranch_i_fork")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPK__S_CBRANCH_I_FORK
 
     Inst_SOPK__S_CBRANCH_I_FORK::~Inst_SOPK__S_CBRANCH_I_FORK()
@@ -2971,8 +2972,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_and_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_AND_SAVEEXEC_B64
 
     Inst_SOP1__S_AND_SAVEEXEC_B64::~Inst_SOP1__S_AND_SAVEEXEC_B64()
@@ -3007,8 +3008,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_or_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_OR_SAVEEXEC_B64
 
     Inst_SOP1__S_OR_SAVEEXEC_B64::~Inst_SOP1__S_OR_SAVEEXEC_B64()
@@ -3043,8 +3044,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_xor_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_XOR_SAVEEXEC_B64
 
     Inst_SOP1__S_XOR_SAVEEXEC_B64::~Inst_SOP1__S_XOR_SAVEEXEC_B64()
@@ -3079,8 +3080,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_andn2_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_ANDN2_SAVEEXEC_B64
 
     Inst_SOP1__S_ANDN2_SAVEEXEC_B64::~Inst_SOP1__S_ANDN2_SAVEEXEC_B64()
@@ -3115,8 +3116,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_orn2_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_ORN2_SAVEEXEC_B64
 
     Inst_SOP1__S_ORN2_SAVEEXEC_B64::~Inst_SOP1__S_ORN2_SAVEEXEC_B64()
@@ -3151,8 +3152,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_nand_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_NAND_SAVEEXEC_B64
 
     Inst_SOP1__S_NAND_SAVEEXEC_B64::~Inst_SOP1__S_NAND_SAVEEXEC_B64()
@@ -3187,8 +3188,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_nor_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_NOR_SAVEEXEC_B64
 
     Inst_SOP1__S_NOR_SAVEEXEC_B64::~Inst_SOP1__S_NOR_SAVEEXEC_B64()
@@ -3223,8 +3224,8 @@ namespace VegaISA
         : Inst_SOP1(iFmt, "s_xnor_saveexec_b64")
     {
         setFlag(ALU);
-        setFlag(ReadsExec);
-        setFlag(WritesExec);
+        setFlag(ReadsEXEC);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_XNOR_SAVEEXEC_B64
 
     Inst_SOP1__S_XNOR_SAVEEXEC_B64::~Inst_SOP1__S_XNOR_SAVEEXEC_B64()
@@ -3433,8 +3434,8 @@ namespace VegaISA
     Inst_SOP1__S_CBRANCH_JOIN::Inst_SOP1__S_CBRANCH_JOIN(InFmt_SOP1 *iFmt)
         : Inst_SOP1(iFmt, "s_cbranch_join")
     {
-        setFlag(CondBranch);
-        setFlag(WritesExec);
+        setFlag(Branch);
+        setFlag(WritesEXEC);
     } // Inst_SOP1__S_CBRANCH_JOIN
 
     Inst_SOP1__S_CBRANCH_JOIN::~Inst_SOP1__S_CBRANCH_JOIN()
@@ -4096,7 +4097,6 @@ namespace VegaISA
         : Inst_SOPP(iFmt, "s_nop")
     {
         setFlag(Nop);
-        setFlag(Internal);
     } // Inst_SOPP__S_NOP
 
     Inst_SOPP__S_NOP::~Inst_SOPP__S_NOP()
@@ -4173,8 +4173,8 @@ namespace VegaISA
         DPRINTF(GPUExec, "CU%d: decrease ref ctr WG[%d] to [%d]\n",
             wf->computeUnit->cu_id, wf->wgId, refCount);
 
-        wf->computeUnit->registerManager.freeRegisters(wf);
-        wf->computeUnit->completedWfs++;
+        wf->computeUnit->registerManager->freeRegisters(wf);
+        wf->computeUnit->stats.completedWfs++;
         wf->computeUnit->activeWaves--;
 
         panic_if(wf->computeUnit->activeWaves < 0, "CU[%d] Active waves less "
@@ -4185,7 +4185,7 @@ namespace VegaISA
 
         for (int i = 0; i < wf->vecReads.size(); i++) {
             if (wf->rawDist.find(i) != wf->rawDist.end()) {
-                wf->readsPerWrite.sample(wf->vecReads.at(i));
+                wf->stats.readsPerWrite.sample(wf->vecReads.at(i));
             }
         }
         wf->vecReads.clear();
@@ -4227,7 +4227,7 @@ namespace VegaISA
             if (!kernelEnd || !relNeeded) {
                 wf->computeUnit->shader->dispatcher().notifyWgCompl(wf);
                 wf->setStatus(Wavefront::S_STOPPED);
-                wf->computeUnit->completedWGs++;
+                wf->computeUnit->stats.completedWGs++;
 
                 return;
             }
@@ -4255,7 +4255,7 @@ namespace VegaISA
             // call shader to prepare the flush operations
             wf->computeUnit->shader->prepareFlush(gpuDynInst);
 
-            wf->computeUnit->completedWGs++;
+            wf->computeUnit->stats.completedWGs++;
         } else {
             wf->computeUnit->shader->dispatcher().scheduleDispatch();
         }
@@ -4320,7 +4320,7 @@ namespace VegaISA
     Inst_SOPP__S_CBRANCH_SCC0::Inst_SOPP__S_CBRANCH_SCC0(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_scc0")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPP__S_CBRANCH_SCC0
 
     Inst_SOPP__S_CBRANCH_SCC0::~Inst_SOPP__S_CBRANCH_SCC0()
@@ -4351,7 +4351,7 @@ namespace VegaISA
     Inst_SOPP__S_CBRANCH_SCC1::Inst_SOPP__S_CBRANCH_SCC1(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_scc1")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPP__S_CBRANCH_SCC1
 
     Inst_SOPP__S_CBRANCH_SCC1::~Inst_SOPP__S_CBRANCH_SCC1()
@@ -4382,7 +4382,7 @@ namespace VegaISA
     Inst_SOPP__S_CBRANCH_VCCZ::Inst_SOPP__S_CBRANCH_VCCZ(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_vccz")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
         setFlag(ReadsVCC);
     } // Inst_SOPP__S_CBRANCH_VCCZ
 
@@ -4414,7 +4414,7 @@ namespace VegaISA
     Inst_SOPP__S_CBRANCH_VCCNZ::Inst_SOPP__S_CBRANCH_VCCNZ(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_vccnz")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
         setFlag(ReadsVCC);
     } // Inst_SOPP__S_CBRANCH_VCCNZ
 
@@ -4445,8 +4445,8 @@ namespace VegaISA
     Inst_SOPP__S_CBRANCH_EXECZ::Inst_SOPP__S_CBRANCH_EXECZ(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_execz")
     {
-        setFlag(CondBranch);
-        setFlag(ReadsExec);
+        setFlag(Branch);
+        setFlag(ReadsEXEC);
     } // Inst_SOPP__S_CBRANCH_EXECZ
 
     Inst_SOPP__S_CBRANCH_EXECZ::~Inst_SOPP__S_CBRANCH_EXECZ()
@@ -4473,8 +4473,8 @@ namespace VegaISA
     Inst_SOPP__S_CBRANCH_EXECNZ::Inst_SOPP__S_CBRANCH_EXECNZ(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_execnz")
     {
-        setFlag(CondBranch);
-        setFlag(ReadsExec);
+        setFlag(Branch);
+        setFlag(ReadsEXEC);
     } // Inst_SOPP__S_CBRANCH_EXECNZ
 
     Inst_SOPP__S_CBRANCH_EXECNZ::~Inst_SOPP__S_CBRANCH_EXECNZ()
@@ -4501,7 +4501,7 @@ namespace VegaISA
     Inst_SOPP__S_BARRIER::Inst_SOPP__S_BARRIER(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_barrier")
     {
-        setFlag(Barrier);
+        setFlag(MemBarrier);
     } // Inst_SOPP__S_BARRIER
 
     Inst_SOPP__S_BARRIER::~Inst_SOPP__S_BARRIER()
@@ -4556,8 +4556,8 @@ namespace VegaISA
     Inst_SOPP__S_WAITCNT::Inst_SOPP__S_WAITCNT(InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_waitcnt")
     {
+        setFlag(ALU);
         setFlag(Waitcnt);
-        setFlag(Internal);
     } // Inst_SOPP__S_WAITCNT
 
     Inst_SOPP__S_WAITCNT::~Inst_SOPP__S_WAITCNT()
@@ -4789,7 +4789,7 @@ namespace VegaISA
           InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_cdbgsys")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPP__S_CBRANCH_CDBGSYS
 
     Inst_SOPP__S_CBRANCH_CDBGSYS::~Inst_SOPP__S_CBRANCH_CDBGSYS()
@@ -4811,7 +4811,7 @@ namespace VegaISA
           InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_cdbguser")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPP__S_CBRANCH_CDBGUSER
 
     Inst_SOPP__S_CBRANCH_CDBGUSER::~Inst_SOPP__S_CBRANCH_CDBGUSER()
@@ -4832,7 +4832,7 @@ namespace VegaISA
           InFmt_SOPP *iFmt)
         : Inst_SOPP(iFmt, "s_cbranch_cdbgsys_or_user")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPP__S_CBRANCH_CDBGSYS_OR_USER
 
     Inst_SOPP__S_CBRANCH_CDBGSYS_OR_USER::
@@ -4855,7 +4855,7 @@ namespace VegaISA
         Inst_SOPP__S_CBRANCH_CDBGSYS_AND_USER(InFmt_SOPP *iFmt)
             : Inst_SOPP(iFmt, "s_cbranch_cdbgsys_and_user")
     {
-        setFlag(CondBranch);
+        setFlag(Branch);
     } // Inst_SOPP__S_CBRANCH_CDBGSYS_AND_USER
 
     Inst_SOPP__S_CBRANCH_CDBGSYS_AND_USER::
@@ -4945,6 +4945,7 @@ namespace VegaISA
     Inst_SMEM__S_LOAD_DWORD::Inst_SMEM__S_LOAD_DWORD(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_load_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_LOAD_DWORD
 
@@ -5001,6 +5002,7 @@ namespace VegaISA
     Inst_SMEM__S_LOAD_DWORDX2::Inst_SMEM__S_LOAD_DWORDX2(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_load_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_LOAD_DWORDX2
 
@@ -5055,6 +5057,7 @@ namespace VegaISA
     Inst_SMEM__S_LOAD_DWORDX4::Inst_SMEM__S_LOAD_DWORDX4(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_load_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_LOAD_DWORDX4
 
@@ -5108,6 +5111,7 @@ namespace VegaISA
     Inst_SMEM__S_LOAD_DWORDX8::Inst_SMEM__S_LOAD_DWORDX8(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_load_dwordx8")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_LOAD_DWORDX8
 
@@ -5161,6 +5165,7 @@ namespace VegaISA
     Inst_SMEM__S_LOAD_DWORDX16::Inst_SMEM__S_LOAD_DWORDX16(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_load_dwordx16")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_LOAD_DWORDX16
 
@@ -5215,6 +5220,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_load_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_BUFFER_LOAD_DWORD
 
@@ -5270,6 +5276,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_load_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_BUFFER_LOAD_DWORDX2
 
@@ -5325,6 +5332,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_load_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_BUFFER_LOAD_DWORDX4
 
@@ -5380,6 +5388,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_load_dwordx8")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_BUFFER_LOAD_DWORDX8
 
@@ -5435,6 +5444,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_load_dwordx16")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_SMEM__S_BUFFER_LOAD_DWORDX16
 
@@ -5489,6 +5499,7 @@ namespace VegaISA
     Inst_SMEM__S_STORE_DWORD::Inst_SMEM__S_STORE_DWORD(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_store_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_SMEM__S_STORE_DWORD
 
@@ -5548,6 +5559,7 @@ namespace VegaISA
     Inst_SMEM__S_STORE_DWORDX2::Inst_SMEM__S_STORE_DWORDX2(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_store_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_SMEM__S_STORE_DWORDX2
 
@@ -5604,6 +5616,7 @@ namespace VegaISA
     Inst_SMEM__S_STORE_DWORDX4::Inst_SMEM__S_STORE_DWORDX4(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_store_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_SMEM__S_STORE_DWORDX4
 
@@ -5629,7 +5642,7 @@ namespace VegaISA
         sdata.read();
 
         std::memcpy((void*)gpuDynInst->scalar_data, sdata.rawDataPtr(),
-            4 * sizeof(ScalarRegU32));
+            sizeof(gpuDynInst->scalar_data));
 
         if (instData.IMM) {
             offset = extData.OFFSET;
@@ -5661,6 +5674,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_store_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_SMEM__S_BUFFER_STORE_DWORD
 
@@ -5692,6 +5706,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_store_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_SMEM__S_BUFFER_STORE_DWORDX2
 
@@ -5723,6 +5738,7 @@ namespace VegaISA
           InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_buffer_store_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_SMEM__S_BUFFER_STORE_DWORDX4
 
@@ -5937,7 +5953,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_add_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP2__V_ADD_F32
 
@@ -5998,7 +6013,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_sub_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP2__V_SUB_F32
 
@@ -6034,7 +6048,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_subrev_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP2__V_SUBREV_F32
 
@@ -6070,7 +6083,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mul_legacy_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
         setFlag(F32);
     } // Inst_VOP2__V_MUL_LEGACY_F32
 
@@ -6105,7 +6117,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mul_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
         setFlag(F32);
     } // Inst_VOP2__V_MUL_F32
 
@@ -6185,7 +6196,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mul_i32_i24")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP2__V_MUL_I32_I24
 
     Inst_VOP2__V_MUL_I32_I24::~Inst_VOP2__V_MUL_I32_I24()
@@ -6220,7 +6230,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mul_hi_i32_i24")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP2__V_MUL_HI_I32_I24
 
     Inst_VOP2__V_MUL_HI_I32_I24::~Inst_VOP2__V_MUL_HI_I32_I24()
@@ -6259,7 +6268,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mul_u32_u24")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP2__V_MUL_U32_U24
 
     Inst_VOP2__V_MUL_U32_U24::~Inst_VOP2__V_MUL_U32_U24()
@@ -6337,7 +6345,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mul_hi_u32_u24")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP2__V_MUL_HI_U32_U24
 
     Inst_VOP2__V_MUL_HI_U32_U24::~Inst_VOP2__V_MUL_HI_U32_U24()
@@ -6861,7 +6868,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_mac_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(MAC);
     } // Inst_VOP2__V_MAC_F32
@@ -6926,7 +6932,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_madmk_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(MAD);
     } // Inst_VOP2__V_MADMK_F32
@@ -6966,7 +6971,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_madak_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(MAD);
     } // Inst_VOP2__V_MADAK_F32
@@ -7007,7 +7011,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_ADD_CO_U32
 
     Inst_VOP2__V_ADD_CO_U32::~Inst_VOP2__V_ADD_CO_U32()
@@ -7092,7 +7095,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_SUB_CO_U32
 
     Inst_VOP2__V_SUB_CO_U32::~Inst_VOP2__V_SUB_CO_U32()
@@ -7133,7 +7135,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_SUBREV_CO_U32
 
     Inst_VOP2__V_SUBREV_CO_U32::~Inst_VOP2__V_SUBREV_CO_U32()
@@ -7175,7 +7176,6 @@ namespace VegaISA
         setFlag(ALU);
         setFlag(WritesVCC);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_ADDC_CO_U32
 
     Inst_VOP2__V_ADDC_CO_U32::~Inst_VOP2__V_ADDC_CO_U32()
@@ -7223,7 +7223,6 @@ namespace VegaISA
         setFlag(ALU);
         setFlag(WritesVCC);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_SUBB_CO_U32
 
     Inst_VOP2__V_SUBB_CO_U32::~Inst_VOP2__V_SUBB_CO_U32()
@@ -7269,7 +7268,6 @@ namespace VegaISA
         setFlag(ALU);
         setFlag(WritesVCC);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_SUBBREV_CO_U32
 
     Inst_VOP2__V_SUBBREV_CO_U32::~Inst_VOP2__V_SUBBREV_CO_U32()
@@ -7910,7 +7908,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_add_u32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_ADD_U32
 
     Inst_VOP2__V_ADD_U32::~Inst_VOP2__V_ADD_U32()
@@ -7985,7 +7982,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_sub_u32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_SUB_U32
 
     Inst_VOP2__V_SUB_U32::~Inst_VOP2__V_SUB_U32()
@@ -8019,7 +8015,6 @@ namespace VegaISA
         : Inst_VOP2(iFmt, "v_subrev_u32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP2__V_SUBREV_U32
 
     Inst_VOP2__V_SUBREV_U32::~Inst_VOP2__V_SUBREV_U32()
@@ -8961,7 +8956,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_fract_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_FRACT_F32
 
@@ -9125,7 +9119,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_exp_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_EXP_F32
 
@@ -9158,7 +9151,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_log_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_LOG_F32
 
@@ -9191,7 +9183,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_rcp_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_RCP_F32
 
@@ -9224,7 +9215,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_rcp_iflag_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_RCP_IFLAG_F32
 
@@ -9259,7 +9249,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_rsq_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_RSQ_F32
 
@@ -9292,7 +9281,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_rcp_f64")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP1__V_RCP_F64
 
@@ -9337,7 +9325,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_rsq_f64")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP1__V_RSQ_F64
 
@@ -9381,7 +9368,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_sqrt_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_SQRT_F32
 
@@ -9414,7 +9400,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_sqrt_f64")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP1__V_SQRT_F64
 
@@ -9447,7 +9432,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_sin_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_SIN_F32
 
@@ -9488,7 +9472,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_cos_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_COS_F32
 
@@ -10300,7 +10283,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_exp_legacy_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_EXP_LEGACY_F32
 
@@ -10333,7 +10315,6 @@ namespace VegaISA
         : Inst_VOP1(iFmt, "v_log_legacy_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP1__V_LOG_LEGACY_F32
 
@@ -10481,7 +10462,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_CLASS_F32
 
     Inst_VOPC__V_CMPX_CLASS_F32::~Inst_VOPC__V_CMPX_CLASS_F32()
@@ -10712,7 +10693,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_CLASS_F64
 
     Inst_VOPC__V_CMPX_CLASS_F64::~Inst_VOPC__V_CMPX_CLASS_F64()
@@ -10861,7 +10842,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_CLASS_F16
 
     Inst_VOPC__V_CMPX_CLASS_F16::~Inst_VOPC__V_CMPX_CLASS_F16()
@@ -11215,7 +11196,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_F16
 
     Inst_VOPC__V_CMPX_F_F16::~Inst_VOPC__V_CMPX_F_F16()
@@ -11236,7 +11217,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_F16
 
     Inst_VOPC__V_CMPX_LT_F16::~Inst_VOPC__V_CMPX_LT_F16()
@@ -11257,7 +11238,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_F16
 
     Inst_VOPC__V_CMPX_EQ_F16::~Inst_VOPC__V_CMPX_EQ_F16()
@@ -11278,7 +11259,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_F16
 
     Inst_VOPC__V_CMPX_LE_F16::~Inst_VOPC__V_CMPX_LE_F16()
@@ -11299,7 +11280,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_F16
 
     Inst_VOPC__V_CMPX_GT_F16::~Inst_VOPC__V_CMPX_GT_F16()
@@ -11320,7 +11301,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LG_F16
 
     Inst_VOPC__V_CMPX_LG_F16::~Inst_VOPC__V_CMPX_LG_F16()
@@ -11341,7 +11322,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_F16
 
     Inst_VOPC__V_CMPX_GE_F16::~Inst_VOPC__V_CMPX_GE_F16()
@@ -11362,7 +11343,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_O_F16
 
     Inst_VOPC__V_CMPX_O_F16::~Inst_VOPC__V_CMPX_O_F16()
@@ -11384,7 +11365,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_U_F16
 
     Inst_VOPC__V_CMPX_U_F16::~Inst_VOPC__V_CMPX_U_F16()
@@ -11406,7 +11387,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NGE_F16
 
     Inst_VOPC__V_CMPX_NGE_F16::~Inst_VOPC__V_CMPX_NGE_F16()
@@ -11427,7 +11408,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLG_F16
 
     Inst_VOPC__V_CMPX_NLG_F16::~Inst_VOPC__V_CMPX_NLG_F16()
@@ -11448,7 +11429,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NGT_F16
 
     Inst_VOPC__V_CMPX_NGT_F16::~Inst_VOPC__V_CMPX_NGT_F16()
@@ -11469,7 +11450,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLE_F16
 
     Inst_VOPC__V_CMPX_NLE_F16::~Inst_VOPC__V_CMPX_NLE_F16()
@@ -11490,7 +11471,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NEQ_F16
 
     Inst_VOPC__V_CMPX_NEQ_F16::~Inst_VOPC__V_CMPX_NEQ_F16()
@@ -11511,7 +11492,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLT_F16
 
     Inst_VOPC__V_CMPX_NLT_F16::~Inst_VOPC__V_CMPX_NLT_F16()
@@ -11532,7 +11513,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_TRU_F16
 
     Inst_VOPC__V_CMPX_TRU_F16::~Inst_VOPC__V_CMPX_TRU_F16()
@@ -12091,7 +12072,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_F32
 
     Inst_VOPC__V_CMPX_F_F32::~Inst_VOPC__V_CMPX_F_F32()
@@ -12122,7 +12103,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_F32
 
     Inst_VOPC__V_CMPX_LT_F32::~Inst_VOPC__V_CMPX_LT_F32()
@@ -12158,7 +12139,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_F32
 
     Inst_VOPC__V_CMPX_EQ_F32::~Inst_VOPC__V_CMPX_EQ_F32()
@@ -12194,7 +12175,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_F32
 
     Inst_VOPC__V_CMPX_LE_F32::~Inst_VOPC__V_CMPX_LE_F32()
@@ -12230,7 +12211,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_F32
 
     Inst_VOPC__V_CMPX_GT_F32::~Inst_VOPC__V_CMPX_GT_F32()
@@ -12266,7 +12247,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LG_F32
 
     Inst_VOPC__V_CMPX_LG_F32::~Inst_VOPC__V_CMPX_LG_F32()
@@ -12303,7 +12284,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_F32
 
     Inst_VOPC__V_CMPX_GE_F32::~Inst_VOPC__V_CMPX_GE_F32()
@@ -12339,7 +12320,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_O_F32
 
     Inst_VOPC__V_CMPX_O_F32::~Inst_VOPC__V_CMPX_O_F32()
@@ -12377,7 +12358,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_U_F32
 
     Inst_VOPC__V_CMPX_U_F32::~Inst_VOPC__V_CMPX_U_F32()
@@ -12415,7 +12396,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NGE_F32
 
     Inst_VOPC__V_CMPX_NGE_F32::~Inst_VOPC__V_CMPX_NGE_F32()
@@ -12451,7 +12432,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLG_F32
 
     Inst_VOPC__V_CMPX_NLG_F32::~Inst_VOPC__V_CMPX_NLG_F32()
@@ -12488,7 +12469,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NGT_F32
 
     Inst_VOPC__V_CMPX_NGT_F32::~Inst_VOPC__V_CMPX_NGT_F32()
@@ -12524,7 +12505,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLE_F32
 
     Inst_VOPC__V_CMPX_NLE_F32::~Inst_VOPC__V_CMPX_NLE_F32()
@@ -12560,7 +12541,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NEQ_F32
 
     Inst_VOPC__V_CMPX_NEQ_F32::~Inst_VOPC__V_CMPX_NEQ_F32()
@@ -12596,7 +12577,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLT_F32
 
     Inst_VOPC__V_CMPX_NLT_F32::~Inst_VOPC__V_CMPX_NLT_F32()
@@ -12632,7 +12613,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_TRU_F32
 
     Inst_VOPC__V_CMPX_TRU_F32::~Inst_VOPC__V_CMPX_TRU_F32()
@@ -13201,7 +13182,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_F64
 
     Inst_VOPC__V_CMPX_F_F64::~Inst_VOPC__V_CMPX_F_F64()
@@ -13232,7 +13213,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_F64
 
     Inst_VOPC__V_CMPX_LT_F64::~Inst_VOPC__V_CMPX_LT_F64()
@@ -13268,7 +13249,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_F64
 
     Inst_VOPC__V_CMPX_EQ_F64::~Inst_VOPC__V_CMPX_EQ_F64()
@@ -13304,7 +13285,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_F64
 
     Inst_VOPC__V_CMPX_LE_F64::~Inst_VOPC__V_CMPX_LE_F64()
@@ -13340,7 +13321,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_F64
 
     Inst_VOPC__V_CMPX_GT_F64::~Inst_VOPC__V_CMPX_GT_F64()
@@ -13376,7 +13357,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LG_F64
 
     Inst_VOPC__V_CMPX_LG_F64::~Inst_VOPC__V_CMPX_LG_F64()
@@ -13413,7 +13394,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_F64
 
     Inst_VOPC__V_CMPX_GE_F64::~Inst_VOPC__V_CMPX_GE_F64()
@@ -13449,7 +13430,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_O_F64
 
     Inst_VOPC__V_CMPX_O_F64::~Inst_VOPC__V_CMPX_O_F64()
@@ -13487,7 +13468,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_U_F64
 
     Inst_VOPC__V_CMPX_U_F64::~Inst_VOPC__V_CMPX_U_F64()
@@ -13525,7 +13506,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NGE_F64
 
     Inst_VOPC__V_CMPX_NGE_F64::~Inst_VOPC__V_CMPX_NGE_F64()
@@ -13561,7 +13542,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLG_F64
 
     Inst_VOPC__V_CMPX_NLG_F64::~Inst_VOPC__V_CMPX_NLG_F64()
@@ -13598,7 +13579,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NGT_F64
 
     Inst_VOPC__V_CMPX_NGT_F64::~Inst_VOPC__V_CMPX_NGT_F64()
@@ -13634,7 +13615,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLE_F64
 
     Inst_VOPC__V_CMPX_NLE_F64::~Inst_VOPC__V_CMPX_NLE_F64()
@@ -13670,7 +13651,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NEQ_F64
 
     Inst_VOPC__V_CMPX_NEQ_F64::~Inst_VOPC__V_CMPX_NEQ_F64()
@@ -13706,7 +13687,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NLT_F64
 
     Inst_VOPC__V_CMPX_NLT_F64::~Inst_VOPC__V_CMPX_NLT_F64()
@@ -13742,7 +13723,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_TRU_F64
 
     Inst_VOPC__V_CMPX_TRU_F64::~Inst_VOPC__V_CMPX_TRU_F64()
@@ -14280,7 +14261,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_f_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_I16
 
     Inst_VOPC__V_CMPX_F_I16::~Inst_VOPC__V_CMPX_F_I16()
@@ -14310,7 +14291,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_lt_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_I16
 
     Inst_VOPC__V_CMPX_LT_I16::~Inst_VOPC__V_CMPX_LT_I16()
@@ -14345,7 +14326,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_eq_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_I16
 
     Inst_VOPC__V_CMPX_EQ_I16::~Inst_VOPC__V_CMPX_EQ_I16()
@@ -14380,7 +14361,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_le_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_I16
 
     Inst_VOPC__V_CMPX_LE_I16::~Inst_VOPC__V_CMPX_LE_I16()
@@ -14415,7 +14396,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_gt_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_I16
 
     Inst_VOPC__V_CMPX_GT_I16::~Inst_VOPC__V_CMPX_GT_I16()
@@ -14450,7 +14431,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ne_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NE_I16
 
     Inst_VOPC__V_CMPX_NE_I16::~Inst_VOPC__V_CMPX_NE_I16()
@@ -14485,7 +14466,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ge_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_I16
 
     Inst_VOPC__V_CMPX_GE_I16::~Inst_VOPC__V_CMPX_GE_I16()
@@ -14520,7 +14501,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_t_i16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_T_I16
 
     Inst_VOPC__V_CMPX_T_I16::~Inst_VOPC__V_CMPX_T_I16()
@@ -14550,7 +14531,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_f_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_U16
 
     Inst_VOPC__V_CMPX_F_U16::~Inst_VOPC__V_CMPX_F_U16()
@@ -14580,7 +14561,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_lt_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_U16
 
     Inst_VOPC__V_CMPX_LT_U16::~Inst_VOPC__V_CMPX_LT_U16()
@@ -14615,7 +14596,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_eq_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_U16
 
     Inst_VOPC__V_CMPX_EQ_U16::~Inst_VOPC__V_CMPX_EQ_U16()
@@ -14650,7 +14631,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_le_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_U16
 
     Inst_VOPC__V_CMPX_LE_U16::~Inst_VOPC__V_CMPX_LE_U16()
@@ -14685,7 +14666,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_gt_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_U16
 
     Inst_VOPC__V_CMPX_GT_U16::~Inst_VOPC__V_CMPX_GT_U16()
@@ -14720,7 +14701,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ne_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NE_U16
 
     Inst_VOPC__V_CMPX_NE_U16::~Inst_VOPC__V_CMPX_NE_U16()
@@ -14755,7 +14736,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ge_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_U16
 
     Inst_VOPC__V_CMPX_GE_U16::~Inst_VOPC__V_CMPX_GE_U16()
@@ -14790,7 +14771,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_t_u16")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_T_U16
 
     Inst_VOPC__V_CMPX_T_U16::~Inst_VOPC__V_CMPX_T_U16()
@@ -15328,7 +15309,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_f_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_I32
 
     Inst_VOPC__V_CMPX_F_I32::~Inst_VOPC__V_CMPX_F_I32()
@@ -15358,7 +15339,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_lt_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_I32
 
     Inst_VOPC__V_CMPX_LT_I32::~Inst_VOPC__V_CMPX_LT_I32()
@@ -15393,7 +15374,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_eq_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_I32
 
     Inst_VOPC__V_CMPX_EQ_I32::~Inst_VOPC__V_CMPX_EQ_I32()
@@ -15428,7 +15409,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_le_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_I32
 
     Inst_VOPC__V_CMPX_LE_I32::~Inst_VOPC__V_CMPX_LE_I32()
@@ -15463,7 +15444,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_gt_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_I32
 
     Inst_VOPC__V_CMPX_GT_I32::~Inst_VOPC__V_CMPX_GT_I32()
@@ -15498,7 +15479,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ne_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NE_I32
 
     Inst_VOPC__V_CMPX_NE_I32::~Inst_VOPC__V_CMPX_NE_I32()
@@ -15533,7 +15514,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ge_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_I32
 
     Inst_VOPC__V_CMPX_GE_I32::~Inst_VOPC__V_CMPX_GE_I32()
@@ -15568,7 +15549,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_t_i32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_T_I32
 
     Inst_VOPC__V_CMPX_T_I32::~Inst_VOPC__V_CMPX_T_I32()
@@ -15598,7 +15579,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_f_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_U32
 
     Inst_VOPC__V_CMPX_F_U32::~Inst_VOPC__V_CMPX_F_U32()
@@ -15628,7 +15609,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_lt_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_U32
 
     Inst_VOPC__V_CMPX_LT_U32::~Inst_VOPC__V_CMPX_LT_U32()
@@ -15663,7 +15644,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_eq_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_U32
 
     Inst_VOPC__V_CMPX_EQ_U32::~Inst_VOPC__V_CMPX_EQ_U32()
@@ -15698,7 +15679,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_le_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_U32
 
     Inst_VOPC__V_CMPX_LE_U32::~Inst_VOPC__V_CMPX_LE_U32()
@@ -15733,7 +15714,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_gt_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_U32
 
     Inst_VOPC__V_CMPX_GT_U32::~Inst_VOPC__V_CMPX_GT_U32()
@@ -15768,7 +15749,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ne_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NE_U32
 
     Inst_VOPC__V_CMPX_NE_U32::~Inst_VOPC__V_CMPX_NE_U32()
@@ -15803,7 +15784,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ge_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_U32
 
     Inst_VOPC__V_CMPX_GE_U32::~Inst_VOPC__V_CMPX_GE_U32()
@@ -15838,7 +15819,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_t_u32")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_T_U32
 
     Inst_VOPC__V_CMPX_T_U32::~Inst_VOPC__V_CMPX_T_U32()
@@ -16376,7 +16357,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_f_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_I64
 
     Inst_VOPC__V_CMPX_F_I64::~Inst_VOPC__V_CMPX_F_I64()
@@ -16406,7 +16387,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_lt_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_I64
 
     Inst_VOPC__V_CMPX_LT_I64::~Inst_VOPC__V_CMPX_LT_I64()
@@ -16441,7 +16422,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_eq_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_I64
 
     Inst_VOPC__V_CMPX_EQ_I64::~Inst_VOPC__V_CMPX_EQ_I64()
@@ -16476,7 +16457,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_le_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_I64
 
     Inst_VOPC__V_CMPX_LE_I64::~Inst_VOPC__V_CMPX_LE_I64()
@@ -16511,7 +16492,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_gt_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_I64
 
     Inst_VOPC__V_CMPX_GT_I64::~Inst_VOPC__V_CMPX_GT_I64()
@@ -16546,7 +16527,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ne_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NE_I64
 
     Inst_VOPC__V_CMPX_NE_I64::~Inst_VOPC__V_CMPX_NE_I64()
@@ -16581,7 +16562,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ge_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_I64
 
     Inst_VOPC__V_CMPX_GE_I64::~Inst_VOPC__V_CMPX_GE_I64()
@@ -16616,7 +16597,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_t_i64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_T_I64
 
     Inst_VOPC__V_CMPX_T_I64::~Inst_VOPC__V_CMPX_T_I64()
@@ -16646,7 +16627,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_f_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_F_U64
 
     Inst_VOPC__V_CMPX_F_U64::~Inst_VOPC__V_CMPX_F_U64()
@@ -16676,7 +16657,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_lt_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LT_U64
 
     Inst_VOPC__V_CMPX_LT_U64::~Inst_VOPC__V_CMPX_LT_U64()
@@ -16711,7 +16692,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_eq_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_EQ_U64
 
     Inst_VOPC__V_CMPX_EQ_U64::~Inst_VOPC__V_CMPX_EQ_U64()
@@ -16746,7 +16727,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_le_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_LE_U64
 
     Inst_VOPC__V_CMPX_LE_U64::~Inst_VOPC__V_CMPX_LE_U64()
@@ -16781,7 +16762,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_gt_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GT_U64
 
     Inst_VOPC__V_CMPX_GT_U64::~Inst_VOPC__V_CMPX_GT_U64()
@@ -16816,7 +16797,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ne_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_NE_U64
 
     Inst_VOPC__V_CMPX_NE_U64::~Inst_VOPC__V_CMPX_NE_U64()
@@ -16851,7 +16832,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_ge_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_GE_U64
 
     Inst_VOPC__V_CMPX_GE_U64::~Inst_VOPC__V_CMPX_GE_U64()
@@ -16886,7 +16867,7 @@ namespace VegaISA
         : Inst_VOPC(iFmt, "v_cmpx_t_u64")
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOPC__V_CMPX_T_U64
 
     Inst_VOPC__V_CMPX_T_U64::~Inst_VOPC__V_CMPX_T_U64()
@@ -16917,7 +16898,6 @@ namespace VegaISA
         : Inst_VINTRP(iFmt, "v_interp_p1_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
     } // Inst_VINTRP__V_INTERP_P1_F32
 
@@ -16946,7 +16926,6 @@ namespace VegaISA
         : Inst_VINTRP(iFmt, "v_interp_p2_f32")
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
     } // Inst_VINTRP__V_INTERP_P2_F32
 
@@ -17111,7 +17090,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_CLASS_F32
 
     Inst_VOP3__V_CMPX_CLASS_F32::~Inst_VOP3__V_CMPX_CLASS_F32()
@@ -17346,7 +17325,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_CLASS_F64
 
     Inst_VOP3__V_CMPX_CLASS_F64::~Inst_VOP3__V_CMPX_CLASS_F64()
@@ -17498,7 +17477,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_CLASS_F16
 
     Inst_VOP3__V_CMPX_CLASS_F16::~Inst_VOP3__V_CMPX_CLASS_F16()
@@ -17874,7 +17853,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_f16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_F16
 
     Inst_VOP3__V_CMPX_F_F16::~Inst_VOP3__V_CMPX_F_F16()
@@ -17906,7 +17885,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_F16
 
     Inst_VOP3__V_CMPX_LT_F16::~Inst_VOP3__V_CMPX_LT_F16()
@@ -17928,7 +17907,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_F16
 
     Inst_VOP3__V_CMPX_EQ_F16::~Inst_VOP3__V_CMPX_EQ_F16()
@@ -17950,7 +17929,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_F16
 
     Inst_VOP3__V_CMPX_LE_F16::~Inst_VOP3__V_CMPX_LE_F16()
@@ -17972,7 +17951,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_F16
 
     Inst_VOP3__V_CMPX_GT_F16::~Inst_VOP3__V_CMPX_GT_F16()
@@ -17994,7 +17973,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LG_F16
 
     Inst_VOP3__V_CMPX_LG_F16::~Inst_VOP3__V_CMPX_LG_F16()
@@ -18016,7 +17995,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_F16
 
     Inst_VOP3__V_CMPX_GE_F16::~Inst_VOP3__V_CMPX_GE_F16()
@@ -18038,7 +18017,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_O_F16
 
     Inst_VOP3__V_CMPX_O_F16::~Inst_VOP3__V_CMPX_O_F16()
@@ -18061,7 +18040,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_U_F16
 
     Inst_VOP3__V_CMPX_U_F16::~Inst_VOP3__V_CMPX_U_F16()
@@ -18084,7 +18063,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NGE_F16
 
     Inst_VOP3__V_CMPX_NGE_F16::~Inst_VOP3__V_CMPX_NGE_F16()
@@ -18106,7 +18085,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLG_F16
 
     Inst_VOP3__V_CMPX_NLG_F16::~Inst_VOP3__V_CMPX_NLG_F16()
@@ -18128,7 +18107,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NGT_F16
 
     Inst_VOP3__V_CMPX_NGT_F16::~Inst_VOP3__V_CMPX_NGT_F16()
@@ -18150,7 +18129,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLE_F16
 
     Inst_VOP3__V_CMPX_NLE_F16::~Inst_VOP3__V_CMPX_NLE_F16()
@@ -18172,7 +18151,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NEQ_F16
 
     Inst_VOP3__V_CMPX_NEQ_F16::~Inst_VOP3__V_CMPX_NEQ_F16()
@@ -18194,7 +18173,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLT_F16
 
     Inst_VOP3__V_CMPX_NLT_F16::~Inst_VOP3__V_CMPX_NLT_F16()
@@ -18216,7 +18195,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F16);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_TRU_F16
 
     Inst_VOP3__V_CMPX_TRU_F16::~Inst_VOP3__V_CMPX_TRU_F16()
@@ -18798,7 +18777,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_F32
 
     Inst_VOP3__V_CMPX_F_F32::~Inst_VOP3__V_CMPX_F_F32()
@@ -18830,7 +18809,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_F32
 
     Inst_VOP3__V_CMPX_LT_F32::~Inst_VOP3__V_CMPX_LT_F32()
@@ -18867,7 +18846,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_F32
 
     Inst_VOP3__V_CMPX_EQ_F32::~Inst_VOP3__V_CMPX_EQ_F32()
@@ -18904,7 +18883,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_F32
 
     Inst_VOP3__V_CMPX_LE_F32::~Inst_VOP3__V_CMPX_LE_F32()
@@ -18941,7 +18920,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_F32
 
     Inst_VOP3__V_CMPX_GT_F32::~Inst_VOP3__V_CMPX_GT_F32()
@@ -18978,7 +18957,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LG_F32
 
     Inst_VOP3__V_CMPX_LG_F32::~Inst_VOP3__V_CMPX_LG_F32()
@@ -19016,7 +18995,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_F32
 
     Inst_VOP3__V_CMPX_GE_F32::~Inst_VOP3__V_CMPX_GE_F32()
@@ -19053,7 +19032,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_O_F32
 
     Inst_VOP3__V_CMPX_O_F32::~Inst_VOP3__V_CMPX_O_F32()
@@ -19092,7 +19071,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_U_F32
 
     Inst_VOP3__V_CMPX_U_F32::~Inst_VOP3__V_CMPX_U_F32()
@@ -19131,7 +19110,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NGE_F32
 
     Inst_VOP3__V_CMPX_NGE_F32::~Inst_VOP3__V_CMPX_NGE_F32()
@@ -19168,7 +19147,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLG_F32
 
     Inst_VOP3__V_CMPX_NLG_F32::~Inst_VOP3__V_CMPX_NLG_F32()
@@ -19206,7 +19185,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NGT_F32
 
     Inst_VOP3__V_CMPX_NGT_F32::~Inst_VOP3__V_CMPX_NGT_F32()
@@ -19243,7 +19222,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLE_F32
 
     Inst_VOP3__V_CMPX_NLE_F32::~Inst_VOP3__V_CMPX_NLE_F32()
@@ -19280,7 +19259,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NEQ_F32
 
     Inst_VOP3__V_CMPX_NEQ_F32::~Inst_VOP3__V_CMPX_NEQ_F32()
@@ -19317,7 +19296,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLT_F32
 
     Inst_VOP3__V_CMPX_NLT_F32::~Inst_VOP3__V_CMPX_NLT_F32()
@@ -19354,7 +19333,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F32);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_TRU_F32
 
     Inst_VOP3__V_CMPX_TRU_F32::~Inst_VOP3__V_CMPX_TRU_F32()
@@ -20245,7 +20224,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_F64
 
     Inst_VOP3__V_CMPX_F_F64::~Inst_VOP3__V_CMPX_F_F64()
@@ -20277,7 +20256,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_F64
 
     Inst_VOP3__V_CMPX_LT_F64::~Inst_VOP3__V_CMPX_LT_F64()
@@ -20336,7 +20315,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_F64
 
     Inst_VOP3__V_CMPX_EQ_F64::~Inst_VOP3__V_CMPX_EQ_F64()
@@ -20395,7 +20374,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_F64
 
     Inst_VOP3__V_CMPX_LE_F64::~Inst_VOP3__V_CMPX_LE_F64()
@@ -20454,7 +20433,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_F64
 
     Inst_VOP3__V_CMPX_GT_F64::~Inst_VOP3__V_CMPX_GT_F64()
@@ -20513,7 +20492,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LG_F64
 
     Inst_VOP3__V_CMPX_LG_F64::~Inst_VOP3__V_CMPX_LG_F64()
@@ -20573,7 +20552,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_F64
 
     Inst_VOP3__V_CMPX_GE_F64::~Inst_VOP3__V_CMPX_GE_F64()
@@ -20632,7 +20611,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_O_F64
 
     Inst_VOP3__V_CMPX_O_F64::~Inst_VOP3__V_CMPX_O_F64()
@@ -20693,7 +20672,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_U_F64
 
     Inst_VOP3__V_CMPX_U_F64::~Inst_VOP3__V_CMPX_U_F64()
@@ -20754,7 +20733,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NGE_F64
 
     Inst_VOP3__V_CMPX_NGE_F64::~Inst_VOP3__V_CMPX_NGE_F64()
@@ -20813,7 +20792,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLG_F64
 
     Inst_VOP3__V_CMPX_NLG_F64::~Inst_VOP3__V_CMPX_NLG_F64()
@@ -20873,7 +20852,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NGT_F64
 
     Inst_VOP3__V_CMPX_NGT_F64::~Inst_VOP3__V_CMPX_NGT_F64()
@@ -20932,7 +20911,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLE_F64
 
     Inst_VOP3__V_CMPX_NLE_F64::~Inst_VOP3__V_CMPX_NLE_F64()
@@ -20991,7 +20970,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NEQ_F64
 
     Inst_VOP3__V_CMPX_NEQ_F64::~Inst_VOP3__V_CMPX_NEQ_F64()
@@ -21050,7 +21029,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NLT_F64
 
     Inst_VOP3__V_CMPX_NLT_F64::~Inst_VOP3__V_CMPX_NLT_F64()
@@ -21109,7 +21088,7 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(F64);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_TRU_F64
 
     Inst_VOP3__V_CMPX_TRU_F64::~Inst_VOP3__V_CMPX_TRU_F64()
@@ -21780,7 +21759,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_I16
 
     Inst_VOP3__V_CMPX_F_I16::~Inst_VOP3__V_CMPX_F_I16()
@@ -21811,7 +21790,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_lt_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_I16
 
     Inst_VOP3__V_CMPX_LT_I16::~Inst_VOP3__V_CMPX_LT_I16()
@@ -21857,7 +21836,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_eq_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_I16
 
     Inst_VOP3__V_CMPX_EQ_I16::~Inst_VOP3__V_CMPX_EQ_I16()
@@ -21903,7 +21882,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_le_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_I16
 
     Inst_VOP3__V_CMPX_LE_I16::~Inst_VOP3__V_CMPX_LE_I16()
@@ -21949,7 +21928,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_gt_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_I16
 
     Inst_VOP3__V_CMPX_GT_I16::~Inst_VOP3__V_CMPX_GT_I16()
@@ -21995,7 +21974,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ne_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NE_I16
 
     Inst_VOP3__V_CMPX_NE_I16::~Inst_VOP3__V_CMPX_NE_I16()
@@ -22041,7 +22020,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ge_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_I16
 
     Inst_VOP3__V_CMPX_GE_I16::~Inst_VOP3__V_CMPX_GE_I16()
@@ -22087,7 +22066,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_t_i16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_T_I16
 
     Inst_VOP3__V_CMPX_T_I16::~Inst_VOP3__V_CMPX_T_I16()
@@ -22118,7 +22097,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_U16
 
     Inst_VOP3__V_CMPX_F_U16::~Inst_VOP3__V_CMPX_F_U16()
@@ -22149,7 +22128,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_lt_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_U16
 
     Inst_VOP3__V_CMPX_LT_U16::~Inst_VOP3__V_CMPX_LT_U16()
@@ -22195,7 +22174,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_eq_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_U16
 
     Inst_VOP3__V_CMPX_EQ_U16::~Inst_VOP3__V_CMPX_EQ_U16()
@@ -22241,7 +22220,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_le_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_U16
 
     Inst_VOP3__V_CMPX_LE_U16::~Inst_VOP3__V_CMPX_LE_U16()
@@ -22287,7 +22266,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_gt_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_U16
 
     Inst_VOP3__V_CMPX_GT_U16::~Inst_VOP3__V_CMPX_GT_U16()
@@ -22333,7 +22312,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ne_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NE_U16
 
     Inst_VOP3__V_CMPX_NE_U16::~Inst_VOP3__V_CMPX_NE_U16()
@@ -22379,7 +22358,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ge_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_U16
 
     Inst_VOP3__V_CMPX_GE_U16::~Inst_VOP3__V_CMPX_GE_U16()
@@ -22425,7 +22404,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_t_u16", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_T_U16
 
     Inst_VOP3__V_CMPX_T_U16::~Inst_VOP3__V_CMPX_T_U16()
@@ -22475,7 +22454,6 @@ namespace VegaISA
             }
         }
 
-        wf->execMask() = sdst.rawData();
         sdst.write();
     } // execute
     // --- Inst_VOP3__V_CMP_LT_I32 class methods ---
@@ -23097,7 +23075,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_I32
 
     Inst_VOP3__V_CMPX_F_I32::~Inst_VOP3__V_CMPX_F_I32()
@@ -23128,7 +23106,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_lt_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_I32
 
     Inst_VOP3__V_CMPX_LT_I32::~Inst_VOP3__V_CMPX_LT_I32()
@@ -23174,7 +23152,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_eq_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_I32
 
     Inst_VOP3__V_CMPX_EQ_I32::~Inst_VOP3__V_CMPX_EQ_I32()
@@ -23220,7 +23198,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_le_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_I32
 
     Inst_VOP3__V_CMPX_LE_I32::~Inst_VOP3__V_CMPX_LE_I32()
@@ -23266,7 +23244,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_gt_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_I32
 
     Inst_VOP3__V_CMPX_GT_I32::~Inst_VOP3__V_CMPX_GT_I32()
@@ -23312,7 +23290,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ne_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NE_I32
 
     Inst_VOP3__V_CMPX_NE_I32::~Inst_VOP3__V_CMPX_NE_I32()
@@ -23358,7 +23336,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ge_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_I32
 
     Inst_VOP3__V_CMPX_GE_I32::~Inst_VOP3__V_CMPX_GE_I32()
@@ -23404,7 +23382,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_t_i32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_T_I32
 
     Inst_VOP3__V_CMPX_T_I32::~Inst_VOP3__V_CMPX_T_I32()
@@ -23435,7 +23413,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_U32
 
     Inst_VOP3__V_CMPX_F_U32::~Inst_VOP3__V_CMPX_F_U32()
@@ -23466,7 +23444,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_lt_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_U32
 
     Inst_VOP3__V_CMPX_LT_U32::~Inst_VOP3__V_CMPX_LT_U32()
@@ -23512,7 +23490,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_eq_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_U32
 
     Inst_VOP3__V_CMPX_EQ_U32::~Inst_VOP3__V_CMPX_EQ_U32()
@@ -23558,7 +23536,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_le_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_U32
 
     Inst_VOP3__V_CMPX_LE_U32::~Inst_VOP3__V_CMPX_LE_U32()
@@ -23604,7 +23582,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_gt_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_U32
 
     Inst_VOP3__V_CMPX_GT_U32::~Inst_VOP3__V_CMPX_GT_U32()
@@ -23650,7 +23628,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ne_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NE_U32
 
     Inst_VOP3__V_CMPX_NE_U32::~Inst_VOP3__V_CMPX_NE_U32()
@@ -23696,7 +23674,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ge_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_U32
 
     Inst_VOP3__V_CMPX_GE_U32::~Inst_VOP3__V_CMPX_GE_U32()
@@ -23742,7 +23720,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_t_u32", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_T_U32
 
     Inst_VOP3__V_CMPX_T_U32::~Inst_VOP3__V_CMPX_T_U32()
@@ -24413,7 +24391,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_I64
 
     Inst_VOP3__V_CMPX_F_I64::~Inst_VOP3__V_CMPX_F_I64()
@@ -24444,7 +24422,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_lt_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_I64
 
     Inst_VOP3__V_CMPX_LT_I64::~Inst_VOP3__V_CMPX_LT_I64()
@@ -24490,7 +24468,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_eq_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_I64
 
     Inst_VOP3__V_CMPX_EQ_I64::~Inst_VOP3__V_CMPX_EQ_I64()
@@ -24536,7 +24514,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_le_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_I64
 
     Inst_VOP3__V_CMPX_LE_I64::~Inst_VOP3__V_CMPX_LE_I64()
@@ -24582,7 +24560,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_gt_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_I64
 
     Inst_VOP3__V_CMPX_GT_I64::~Inst_VOP3__V_CMPX_GT_I64()
@@ -24628,7 +24606,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ne_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NE_I64
 
     Inst_VOP3__V_CMPX_NE_I64::~Inst_VOP3__V_CMPX_NE_I64()
@@ -24674,7 +24652,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ge_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_I64
 
     Inst_VOP3__V_CMPX_GE_I64::~Inst_VOP3__V_CMPX_GE_I64()
@@ -24720,7 +24698,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_t_i64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_T_I64
 
     Inst_VOP3__V_CMPX_T_I64::~Inst_VOP3__V_CMPX_T_I64()
@@ -24751,7 +24729,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_f_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_F_U64
 
     Inst_VOP3__V_CMPX_F_U64::~Inst_VOP3__V_CMPX_F_U64()
@@ -24782,7 +24760,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_lt_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LT_U64
 
     Inst_VOP3__V_CMPX_LT_U64::~Inst_VOP3__V_CMPX_LT_U64()
@@ -24828,7 +24806,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_eq_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_EQ_U64
 
     Inst_VOP3__V_CMPX_EQ_U64::~Inst_VOP3__V_CMPX_EQ_U64()
@@ -24874,7 +24852,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_le_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_LE_U64
 
     Inst_VOP3__V_CMPX_LE_U64::~Inst_VOP3__V_CMPX_LE_U64()
@@ -24920,7 +24898,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_gt_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GT_U64
 
     Inst_VOP3__V_CMPX_GT_U64::~Inst_VOP3__V_CMPX_GT_U64()
@@ -24966,7 +24944,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ne_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_NE_U64
 
     Inst_VOP3__V_CMPX_NE_U64::~Inst_VOP3__V_CMPX_NE_U64()
@@ -25012,7 +24990,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_ge_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_GE_U64
 
     Inst_VOP3__V_CMPX_GE_U64::~Inst_VOP3__V_CMPX_GE_U64()
@@ -25058,7 +25036,7 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cmpx_t_u64", true)
     {
         setFlag(ALU);
-        setFlag(WritesExec);
+        setFlag(WritesEXEC);
     } // Inst_VOP3__V_CMPX_T_U64
 
     Inst_VOP3__V_CMPX_T_U64::~Inst_VOP3__V_CMPX_T_U64()
@@ -25146,7 +25124,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_add_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_ADD_F32
 
@@ -25203,7 +25180,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sub_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_SUB_F32
 
@@ -25261,7 +25237,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_subrev_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_SUBREV_F32
 
@@ -25319,7 +25294,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_legacy_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
         setFlag(F32);
     } // Inst_VOP3__V_MUL_LEGACY_F32
 
@@ -25421,7 +25395,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
         setFlag(F32);
     } // Inst_VOP3__V_MUL_F32
 
@@ -25523,7 +25496,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_i32_i24", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_I32_I24
 
     Inst_VOP3__V_MUL_I32_I24::~Inst_VOP3__V_MUL_I32_I24()
@@ -25568,7 +25540,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_hi_i32_i24", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_HI_I32_I24
 
     Inst_VOP3__V_MUL_HI_I32_I24::~Inst_VOP3__V_MUL_HI_I32_I24()
@@ -25617,7 +25588,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_u32_u24", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_U32_U24
 
     Inst_VOP3__V_MUL_U32_U24::~Inst_VOP3__V_MUL_U32_U24()
@@ -25661,7 +25631,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_hi_u32_u24", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_HI_U32_U24
 
     Inst_VOP3__V_MUL_HI_U32_U24::~Inst_VOP3__V_MUL_HI_U32_U24()
@@ -26257,7 +26226,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mac_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(MAC);
     } // Inst_VOP3__V_MAC_F32
@@ -26318,7 +26286,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_ADD_CO_U32
 
     Inst_VOP3__V_ADD_CO_U32::~Inst_VOP3__V_ADD_CO_U32()
@@ -26367,7 +26334,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SUB_CO_U32
 
     Inst_VOP3__V_SUB_CO_U32::~Inst_VOP3__V_SUB_CO_U32()
@@ -26416,7 +26382,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SUBREV_CO_U32
 
     Inst_VOP3__V_SUBREV_CO_U32::~Inst_VOP3__V_SUBREV_CO_U32()
@@ -26466,7 +26431,6 @@ namespace VegaISA
         setFlag(ALU);
         setFlag(WritesVCC);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_ADDC_CO_U32
 
     Inst_VOP3__V_ADDC_CO_U32::~Inst_VOP3__V_ADDC_CO_U32()
@@ -26522,7 +26486,6 @@ namespace VegaISA
         setFlag(ALU);
         setFlag(WritesVCC);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SUBB_CO_U32
 
     Inst_VOP3__V_SUBB_CO_U32::~Inst_VOP3__V_SUBB_CO_U32()
@@ -26577,7 +26540,6 @@ namespace VegaISA
         setFlag(ALU);
         setFlag(WritesVCC);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SUBBREV_CO_U32
 
     Inst_VOP3__V_SUBBREV_CO_U32::~Inst_VOP3__V_SUBBREV_CO_U32()
@@ -28341,7 +28303,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_fract_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_FRACT_F32
 
@@ -28545,7 +28506,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_exp_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_EXP_F32
 
@@ -28586,7 +28546,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_log_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_LOG_F32
 
@@ -28635,7 +28594,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_rcp_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_RCP_F32
 
@@ -28676,7 +28634,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_rcp_iflag_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_RCP_IFLAG_F32
 
@@ -28719,7 +28676,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_rsq_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_RSQ_F32
 
@@ -28760,7 +28716,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_rcp_f64", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP3__V_RCP_F64
 
@@ -28813,7 +28768,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_rsq_f64", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP3__V_RSQ_F64
 
@@ -28864,7 +28818,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sqrt_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_SQRT_F32
 
@@ -28905,7 +28858,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sqrt_f64", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP3__V_SQRT_F64
 
@@ -28946,7 +28898,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sin_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_SIN_F32
 
@@ -28991,7 +28942,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cos_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_COS_F32
 
@@ -29874,7 +29824,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_exp_legacy_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_EXP_LEGACY_F32
 
@@ -29923,7 +29872,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_log_legacy_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_LOG_LEGACY_F32
 
@@ -29956,7 +29904,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mad_legacy_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(MAD);
     } // Inst_VOP3__V_MAD_LEGACY_F32
@@ -30018,7 +29965,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mad_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(MAD);
     } // Inst_VOP3__V_MAD_F32
@@ -30080,7 +30026,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mad_i32_i24", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(MAD);
     } // Inst_VOP3__V_MAD_I32_I24
 
@@ -30128,7 +30073,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mad_u32_u24", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(MAD);
     } // Inst_VOP3__V_MAD_U32_U24
 
@@ -30197,7 +30141,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cubesc_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_CUBESC_F32
 
@@ -30219,7 +30162,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cubetc_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_CUBETC_F32
 
@@ -30241,7 +30183,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cubema_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_CUBEMA_F32
 
@@ -30263,7 +30204,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_bfe_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_BFE_U32
 
     Inst_VOP3__V_BFE_U32::~Inst_VOP3__V_BFE_U32()
@@ -30311,7 +30251,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_bfe_i32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_BFE_I32
 
     Inst_VOP3__V_BFE_I32::~Inst_VOP3__V_BFE_I32()
@@ -30405,7 +30344,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_fma_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(FMA);
     } // Inst_VOP3__V_FMA_F32
@@ -30467,7 +30405,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_fma_f64", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F64);
         setFlag(FMA);
     } // Inst_VOP3__V_FMA_F64
@@ -30529,7 +30466,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_lerp_u8", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_LERP_U8
 
     Inst_VOP3__V_LERP_U8::~Inst_VOP3__V_LERP_U8()
@@ -30591,7 +30527,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_alignbit_b32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_ALIGNBIT_B32
 
     Inst_VOP3__V_ALIGNBIT_B32::~Inst_VOP3__V_ALIGNBIT_B32()
@@ -30640,7 +30575,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_alignbyte_b32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_ALIGNBYTE_B32
 
     Inst_VOP3__V_ALIGNBYTE_B32::~Inst_VOP3__V_ALIGNBYTE_B32()
@@ -30690,7 +30624,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_min3_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_MIN3_F32
 
@@ -30752,7 +30685,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_min3_i32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MIN3_I32
 
     Inst_VOP3__V_MIN3_I32::~Inst_VOP3__V_MIN3_I32()
@@ -30799,7 +30731,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_min3_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MIN3_U32
 
     Inst_VOP3__V_MIN3_U32::~Inst_VOP3__V_MIN3_U32()
@@ -30846,7 +30777,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_max3_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_MAX3_F32
 
@@ -30908,7 +30838,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_max3_i32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MAX3_I32
 
     Inst_VOP3__V_MAX3_I32::~Inst_VOP3__V_MAX3_I32()
@@ -30955,7 +30884,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_max3_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MAX3_U32
 
     Inst_VOP3__V_MAX3_U32::~Inst_VOP3__V_MAX3_U32()
@@ -31002,7 +30930,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_med3_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_MED3_F32
 
@@ -31063,7 +30990,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_med3_i32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MED3_I32
 
     Inst_VOP3__V_MED3_I32::~Inst_VOP3__V_MED3_I32()
@@ -31109,7 +31035,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_med3_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MED3_U32
 
     Inst_VOP3__V_MED3_U32::~Inst_VOP3__V_MED3_U32()
@@ -31155,7 +31080,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sad_u8", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SAD_U8
 
     Inst_VOP3__V_SAD_U8::~Inst_VOP3__V_SAD_U8()
@@ -31211,7 +31135,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sad_hi_u8", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SAD_HI_U8
 
     Inst_VOP3__V_SAD_HI_U8::~Inst_VOP3__V_SAD_HI_U8()
@@ -31262,7 +31185,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sad_u16", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SAD_U16
 
     Inst_VOP3__V_SAD_U16::~Inst_VOP3__V_SAD_U16()
@@ -31313,7 +31235,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_sad_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_SAD_U32
 
     Inst_VOP3__V_SAD_U32::~Inst_VOP3__V_SAD_U32()
@@ -31360,7 +31281,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cvt_pk_u8_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_CVT_PK_U8_F32
 
@@ -31590,7 +31510,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_DIV_SCALE_F32
 
@@ -31736,7 +31655,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
         setFlag(FMA);
     } // Inst_VOP3__V_DIV_FMAS_F32
@@ -31800,7 +31718,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(ReadsVCC);
-        setFlag(ValuCacGrp0);
         setFlag(F64);
         setFlag(FMA);
     } // Inst_VOP3__V_DIV_FMAS_F64
@@ -31870,7 +31787,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_msad_u8", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MSAD_U8
 
     Inst_VOP3__V_MSAD_U8::~Inst_VOP3__V_MSAD_U8()
@@ -31890,7 +31806,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_qsad_pk_u16_u8", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_QSAD_PK_U16_U8
 
     Inst_VOP3__V_QSAD_PK_U16_U8::~Inst_VOP3__V_QSAD_PK_U16_U8()
@@ -31912,7 +31827,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mqsad_pk_u16_u8", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_MQSAD_PK_U16_U8
 
     Inst_VOP3__V_MQSAD_PK_U16_U8::~Inst_VOP3__V_MQSAD_PK_U16_U8()
@@ -31955,7 +31869,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp1);
         setFlag(MAD);
     } // Inst_VOP3__V_MAD_U64_U32
 
@@ -32005,7 +31918,6 @@ namespace VegaISA
     {
         setFlag(ALU);
         setFlag(WritesVCC);
-        setFlag(ValuCacGrp0);
         setFlag(MAD);
     } // Inst_VOP3__V_MAD_I64_I32
 
@@ -32302,7 +32214,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cvt_pkaccum_u8_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_CVT_PKACCUM_U8_F32
 
@@ -32327,7 +32238,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_interp_p1_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
     } // Inst_VOP3__V_INTERP_P1_F32
 
@@ -32355,7 +32265,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_interp_p2_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp0);
         setFlag(F32);
     } // Inst_VOP3__V_INTERP_P2_F32
 
@@ -32487,7 +32396,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_add_f64", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F64);
     } // Inst_VOP3__V_ADD_F64
 
@@ -32587,7 +32495,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_f64", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
         setFlag(F64);
     } // Inst_VOP3__V_MUL_F64
 
@@ -32862,7 +32769,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_lo_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_LO_U32
 
     Inst_VOP3__V_MUL_LO_U32::~Inst_VOP3__V_MUL_LO_U32()
@@ -32908,7 +32814,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_hi_u32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_HI_U32
 
     Inst_VOP3__V_MUL_HI_U32::~Inst_VOP3__V_MUL_HI_U32()
@@ -32955,7 +32860,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_mul_hi_i32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp1);
     } // Inst_VOP3__V_MUL_HI_I32
 
     Inst_VOP3__V_MUL_HI_I32::~Inst_VOP3__V_MUL_HI_I32()
@@ -33129,7 +33033,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_bcnt_u32_b32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
     } // Inst_VOP3__V_BCNT_U32_B32
 
     Inst_VOP3__V_BCNT_U32_B32::~Inst_VOP3__V_BCNT_U32_B32()
@@ -33521,7 +33424,6 @@ namespace VegaISA
         : Inst_VOP3A(iFmt, "v_cvt_pkrtz_f16_f32", false)
     {
         setFlag(ALU);
-        setFlag(ValuCacGrp2);
         setFlag(F32);
     } // Inst_VOP3__V_CVT_PKRTZ_F16_F32
 
@@ -33857,6 +33759,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_B32::Inst_DS__DS_WRITE_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_B32
 
@@ -33919,6 +33822,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE2_B32::Inst_DS__DS_WRITE2_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write2_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE2_B32
 
@@ -33985,6 +33889,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE2ST64_B32::Inst_DS__DS_WRITE2ST64_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write2st64_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE2ST64_B32
 
@@ -34157,7 +34062,6 @@ namespace VegaISA
         : Inst_DS(iFmt, "ds_nop")
     {
         setFlag(Nop);
-        setFlag(Internal);
     } // Inst_DS__DS_NOP
 
     Inst_DS__DS_NOP::~Inst_DS__DS_NOP()
@@ -34199,6 +34103,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_B8::Inst_DS__DS_WRITE_B8(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b8")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_B8
 
@@ -34260,6 +34165,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_B16::Inst_DS__DS_WRITE_B16(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b16")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_B16
 
@@ -34802,6 +34708,7 @@ namespace VegaISA
     Inst_DS__DS_READ_B32::Inst_DS__DS_READ_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_B32
 
@@ -34864,6 +34771,7 @@ namespace VegaISA
     Inst_DS__DS_READ2_B32::Inst_DS__DS_READ2_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read2_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ2_B32
 
@@ -34930,6 +34838,7 @@ namespace VegaISA
     Inst_DS__DS_READ2ST64_B32::Inst_DS__DS_READ2ST64_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read2st64_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ2ST64_B32
 
@@ -34996,6 +34905,7 @@ namespace VegaISA
     Inst_DS__DS_READ_I8::Inst_DS__DS_READ_I8(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_i8")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_I8
 
@@ -35016,6 +34926,7 @@ namespace VegaISA
     Inst_DS__DS_READ_U8::Inst_DS__DS_READ_U8(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_u8")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_U8
 
@@ -35078,6 +34989,7 @@ namespace VegaISA
     Inst_DS__DS_READ_I16::Inst_DS__DS_READ_I16(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_i16")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_I16
 
@@ -35098,6 +35010,7 @@ namespace VegaISA
     Inst_DS__DS_READ_U16::Inst_DS__DS_READ_U16(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_u16")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_U16
 
@@ -35282,6 +35195,7 @@ namespace VegaISA
     Inst_DS__DS_PERMUTE_B32::Inst_DS__DS_PERMUTE_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_permute_b32")
     {
+        setFlag(MemoryRef);
         /**
          * While this operation doesn't actually use DS storage we classify
          * it as a load here because it does a writeback to a VGPR, which
@@ -35355,6 +35269,7 @@ namespace VegaISA
     Inst_DS__DS_BPERMUTE_B32::Inst_DS__DS_BPERMUTE_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_bpermute_b32")
     {
+        setFlag(MemoryRef);
         /**
          * While this operation doesn't actually use DS storage we classify
          * it as a load here because it does a writeback to a VGPR, which
@@ -35705,6 +35620,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_B64::Inst_DS__DS_WRITE_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_B64
 
@@ -35767,6 +35683,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE2_B64::Inst_DS__DS_WRITE2_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write2_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE2_B64
 
@@ -35833,6 +35750,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE2ST64_B64::Inst_DS__DS_WRITE2ST64_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write2st64_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE2ST64_B64
 
@@ -36399,6 +36317,7 @@ namespace VegaISA
     Inst_DS__DS_READ_B64::Inst_DS__DS_READ_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_B64
 
@@ -36461,6 +36380,7 @@ namespace VegaISA
     Inst_DS__DS_READ2_B64::Inst_DS__DS_READ2_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read2_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ2_B64
 
@@ -36527,6 +36447,7 @@ namespace VegaISA
     Inst_DS__DS_READ2ST64_B64::Inst_DS__DS_READ2ST64_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read2st64_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ2ST64_B64
 
@@ -36877,6 +36798,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_SRC2_B32::Inst_DS__DS_WRITE_SRC2_B32(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_src2_b32")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_SRC2_B32
 
@@ -37479,6 +37401,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_SRC2_B64::Inst_DS__DS_WRITE_SRC2_B64(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_src2_b64")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_SRC2_B64
 
@@ -37551,6 +37474,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_B96::Inst_DS__DS_WRITE_B96(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b96")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_B96
 
@@ -37571,6 +37495,7 @@ namespace VegaISA
     Inst_DS__DS_WRITE_B128::Inst_DS__DS_WRITE_B128(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b128")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_DS__DS_WRITE_B128
 
@@ -37591,6 +37516,7 @@ namespace VegaISA
     Inst_DS__DS_READ_B96::Inst_DS__DS_READ_B96(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_b96")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_B96
 
@@ -37610,6 +37536,7 @@ namespace VegaISA
     Inst_DS__DS_READ_B128::Inst_DS__DS_READ_B128(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_b128")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_DS__DS_READ_B128
 
@@ -37630,7 +37557,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_X(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_x")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_X
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_X::~Inst_MUBUF__BUFFER_LOAD_FORMAT_X()
@@ -37660,7 +37589,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_XY(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_XY
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_XY::~Inst_MUBUF__BUFFER_LOAD_FORMAT_XY()
@@ -37690,7 +37621,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZ(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZ
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZ::~Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZ()
@@ -37720,7 +37653,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZW(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZW
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZW::~Inst_MUBUF__BUFFER_LOAD_FORMAT_XYZW()
@@ -37750,7 +37685,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_X(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_x")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_X
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_X::~Inst_MUBUF__BUFFER_STORE_FORMAT_X()
@@ -37780,7 +37717,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_XY(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_XY
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_XY::~Inst_MUBUF__BUFFER_STORE_FORMAT_XY()
@@ -37810,7 +37749,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_XYZ(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_XYZ
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_XYZ::~Inst_MUBUF__BUFFER_STORE_FORMAT_XYZ()
@@ -37840,7 +37781,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_XYZW(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_XYZW
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_XYZW
@@ -37871,7 +37814,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_X(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_d16_x")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_X
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_X
@@ -37902,7 +37847,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XY(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_d16_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XY
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XY
@@ -37935,7 +37882,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XYZ(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_d16_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XYZ
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XYZ
@@ -37968,7 +37917,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XYZW(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_format_d16_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XYZW
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_D16_XYZW
@@ -38034,7 +37985,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XY(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_d16_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XY
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XY
@@ -38067,7 +38020,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XYZ(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_d16_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XYZ
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XYZ
@@ -38100,7 +38055,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XYZW(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_format_d16_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XYZW
 
     Inst_MUBUF__BUFFER_STORE_FORMAT_D16_XYZW
@@ -38133,9 +38090,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_UBYTE(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_ubyte")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_LOAD_UBYTE
 
@@ -38225,7 +38185,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_SBYTE(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_sbyte")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_SBYTE
 
     Inst_MUBUF__BUFFER_LOAD_SBYTE::~Inst_MUBUF__BUFFER_LOAD_SBYTE()
@@ -38255,9 +38217,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_USHORT(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_ushort")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_LOAD_USHORT
 
@@ -38347,7 +38312,9 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_SSHORT(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_sshort")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_LOAD_SSHORT
 
     Inst_MUBUF__BUFFER_LOAD_SSHORT::~Inst_MUBUF__BUFFER_LOAD_SSHORT()
@@ -38377,9 +38344,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_DWORD(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_LOAD_DWORD
 
@@ -38468,9 +38438,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_DWORDX2(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_LOAD_DWORDX2
 
@@ -38564,9 +38537,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_DWORDX3(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_dwordx3")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_LOAD_DWORDX3
 
@@ -38665,9 +38641,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_LOAD_DWORDX4(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_load_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_LOAD_DWORDX4
 
@@ -38771,9 +38750,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_BYTE(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_byte")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_STORE_BYTE
 
@@ -38858,9 +38840,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_SHORT(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_short")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_STORE_SHORT
 
@@ -38945,9 +38930,12 @@ namespace VegaISA
         Inst_MUBUF__BUFFER_STORE_DWORD(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_STORE_DWORD
 
@@ -39032,9 +39020,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_DWORDX2(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_STORE_DWORDX2
 
@@ -39123,9 +39114,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_DWORDX3(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_dwordx3")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_STORE_DWORDX3
 
@@ -39218,9 +39212,12 @@ namespace VegaISA
         ::Inst_MUBUF__BUFFER_STORE_DWORDX4(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_store_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
         if (instData.LDS) {
-            setFlag(ReturnToLDS);
+            setFlag(GroupSegment);
+        } else {
+            setFlag(GlobalSegment);
         }
     } // Inst_MUBUF__BUFFER_STORE_DWORDX4
 
@@ -39318,6 +39315,7 @@ namespace VegaISA
         : Inst_MUBUF(iFmt, "buffer_store_lds_dword")
     {
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_STORE_LDS_DWORD
 
     Inst_MUBUF__BUFFER_STORE_LDS_DWORD::~Inst_MUBUF__BUFFER_STORE_LDS_DWORD()
@@ -39337,6 +39335,9 @@ namespace VegaISA
     Inst_MUBUF__BUFFER_WBINVL1::Inst_MUBUF__BUFFER_WBINVL1(InFmt_MUBUF *iFmt)
         : Inst_MUBUF(iFmt, "buffer_wbinvl1")
     {
+        setFlag(MemoryRef);
+        setFlag(GPUStaticInst::MemSync);
+        setFlag(GlobalSegment);
         setFlag(MemSync);
     } // Inst_MUBUF__BUFFER_WBINVL1
 
@@ -39386,6 +39387,9 @@ namespace VegaISA
         // Since Hermes L1 (TCP) do not differentiate between its cache lines,
         // this instruction currently behaves (and implemented ) exactly like
         // buffer_wbinvl1 instruction.
+        setFlag(MemoryRef);
+        setFlag(GPUStaticInst::MemSync);
+        setFlag(GlobalSegment);
         setFlag(MemSync);
     } // Inst_MUBUF__BUFFER_WBINVL1_VOL
 
@@ -39433,6 +39437,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SWAP
 
     Inst_MUBUF__BUFFER_ATOMIC_SWAP::~Inst_MUBUF__BUFFER_ATOMIC_SWAP()
@@ -39461,6 +39467,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_CMPSWAP
 
     Inst_MUBUF__BUFFER_ATOMIC_CMPSWAP::~Inst_MUBUF__BUFFER_ATOMIC_CMPSWAP()
@@ -39491,6 +39499,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_ADD
 
     Inst_MUBUF__BUFFER_ATOMIC_ADD::~Inst_MUBUF__BUFFER_ATOMIC_ADD()
@@ -39519,6 +39529,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SUB
 
     Inst_MUBUF__BUFFER_ATOMIC_SUB::~Inst_MUBUF__BUFFER_ATOMIC_SUB()
@@ -39547,6 +39559,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SMIN
 
     Inst_MUBUF__BUFFER_ATOMIC_SMIN::~Inst_MUBUF__BUFFER_ATOMIC_SMIN()
@@ -39575,6 +39589,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_UMIN
 
     Inst_MUBUF__BUFFER_ATOMIC_UMIN::~Inst_MUBUF__BUFFER_ATOMIC_UMIN()
@@ -39603,6 +39619,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SMAX
 
     Inst_MUBUF__BUFFER_ATOMIC_SMAX::~Inst_MUBUF__BUFFER_ATOMIC_SMAX()
@@ -39631,6 +39649,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_UMAX
 
     Inst_MUBUF__BUFFER_ATOMIC_UMAX::~Inst_MUBUF__BUFFER_ATOMIC_UMAX()
@@ -39659,6 +39679,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_AND
 
     Inst_MUBUF__BUFFER_ATOMIC_AND::~Inst_MUBUF__BUFFER_ATOMIC_AND()
@@ -39687,6 +39709,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_OR
 
     Inst_MUBUF__BUFFER_ATOMIC_OR::~Inst_MUBUF__BUFFER_ATOMIC_OR()
@@ -39715,6 +39739,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_XOR
 
     Inst_MUBUF__BUFFER_ATOMIC_XOR::~Inst_MUBUF__BUFFER_ATOMIC_XOR()
@@ -39743,6 +39769,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_INC
 
     Inst_MUBUF__BUFFER_ATOMIC_INC::~Inst_MUBUF__BUFFER_ATOMIC_INC()
@@ -39771,6 +39799,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_DEC
 
     Inst_MUBUF__BUFFER_ATOMIC_DEC::~Inst_MUBUF__BUFFER_ATOMIC_DEC()
@@ -39799,6 +39829,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SWAP_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_SWAP_X2::~Inst_MUBUF__BUFFER_ATOMIC_SWAP_X2()
@@ -39827,6 +39859,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_CMPSWAP_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_CMPSWAP_X2
@@ -39858,6 +39892,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_ADD_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_ADD_X2::~Inst_MUBUF__BUFFER_ATOMIC_ADD_X2()
@@ -39886,6 +39922,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SUB_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_SUB_X2::~Inst_MUBUF__BUFFER_ATOMIC_SUB_X2()
@@ -39914,6 +39952,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SMIN_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_SMIN_X2::~Inst_MUBUF__BUFFER_ATOMIC_SMIN_X2()
@@ -39942,6 +39982,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_UMIN_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_UMIN_X2::~Inst_MUBUF__BUFFER_ATOMIC_UMIN_X2()
@@ -39970,6 +40012,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_SMAX_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_SMAX_X2::~Inst_MUBUF__BUFFER_ATOMIC_SMAX_X2()
@@ -39998,6 +40042,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_UMAX_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_UMAX_X2::~Inst_MUBUF__BUFFER_ATOMIC_UMAX_X2()
@@ -40026,6 +40072,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_AND_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_AND_X2::~Inst_MUBUF__BUFFER_ATOMIC_AND_X2()
@@ -40082,6 +40130,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_XOR_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_XOR_X2::~Inst_MUBUF__BUFFER_ATOMIC_XOR_X2()
@@ -40110,6 +40160,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_INC_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_INC_X2::~Inst_MUBUF__BUFFER_ATOMIC_INC_X2()
@@ -40138,6 +40190,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MUBUF__BUFFER_ATOMIC_DEC_X2
 
     Inst_MUBUF__BUFFER_ATOMIC_DEC_X2::~Inst_MUBUF__BUFFER_ATOMIC_DEC_X2()
@@ -40161,7 +40215,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_LOAD_FORMAT_X(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_x")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_X
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_X::~Inst_MTBUF__TBUFFER_LOAD_FORMAT_X()
@@ -40191,7 +40247,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_LOAD_FORMAT_XY(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_XY
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_XY::~Inst_MTBUF__TBUFFER_LOAD_FORMAT_XY()
@@ -40221,7 +40279,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZ(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZ
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZ::~Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZ()
@@ -40251,7 +40311,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZW(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZW
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_XYZW
@@ -40282,7 +40344,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_X(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_x")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_X
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_X::~Inst_MTBUF__TBUFFER_STORE_FORMAT_X()
@@ -40312,7 +40376,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_XY(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_XY
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_XY::~Inst_MTBUF__TBUFFER_STORE_FORMAT_XY()
@@ -40342,7 +40408,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_XYZ(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_XYZ
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_XYZ
@@ -40373,7 +40441,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_XYZW(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_XYZW
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_XYZW
@@ -40406,7 +40476,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_X(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_d16_x")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_X
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_X::
@@ -40439,7 +40511,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XY(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_d16_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XY
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XY
@@ -40473,7 +40547,9 @@ namespace VegaISA
           InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_d16_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XYZ
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XYZ
@@ -40507,7 +40583,9 @@ namespace VegaISA
           InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_load_format_d16_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XYZW
 
     Inst_MTBUF__TBUFFER_LOAD_FORMAT_D16_XYZW
@@ -40540,7 +40618,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_X(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_d16_x")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_X
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_X
@@ -40573,7 +40653,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XY(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_d16_xy")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XY
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XY
@@ -40606,7 +40688,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XYZ(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_d16_xyz")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XYZ
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XYZ
@@ -40639,7 +40723,9 @@ namespace VegaISA
         ::Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XYZW(InFmt_MTBUF *iFmt)
         : Inst_MTBUF(iFmt, "tbuffer_store_format_d16_xyzw")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XYZW
 
     Inst_MTBUF__TBUFFER_STORE_FORMAT_D16_XYZW
@@ -40672,7 +40758,9 @@ namespace VegaISA
     Inst_MIMG__IMAGE_LOAD::Inst_MIMG__IMAGE_LOAD(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_load")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_LOAD
 
     Inst_MIMG__IMAGE_LOAD::~Inst_MIMG__IMAGE_LOAD()
@@ -40701,7 +40789,9 @@ namespace VegaISA
     Inst_MIMG__IMAGE_LOAD_MIP::Inst_MIMG__IMAGE_LOAD_MIP(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_load_mip")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_LOAD_MIP
 
     Inst_MIMG__IMAGE_LOAD_MIP::~Inst_MIMG__IMAGE_LOAD_MIP()
@@ -40730,7 +40820,9 @@ namespace VegaISA
     Inst_MIMG__IMAGE_LOAD_PCK::Inst_MIMG__IMAGE_LOAD_PCK(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_load_pck")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_LOAD_PCK
 
     Inst_MIMG__IMAGE_LOAD_PCK::~Inst_MIMG__IMAGE_LOAD_PCK()
@@ -40760,7 +40852,9 @@ namespace VegaISA
         InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_load_pck_sgn")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_LOAD_PCK_SGN
 
     Inst_MIMG__IMAGE_LOAD_PCK_SGN::~Inst_MIMG__IMAGE_LOAD_PCK_SGN()
@@ -40791,7 +40885,9 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_load_mip_pck")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_LOAD_MIP_PCK
 
     Inst_MIMG__IMAGE_LOAD_MIP_PCK::~Inst_MIMG__IMAGE_LOAD_MIP_PCK()
@@ -40822,7 +40918,9 @@ namespace VegaISA
         InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_load_mip_pck_sgn")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_LOAD_MIP_PCK_SGN
 
     Inst_MIMG__IMAGE_LOAD_MIP_PCK_SGN::~Inst_MIMG__IMAGE_LOAD_MIP_PCK_SGN()
@@ -40852,7 +40950,9 @@ namespace VegaISA
     Inst_MIMG__IMAGE_STORE::Inst_MIMG__IMAGE_STORE(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_store")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_STORE
 
     Inst_MIMG__IMAGE_STORE::~Inst_MIMG__IMAGE_STORE()
@@ -40881,7 +40981,9 @@ namespace VegaISA
     Inst_MIMG__IMAGE_STORE_MIP::Inst_MIMG__IMAGE_STORE_MIP(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_store_mip")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_STORE_MIP
 
     Inst_MIMG__IMAGE_STORE_MIP::~Inst_MIMG__IMAGE_STORE_MIP()
@@ -40911,7 +41013,9 @@ namespace VegaISA
     Inst_MIMG__IMAGE_STORE_PCK::Inst_MIMG__IMAGE_STORE_PCK(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_store_pck")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_STORE_PCK
 
     Inst_MIMG__IMAGE_STORE_PCK::~Inst_MIMG__IMAGE_STORE_PCK()
@@ -40941,7 +41045,9 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_store_mip_pck")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_STORE_MIP_PCK
 
     Inst_MIMG__IMAGE_STORE_MIP_PCK::~Inst_MIMG__IMAGE_STORE_MIP_PCK()
@@ -40972,6 +41078,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_get_resinfo")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GET_RESINFO
 
     Inst_MIMG__IMAGE_GET_RESINFO::~Inst_MIMG__IMAGE_GET_RESINFO()
@@ -40999,6 +41106,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_SWAP
 
     Inst_MIMG__IMAGE_ATOMIC_SWAP::~Inst_MIMG__IMAGE_ATOMIC_SWAP()
@@ -41027,6 +41136,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_CMPSWAP
 
     Inst_MIMG__IMAGE_ATOMIC_CMPSWAP::~Inst_MIMG__IMAGE_ATOMIC_CMPSWAP()
@@ -41056,6 +41167,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_ADD
 
     Inst_MIMG__IMAGE_ATOMIC_ADD::~Inst_MIMG__IMAGE_ATOMIC_ADD()
@@ -41083,6 +41196,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_SUB
 
     Inst_MIMG__IMAGE_ATOMIC_SUB::~Inst_MIMG__IMAGE_ATOMIC_SUB()
@@ -41111,6 +41226,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_SMIN
 
     Inst_MIMG__IMAGE_ATOMIC_SMIN::~Inst_MIMG__IMAGE_ATOMIC_SMIN()
@@ -41139,6 +41256,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_UMIN
 
     Inst_MIMG__IMAGE_ATOMIC_UMIN::~Inst_MIMG__IMAGE_ATOMIC_UMIN()
@@ -41167,6 +41286,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_SMAX
 
     Inst_MIMG__IMAGE_ATOMIC_SMAX::~Inst_MIMG__IMAGE_ATOMIC_SMAX()
@@ -41195,6 +41316,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_UMAX
 
     Inst_MIMG__IMAGE_ATOMIC_UMAX::~Inst_MIMG__IMAGE_ATOMIC_UMAX()
@@ -41222,6 +41345,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_AND
 
     Inst_MIMG__IMAGE_ATOMIC_AND::~Inst_MIMG__IMAGE_ATOMIC_AND()
@@ -41249,6 +41374,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_OR
 
     Inst_MIMG__IMAGE_ATOMIC_OR::~Inst_MIMG__IMAGE_ATOMIC_OR()
@@ -41276,6 +41403,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_XOR
 
     Inst_MIMG__IMAGE_ATOMIC_XOR::~Inst_MIMG__IMAGE_ATOMIC_XOR()
@@ -41303,6 +41432,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_INC
 
     Inst_MIMG__IMAGE_ATOMIC_INC::~Inst_MIMG__IMAGE_ATOMIC_INC()
@@ -41330,6 +41461,8 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_ATOMIC_DEC
 
     Inst_MIMG__IMAGE_ATOMIC_DEC::~Inst_MIMG__IMAGE_ATOMIC_DEC()
@@ -41369,6 +41502,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_CL::Inst_MIMG__IMAGE_SAMPLE_CL(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_CL
 
     Inst_MIMG__IMAGE_SAMPLE_CL::~Inst_MIMG__IMAGE_SAMPLE_CL()
@@ -41387,6 +41521,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_D::Inst_MIMG__IMAGE_SAMPLE_D(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_d")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_D
 
     Inst_MIMG__IMAGE_SAMPLE_D::~Inst_MIMG__IMAGE_SAMPLE_D()
@@ -41406,6 +41541,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_d_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_D_CL
 
     Inst_MIMG__IMAGE_SAMPLE_D_CL::~Inst_MIMG__IMAGE_SAMPLE_D_CL()
@@ -41425,6 +41561,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_L::Inst_MIMG__IMAGE_SAMPLE_L(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_l")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_L
 
     Inst_MIMG__IMAGE_SAMPLE_L::~Inst_MIMG__IMAGE_SAMPLE_L()
@@ -41443,6 +41580,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_B::Inst_MIMG__IMAGE_SAMPLE_B(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_b")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_B
 
     Inst_MIMG__IMAGE_SAMPLE_B::~Inst_MIMG__IMAGE_SAMPLE_B()
@@ -41462,6 +41600,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_b_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_B_CL
 
     Inst_MIMG__IMAGE_SAMPLE_B_CL::~Inst_MIMG__IMAGE_SAMPLE_B_CL()
@@ -41480,6 +41619,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_LZ::Inst_MIMG__IMAGE_SAMPLE_LZ(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_lz")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_LZ
 
     Inst_MIMG__IMAGE_SAMPLE_LZ::~Inst_MIMG__IMAGE_SAMPLE_LZ()
@@ -41498,6 +41638,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_C::Inst_MIMG__IMAGE_SAMPLE_C(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C
 
     Inst_MIMG__IMAGE_SAMPLE_C::~Inst_MIMG__IMAGE_SAMPLE_C()
@@ -41517,6 +41658,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_CL
 
     Inst_MIMG__IMAGE_SAMPLE_C_CL::~Inst_MIMG__IMAGE_SAMPLE_C_CL()
@@ -41535,6 +41677,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_C_D::Inst_MIMG__IMAGE_SAMPLE_C_D(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_d")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_D
 
     Inst_MIMG__IMAGE_SAMPLE_C_D::~Inst_MIMG__IMAGE_SAMPLE_C_D()
@@ -41554,6 +41697,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_d_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_D_CL
 
     Inst_MIMG__IMAGE_SAMPLE_C_D_CL::~Inst_MIMG__IMAGE_SAMPLE_C_D_CL()
@@ -41572,6 +41716,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_C_L::Inst_MIMG__IMAGE_SAMPLE_C_L(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_l")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_L
 
     Inst_MIMG__IMAGE_SAMPLE_C_L::~Inst_MIMG__IMAGE_SAMPLE_C_L()
@@ -41590,6 +41735,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_C_B::Inst_MIMG__IMAGE_SAMPLE_C_B(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_b")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_B
 
     Inst_MIMG__IMAGE_SAMPLE_C_B::~Inst_MIMG__IMAGE_SAMPLE_C_B()
@@ -41609,6 +41755,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_b_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_B_CL
 
     Inst_MIMG__IMAGE_SAMPLE_C_B_CL::~Inst_MIMG__IMAGE_SAMPLE_C_B_CL()
@@ -41628,6 +41775,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_lz")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_LZ
 
     Inst_MIMG__IMAGE_SAMPLE_C_LZ::~Inst_MIMG__IMAGE_SAMPLE_C_LZ()
@@ -41646,6 +41794,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_O::Inst_MIMG__IMAGE_SAMPLE_O(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_O
 
     Inst_MIMG__IMAGE_SAMPLE_O::~Inst_MIMG__IMAGE_SAMPLE_O()
@@ -41665,6 +41814,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_CL_O::~Inst_MIMG__IMAGE_SAMPLE_CL_O()
@@ -41683,6 +41833,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_D_O::Inst_MIMG__IMAGE_SAMPLE_D_O(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_d_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_D_O
 
     Inst_MIMG__IMAGE_SAMPLE_D_O::~Inst_MIMG__IMAGE_SAMPLE_D_O()
@@ -41702,6 +41853,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_d_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_D_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_D_CL_O::~Inst_MIMG__IMAGE_SAMPLE_D_CL_O()
@@ -41720,6 +41872,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_L_O::Inst_MIMG__IMAGE_SAMPLE_L_O(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_l_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_L_O
 
     Inst_MIMG__IMAGE_SAMPLE_L_O::~Inst_MIMG__IMAGE_SAMPLE_L_O()
@@ -41738,6 +41891,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_B_O::Inst_MIMG__IMAGE_SAMPLE_B_O(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_b_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_B_O
 
     Inst_MIMG__IMAGE_SAMPLE_B_O::~Inst_MIMG__IMAGE_SAMPLE_B_O()
@@ -41757,6 +41911,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_b_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_B_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_B_CL_O::~Inst_MIMG__IMAGE_SAMPLE_B_CL_O()
@@ -41776,6 +41931,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_lz_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_LZ_O
 
     Inst_MIMG__IMAGE_SAMPLE_LZ_O::~Inst_MIMG__IMAGE_SAMPLE_LZ_O()
@@ -41794,6 +41950,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_C_O::Inst_MIMG__IMAGE_SAMPLE_C_O(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_O::~Inst_MIMG__IMAGE_SAMPLE_C_O()
@@ -41813,6 +41970,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_CL_O::~Inst_MIMG__IMAGE_SAMPLE_C_CL_O()
@@ -41832,6 +41990,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_d_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_D_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_D_O::~Inst_MIMG__IMAGE_SAMPLE_C_D_O()
@@ -41851,6 +42010,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_d_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_D_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_D_CL_O::~Inst_MIMG__IMAGE_SAMPLE_C_D_CL_O()
@@ -41870,6 +42030,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_l_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_L_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_L_O::~Inst_MIMG__IMAGE_SAMPLE_C_L_O()
@@ -41889,6 +42050,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_b_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_B_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_B_O::~Inst_MIMG__IMAGE_SAMPLE_C_B_O()
@@ -41908,6 +42070,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_b_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_B_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_B_CL_O::~Inst_MIMG__IMAGE_SAMPLE_C_B_CL_O()
@@ -41927,6 +42090,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_lz_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_LZ_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_LZ_O::~Inst_MIMG__IMAGE_SAMPLE_C_LZ_O()
@@ -41945,6 +42109,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4::Inst_MIMG__IMAGE_GATHER4(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4
 
     Inst_MIMG__IMAGE_GATHER4::~Inst_MIMG__IMAGE_GATHER4()
@@ -41963,6 +42128,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4_CL::Inst_MIMG__IMAGE_GATHER4_CL(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_CL
 
     Inst_MIMG__IMAGE_GATHER4_CL::~Inst_MIMG__IMAGE_GATHER4_CL()
@@ -41981,6 +42147,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4_L::Inst_MIMG__IMAGE_GATHER4_L(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_l")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_L
 
     Inst_MIMG__IMAGE_GATHER4_L::~Inst_MIMG__IMAGE_GATHER4_L()
@@ -41999,6 +42166,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4_B::Inst_MIMG__IMAGE_GATHER4_B(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_b")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_B
 
     Inst_MIMG__IMAGE_GATHER4_B::~Inst_MIMG__IMAGE_GATHER4_B()
@@ -42018,6 +42186,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_b_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_B_CL
 
     Inst_MIMG__IMAGE_GATHER4_B_CL::~Inst_MIMG__IMAGE_GATHER4_B_CL()
@@ -42036,6 +42205,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4_LZ::Inst_MIMG__IMAGE_GATHER4_LZ(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_lz")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_LZ
 
     Inst_MIMG__IMAGE_GATHER4_LZ::~Inst_MIMG__IMAGE_GATHER4_LZ()
@@ -42054,6 +42224,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4_C::Inst_MIMG__IMAGE_GATHER4_C(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C
 
     Inst_MIMG__IMAGE_GATHER4_C::~Inst_MIMG__IMAGE_GATHER4_C()
@@ -42073,6 +42244,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_CL
 
     Inst_MIMG__IMAGE_GATHER4_C_CL::~Inst_MIMG__IMAGE_GATHER4_C_CL()
@@ -42092,6 +42264,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_l")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_L
 
     Inst_MIMG__IMAGE_GATHER4_C_L::~Inst_MIMG__IMAGE_GATHER4_C_L()
@@ -42111,6 +42284,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_b")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_B
 
     Inst_MIMG__IMAGE_GATHER4_C_B::~Inst_MIMG__IMAGE_GATHER4_C_B()
@@ -42130,6 +42304,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_b_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_B_CL
 
     Inst_MIMG__IMAGE_GATHER4_C_B_CL::~Inst_MIMG__IMAGE_GATHER4_C_B_CL()
@@ -42149,6 +42324,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_lz")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_LZ
 
     Inst_MIMG__IMAGE_GATHER4_C_LZ::~Inst_MIMG__IMAGE_GATHER4_C_LZ()
@@ -42167,6 +42343,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GATHER4_O::Inst_MIMG__IMAGE_GATHER4_O(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_O
 
     Inst_MIMG__IMAGE_GATHER4_O::~Inst_MIMG__IMAGE_GATHER4_O()
@@ -42186,6 +42363,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_CL_O
 
     Inst_MIMG__IMAGE_GATHER4_CL_O::~Inst_MIMG__IMAGE_GATHER4_CL_O()
@@ -42205,6 +42383,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_l_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_L_O
 
     Inst_MIMG__IMAGE_GATHER4_L_O::~Inst_MIMG__IMAGE_GATHER4_L_O()
@@ -42224,6 +42403,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_b_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_B_O
 
     Inst_MIMG__IMAGE_GATHER4_B_O::~Inst_MIMG__IMAGE_GATHER4_B_O()
@@ -42243,6 +42423,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_b_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_B_CL_O
 
     Inst_MIMG__IMAGE_GATHER4_B_CL_O::~Inst_MIMG__IMAGE_GATHER4_B_CL_O()
@@ -42262,6 +42443,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_lz_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_LZ_O
 
     Inst_MIMG__IMAGE_GATHER4_LZ_O::~Inst_MIMG__IMAGE_GATHER4_LZ_O()
@@ -42281,6 +42463,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_O
 
     Inst_MIMG__IMAGE_GATHER4_C_O::~Inst_MIMG__IMAGE_GATHER4_C_O()
@@ -42300,6 +42483,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_CL_O
 
     Inst_MIMG__IMAGE_GATHER4_C_CL_O::~Inst_MIMG__IMAGE_GATHER4_C_CL_O()
@@ -42319,6 +42503,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_l_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_L_O
 
     Inst_MIMG__IMAGE_GATHER4_C_L_O::~Inst_MIMG__IMAGE_GATHER4_C_L_O()
@@ -42338,6 +42523,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_b_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_B_O
 
     Inst_MIMG__IMAGE_GATHER4_C_B_O::~Inst_MIMG__IMAGE_GATHER4_C_B_O()
@@ -42357,6 +42543,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_b_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_B_CL_O
 
     Inst_MIMG__IMAGE_GATHER4_C_B_CL_O::~Inst_MIMG__IMAGE_GATHER4_C_B_CL_O()
@@ -42376,6 +42563,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_gather4_c_lz_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GATHER4_C_LZ_O
 
     Inst_MIMG__IMAGE_GATHER4_C_LZ_O::~Inst_MIMG__IMAGE_GATHER4_C_LZ_O()
@@ -42394,6 +42582,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_GET_LOD::Inst_MIMG__IMAGE_GET_LOD(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_get_lod")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_GET_LOD
 
     Inst_MIMG__IMAGE_GET_LOD::~Inst_MIMG__IMAGE_GET_LOD()
@@ -42413,6 +42602,7 @@ namespace VegaISA
     Inst_MIMG__IMAGE_SAMPLE_CD::Inst_MIMG__IMAGE_SAMPLE_CD(InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_cd")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_CD
 
     Inst_MIMG__IMAGE_SAMPLE_CD::~Inst_MIMG__IMAGE_SAMPLE_CD()
@@ -42432,6 +42622,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_cd_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_CD_CL
 
     Inst_MIMG__IMAGE_SAMPLE_CD_CL::~Inst_MIMG__IMAGE_SAMPLE_CD_CL()
@@ -42452,6 +42643,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_cd")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_CD
 
     Inst_MIMG__IMAGE_SAMPLE_C_CD::~Inst_MIMG__IMAGE_SAMPLE_C_CD()
@@ -42471,6 +42663,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_cd_cl")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_CD_CL
 
     Inst_MIMG__IMAGE_SAMPLE_C_CD_CL::~Inst_MIMG__IMAGE_SAMPLE_C_CD_CL()
@@ -42491,6 +42684,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_cd_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_CD_O
 
     Inst_MIMG__IMAGE_SAMPLE_CD_O::~Inst_MIMG__IMAGE_SAMPLE_CD_O()
@@ -42510,6 +42704,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_cd_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_CD_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_CD_CL_O::~Inst_MIMG__IMAGE_SAMPLE_CD_CL_O()
@@ -42530,6 +42725,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_cd_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_CD_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_CD_O::~Inst_MIMG__IMAGE_SAMPLE_C_CD_O()
@@ -42549,6 +42745,7 @@ namespace VegaISA
           InFmt_MIMG *iFmt)
         : Inst_MIMG(iFmt, "image_sample_c_cd_cl_o")
     {
+        setFlag(GlobalSegment);
     } // Inst_MIMG__IMAGE_SAMPLE_C_CD_CL_O
 
     Inst_MIMG__IMAGE_SAMPLE_C_CD_CL_O::~Inst_MIMG__IMAGE_SAMPLE_C_CD_CL_O()
@@ -42586,6 +42783,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_LOAD_UBYTE::Inst_FLAT__FLAT_LOAD_UBYTE(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_ubyte")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_UBYTE
 
@@ -42600,7 +42798,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -42614,14 +42812,9 @@ namespace VegaISA
 
         addr.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -42648,6 +42841,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_LOAD_SBYTE::Inst_FLAT__FLAT_LOAD_SBYTE(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_sbyte")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_SBYTE
 
@@ -42677,6 +42871,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_LOAD_USHORT::Inst_FLAT__FLAT_LOAD_USHORT(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_ushort")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_USHORT
 
@@ -42691,7 +42886,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -42705,14 +42900,9 @@ namespace VegaISA
 
         addr.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -42740,6 +42930,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_LOAD_SSHORT::Inst_FLAT__FLAT_LOAD_SSHORT(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_sshort")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_SSHORT
 
@@ -42769,6 +42960,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_LOAD_DWORD::Inst_FLAT__FLAT_LOAD_DWORD(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_DWORD
 
@@ -42783,7 +42975,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -42797,14 +42989,9 @@ namespace VegaISA
 
         addr.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -42832,6 +43019,7 @@ namespace VegaISA
           InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_DWORDX2
 
@@ -42846,7 +43034,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -42860,14 +43048,9 @@ namespace VegaISA
 
         addr.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -42895,6 +43078,7 @@ namespace VegaISA
           InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_dwordx3")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_DWORDX3
 
@@ -42909,7 +43093,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -42923,14 +43107,9 @@ namespace VegaISA
 
         addr.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -42967,6 +43146,7 @@ namespace VegaISA
           InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_load_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Load);
     } // Inst_FLAT__FLAT_LOAD_DWORDX4
 
@@ -42981,7 +43161,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -42995,14 +43175,9 @@ namespace VegaISA
 
         addr.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43042,6 +43217,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_STORE_BYTE::Inst_FLAT__FLAT_STORE_BYTE(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_store_byte")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_FLAT__FLAT_STORE_BYTE
 
@@ -43056,7 +43232,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             wf->decExpInstsIssued();
@@ -43073,8 +43249,7 @@ namespace VegaISA
         addr.read();
         data.read();
 
-
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43083,12 +43258,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43106,6 +43276,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_STORE_SHORT::Inst_FLAT__FLAT_STORE_SHORT(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_store_short")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_FLAT__FLAT_STORE_SHORT
 
@@ -43120,7 +43291,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             wf->decExpInstsIssued();
@@ -43137,7 +43308,7 @@ namespace VegaISA
         addr.read();
         data.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43146,12 +43317,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43169,6 +43335,7 @@ namespace VegaISA
     Inst_FLAT__FLAT_STORE_DWORD::Inst_FLAT__FLAT_STORE_DWORD(InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_store_dword")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_FLAT__FLAT_STORE_DWORD
 
@@ -43183,7 +43350,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             wf->decExpInstsIssued();
@@ -43200,7 +43367,7 @@ namespace VegaISA
         addr.read();
         data.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43209,12 +43376,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43233,6 +43395,7 @@ namespace VegaISA
           InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_store_dwordx2")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_FLAT__FLAT_STORE_DWORDX2
 
@@ -43247,7 +43410,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             wf->decExpInstsIssued();
@@ -43264,6 +43427,8 @@ namespace VegaISA
         addr.read();
         data.read();
 
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
+
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
                 (reinterpret_cast<VecElemU64*>(gpuDynInst->d_data))[lane]
@@ -43271,14 +43436,7 @@ namespace VegaISA
             }
         }
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
-
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43297,6 +43455,7 @@ namespace VegaISA
           InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_store_dwordx3")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_FLAT__FLAT_STORE_DWORDX3
 
@@ -43311,7 +43470,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             wf->decExpInstsIssued();
@@ -43332,7 +43491,7 @@ namespace VegaISA
         data1.read();
         data2.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43345,12 +43504,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43369,6 +43523,7 @@ namespace VegaISA
           InFmt_FLAT *iFmt)
         : Inst_FLAT(iFmt, "flat_store_dwordx4")
     {
+        setFlag(MemoryRef);
         setFlag(Store);
     } // Inst_FLAT__FLAT_STORE_DWORDX4
 
@@ -43383,7 +43538,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             wf->decExpInstsIssued();
@@ -43406,7 +43561,7 @@ namespace VegaISA
         data2.read();
         data3.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43421,13 +43576,7 @@ namespace VegaISA
             }
         }
 
-
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe
-                .issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43451,6 +43600,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SWAP
 
     Inst_FLAT__FLAT_ATOMIC_SWAP::~Inst_FLAT__FLAT_ATOMIC_SWAP()
@@ -43467,7 +43617,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -43483,7 +43633,7 @@ namespace VegaISA
         addr.read();
         data.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43492,12 +43642,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe.
-                issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43535,6 +43680,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_CMPSWAP
 
     Inst_FLAT__FLAT_ATOMIC_CMPSWAP::~Inst_FLAT__FLAT_ATOMIC_CMPSWAP()
@@ -43553,7 +43699,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -43571,7 +43717,7 @@ namespace VegaISA
         data.read();
         cmp.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -43582,12 +43728,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe.
-                issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43623,6 +43764,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_ADD
 
     Inst_FLAT__FLAT_ATOMIC_ADD::~Inst_FLAT__FLAT_ATOMIC_ADD()
@@ -43639,7 +43781,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -43655,7 +43797,8 @@ namespace VegaISA
         addr.read();
         data.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
+
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
                 (reinterpret_cast<VecElemU32*>(gpuDynInst->a_data))[lane]
@@ -43663,12 +43806,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe.
-                issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -43704,6 +43842,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SUB
 
     Inst_FLAT__FLAT_ATOMIC_SUB::~Inst_FLAT__FLAT_ATOMIC_SUB()
@@ -43731,6 +43870,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SMIN
 
     Inst_FLAT__FLAT_ATOMIC_SMIN::~Inst_FLAT__FLAT_ATOMIC_SMIN()
@@ -43758,6 +43898,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_UMIN
 
     Inst_FLAT__FLAT_ATOMIC_UMIN::~Inst_FLAT__FLAT_ATOMIC_UMIN()
@@ -43785,6 +43926,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SMAX
 
     Inst_FLAT__FLAT_ATOMIC_SMAX::~Inst_FLAT__FLAT_ATOMIC_SMAX()
@@ -43812,6 +43954,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_UMAX
 
     Inst_FLAT__FLAT_ATOMIC_UMAX::~Inst_FLAT__FLAT_ATOMIC_UMAX()
@@ -43839,6 +43982,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_AND
 
     Inst_FLAT__FLAT_ATOMIC_AND::~Inst_FLAT__FLAT_ATOMIC_AND()
@@ -43866,6 +44010,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_OR
 
     Inst_FLAT__FLAT_ATOMIC_OR::~Inst_FLAT__FLAT_ATOMIC_OR()
@@ -43893,6 +44038,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_XOR
 
     Inst_FLAT__FLAT_ATOMIC_XOR::~Inst_FLAT__FLAT_ATOMIC_XOR()
@@ -43920,6 +44066,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_INC
 
     Inst_FLAT__FLAT_ATOMIC_INC::~Inst_FLAT__FLAT_ATOMIC_INC()
@@ -43947,6 +44094,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_DEC
 
     Inst_FLAT__FLAT_ATOMIC_DEC::~Inst_FLAT__FLAT_ATOMIC_DEC()
@@ -43975,6 +44123,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SWAP_X2
 
     Inst_FLAT__FLAT_ATOMIC_SWAP_X2::~Inst_FLAT__FLAT_ATOMIC_SWAP_X2()
@@ -44003,6 +44152,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_CMPSWAP_X2
 
     Inst_FLAT__FLAT_ATOMIC_CMPSWAP_X2::~Inst_FLAT__FLAT_ATOMIC_CMPSWAP_X2()
@@ -44021,7 +44171,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -44039,6 +44189,8 @@ namespace VegaISA
         data.read();
         cmp.read();
 
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
+
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
                 (reinterpret_cast<VecElemU64*>(gpuDynInst->x_data))[lane]
@@ -44048,14 +44200,7 @@ namespace VegaISA
             }
         }
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
-
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe.
-                issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -44092,6 +44237,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_ADD_X2
 
     Inst_FLAT__FLAT_ATOMIC_ADD_X2::~Inst_FLAT__FLAT_ATOMIC_ADD_X2()
@@ -44108,7 +44254,7 @@ namespace VegaISA
     {
         Wavefront *wf = gpuDynInst->wavefront();
 
-        if (gpuDynInst->exec_mask.none()) {
+        if (gpuDynInst->exec_mask.none() && isFlat()) {
             wf->decVMemInstsIssued();
             wf->decLGKMInstsIssued();
             return;
@@ -44124,7 +44270,7 @@ namespace VegaISA
         addr.read();
         data.read();
 
-        calcAddr(gpuDynInst, addr, instData.OFFSET);
+        calcAddr(gpuDynInst, addr, extData.SADDR, instData.OFFSET);
 
         for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
             if (gpuDynInst->exec_mask[lane]) {
@@ -44133,12 +44279,7 @@ namespace VegaISA
             }
         }
 
-        if (isFlatGlobal()) {
-            gpuDynInst->computeUnit()->globalMemoryPipe.
-                issueRequest(gpuDynInst);
-        } else {
-            fatal("Non global flat instructions not implemented yet.\n");
-        }
+        issueRequestHelper(gpuDynInst);
     } // execute
 
     void
@@ -44176,6 +44317,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SUB_X2
 
     Inst_FLAT__FLAT_ATOMIC_SUB_X2::~Inst_FLAT__FLAT_ATOMIC_SUB_X2()
@@ -44204,6 +44346,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SMIN_X2
 
     Inst_FLAT__FLAT_ATOMIC_SMIN_X2::~Inst_FLAT__FLAT_ATOMIC_SMIN_X2()
@@ -44232,6 +44375,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_UMIN_X2
 
     Inst_FLAT__FLAT_ATOMIC_UMIN_X2::~Inst_FLAT__FLAT_ATOMIC_UMIN_X2()
@@ -44260,6 +44404,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_SMAX_X2
 
     Inst_FLAT__FLAT_ATOMIC_SMAX_X2::~Inst_FLAT__FLAT_ATOMIC_SMAX_X2()
@@ -44288,6 +44433,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_UMAX_X2
 
     Inst_FLAT__FLAT_ATOMIC_UMAX_X2::~Inst_FLAT__FLAT_ATOMIC_UMAX_X2()
@@ -44316,6 +44462,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_AND_X2
 
     Inst_FLAT__FLAT_ATOMIC_AND_X2::~Inst_FLAT__FLAT_ATOMIC_AND_X2()
@@ -44344,6 +44491,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_OR_X2
 
     Inst_FLAT__FLAT_ATOMIC_OR_X2::~Inst_FLAT__FLAT_ATOMIC_OR_X2()
@@ -44372,6 +44520,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_XOR_X2
 
     Inst_FLAT__FLAT_ATOMIC_XOR_X2::~Inst_FLAT__FLAT_ATOMIC_XOR_X2()
@@ -44400,6 +44549,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_INC_X2
 
     Inst_FLAT__FLAT_ATOMIC_INC_X2::~Inst_FLAT__FLAT_ATOMIC_INC_X2()
@@ -44428,6 +44578,7 @@ namespace VegaISA
         } else {
             setFlag(AtomicNoReturn);
         }
+        setFlag(MemoryRef);
     } // Inst_FLAT__FLAT_ATOMIC_DEC_X2
 
     Inst_FLAT__FLAT_ATOMIC_DEC_X2::~Inst_FLAT__FLAT_ATOMIC_DEC_X2()

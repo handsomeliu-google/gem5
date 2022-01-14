@@ -158,7 +158,7 @@ let {{
             self.control_indirect = True
 
         def __init__(self, name):
-            super(X86Macroop, self).__init__(name)
+            super().__init__(name)
             self.directives = {
                 "adjust_env" : self.setAdjustEnv,
                 "adjust_imm" : self.adjustImm,
@@ -256,7 +256,7 @@ let {{
                 memoryInst = "true"
             else:
                 memoryInst = "false"
-            regSize = '''(%s || (env.base == INTREG_RSP && %s) ?
+            regSize = '''(%s || (env.base == int_reg::Rsp && %s) ?
                          env.stackSize :
                          env.dataSize)''' % (useStackSize, memoryInst)
             iop = InstObjParams(self.getMnemonic(), self.name, "Macroop",
@@ -279,7 +279,7 @@ let {{
             self.regUsed = False
             self.regm = "0"
             self.regmUsed = False
-            self.seg = "SEGMENT_REG_DS"
+            self.seg = "segment_idx::Ds"
             self.size = None
             self.addressSize = "ADDRSIZE"
             self.dataSize = "OPSIZE"

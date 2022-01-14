@@ -20601,7 +20601,6 @@ namespace Gcn3ISA
             }
         }
 
-        wf->execMask() = sdst.rawData();
         sdst.write();
     }
 
@@ -32397,6 +32396,15 @@ namespace Gcn3ISA
         }
 
         vdst.write();
+
+        /**
+         * This is needed because we treat this instruction as a load
+         * but it's not an actual memory request.
+         * Without this, the destination register never gets marked as
+         * free, leading to a  possible deadlock
+         */
+        wf->computeUnit->vrf[wf->simdId]->
+            scheduleWriteOperandsFromLoad(wf, gpuDynInst);
     } // execute
     // --- Inst_DS__DS_PERMUTE_B32 class methods ---
 
@@ -32468,6 +32476,15 @@ namespace Gcn3ISA
         wf->decLGKMInstsIssued();
         wf->rdLmReqsInPipe--;
         wf->validateRequestCounters();
+
+        /**
+         * This is needed because we treat this instruction as a load
+         * but it's not an actual memory request.
+         * Without this, the destination register never gets marked as
+         * free, leading to a  possible deadlock
+         */
+        wf->computeUnit->vrf[wf->simdId]->
+            scheduleWriteOperandsFromLoad(wf, gpuDynInst);
     } // execute
     // --- Inst_DS__DS_BPERMUTE_B32 class methods ---
 
@@ -32539,6 +32556,15 @@ namespace Gcn3ISA
         wf->decLGKMInstsIssued();
         wf->rdLmReqsInPipe--;
         wf->validateRequestCounters();
+
+        /**
+         * This is needed because we treat this instruction as a load
+         * but it's not an actual memory request.
+         * Without this, the destination register never gets marked as
+         * free, leading to a possible deadlock
+         */
+        wf->computeUnit->vrf[wf->simdId]->
+            scheduleWriteOperandsFromLoad(wf, gpuDynInst);
     } // execute
 
     // --- Inst_DS__DS_ADD_U64 class methods ---
@@ -34308,8 +34334,51 @@ namespace Gcn3ISA
     void
     Inst_DS__DS_WRITE_B96::execute(GPUDynInstPtr gpuDynInst)
     {
-        panicUnimplemented();
+        Wavefront *wf = gpuDynInst->wavefront();
+        gpuDynInst->execUnitId = wf->execUnitId;
+        gpuDynInst->latency.init(gpuDynInst->computeUnit());
+        gpuDynInst->latency.set(
+                gpuDynInst->computeUnit()->cyclesToTicks(Cycles(24)));
+        ConstVecOperandU32 addr(gpuDynInst, extData.ADDR);
+        ConstVecOperandU32 data0(gpuDynInst, extData.DATA0);
+        ConstVecOperandU32 data1(gpuDynInst, extData.DATA0 + 1);
+        ConstVecOperandU32 data2(gpuDynInst, extData.DATA0 + 2);
+
+        addr.read();
+        data0.read();
+        data1.read();
+        data2.read();
+
+        calcAddr(gpuDynInst, addr);
+
+        for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
+            if (gpuDynInst->exec_mask[lane]) {
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4] = data0[lane];
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 1] = data1[lane];
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 2] = data2[lane];
+            }
+        }
+
+        gpuDynInst->computeUnit()->localMemoryPipe.issueRequest(gpuDynInst);
     }
+
+    void
+    Inst_DS__DS_WRITE_B96::initiateAcc(GPUDynInstPtr gpuDynInst)
+    {
+        Addr offset0 = instData.OFFSET0;
+        Addr offset1 = instData.OFFSET1;
+        Addr offset = (offset1 << 8) | offset0;
+
+        initMemWrite<3>(gpuDynInst, offset);
+    } // initiateAcc
+
+    void
+    Inst_DS__DS_WRITE_B96::completeAcc(GPUDynInstPtr gpuDynInst)
+    {
+    } // completeAcc
 
     Inst_DS__DS_WRITE_B128::Inst_DS__DS_WRITE_B128(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_write_b128")
@@ -34327,8 +34396,55 @@ namespace Gcn3ISA
     void
     Inst_DS__DS_WRITE_B128::execute(GPUDynInstPtr gpuDynInst)
     {
-        panicUnimplemented();
+        Wavefront *wf = gpuDynInst->wavefront();
+        gpuDynInst->execUnitId = wf->execUnitId;
+        gpuDynInst->latency.init(gpuDynInst->computeUnit());
+        gpuDynInst->latency.set(
+                gpuDynInst->computeUnit()->cyclesToTicks(Cycles(24)));
+        ConstVecOperandU32 addr(gpuDynInst, extData.ADDR);
+        ConstVecOperandU32 data0(gpuDynInst, extData.DATA0);
+        ConstVecOperandU32 data1(gpuDynInst, extData.DATA0 + 1);
+        ConstVecOperandU32 data2(gpuDynInst, extData.DATA0 + 2);
+        ConstVecOperandU32 data3(gpuDynInst, extData.DATA0 + 3);
+
+        addr.read();
+        data0.read();
+        data1.read();
+        data2.read();
+        data3.read();
+
+        calcAddr(gpuDynInst, addr);
+
+        for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
+            if (gpuDynInst->exec_mask[lane]) {
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4] = data0[lane];
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 1] = data1[lane];
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 2] = data2[lane];
+                (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 3] = data3[lane];
+            }
+        }
+
+        gpuDynInst->computeUnit()->localMemoryPipe.issueRequest(gpuDynInst);
     }
+
+    void
+    Inst_DS__DS_WRITE_B128::initiateAcc(GPUDynInstPtr gpuDynInst)
+    {
+        Addr offset0 = instData.OFFSET0;
+        Addr offset1 = instData.OFFSET1;
+        Addr offset = (offset1 << 8) | offset0;
+
+        initMemWrite<4>(gpuDynInst, offset);
+    } // initiateAcc
+
+    void
+    Inst_DS__DS_WRITE_B128::completeAcc(GPUDynInstPtr gpuDynInst)
+    {
+    } // completeAcc
 
     Inst_DS__DS_READ_B96::Inst_DS__DS_READ_B96(InFmt_DS *iFmt)
         : Inst_DS(iFmt, "ds_read_b96")
@@ -34345,7 +34461,51 @@ namespace Gcn3ISA
     void
     Inst_DS__DS_READ_B96::execute(GPUDynInstPtr gpuDynInst)
     {
-        panicUnimplemented();
+        Wavefront *wf = gpuDynInst->wavefront();
+        gpuDynInst->execUnitId = wf->execUnitId;
+        gpuDynInst->latency.init(gpuDynInst->computeUnit());
+        gpuDynInst->latency.set(
+                gpuDynInst->computeUnit()->cyclesToTicks(Cycles(24)));
+        ConstVecOperandU32 addr(gpuDynInst, extData.ADDR);
+
+        addr.read();
+
+        calcAddr(gpuDynInst, addr);
+
+        gpuDynInst->computeUnit()->localMemoryPipe.issueRequest(gpuDynInst);
+    }
+
+    void
+    Inst_DS__DS_READ_B96::initiateAcc(GPUDynInstPtr gpuDynInst)
+    {
+        Addr offset0 = instData.OFFSET0;
+        Addr offset1 = instData.OFFSET1;
+        Addr offset = (offset1 << 8) | offset0;
+
+        initMemRead<3>(gpuDynInst, offset);
+    }
+
+    void
+    Inst_DS__DS_READ_B96::completeAcc(GPUDynInstPtr gpuDynInst)
+    {
+        VecOperandU32 vdst0(gpuDynInst, extData.VDST);
+        VecOperandU32 vdst1(gpuDynInst, extData.VDST + 1);
+        VecOperandU32 vdst2(gpuDynInst, extData.VDST + 2);
+
+        for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
+            if (gpuDynInst->exec_mask[lane]) {
+                vdst0[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4];
+                vdst1[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 1];
+                vdst2[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 2];
+            }
+        }
+
+        vdst0.write();
+        vdst1.write();
+        vdst2.write();
     }
 
     Inst_DS__DS_READ_B128::Inst_DS__DS_READ_B128(InFmt_DS *iFmt)
@@ -34363,8 +34523,56 @@ namespace Gcn3ISA
     void
     Inst_DS__DS_READ_B128::execute(GPUDynInstPtr gpuDynInst)
     {
-        panicUnimplemented();
+        Wavefront *wf = gpuDynInst->wavefront();
+        gpuDynInst->execUnitId = wf->execUnitId;
+        gpuDynInst->latency.init(gpuDynInst->computeUnit());
+        gpuDynInst->latency.set(
+                gpuDynInst->computeUnit()->cyclesToTicks(Cycles(24)));
+        ConstVecOperandU32 addr(gpuDynInst, extData.ADDR);
+
+        addr.read();
+
+        calcAddr(gpuDynInst, addr);
+
+        gpuDynInst->computeUnit()->localMemoryPipe.issueRequest(gpuDynInst);
     }
+
+    void
+    Inst_DS__DS_READ_B128::initiateAcc(GPUDynInstPtr gpuDynInst)
+    {
+        Addr offset0 = instData.OFFSET0;
+        Addr offset1 = instData.OFFSET1;
+        Addr offset = (offset1 << 8) | offset0;
+
+        initMemRead<4>(gpuDynInst, offset);
+    } // initiateAcc
+
+    void
+    Inst_DS__DS_READ_B128::completeAcc(GPUDynInstPtr gpuDynInst)
+    {
+        VecOperandU32 vdst0(gpuDynInst, extData.VDST);
+        VecOperandU32 vdst1(gpuDynInst, extData.VDST + 1);
+        VecOperandU32 vdst2(gpuDynInst, extData.VDST + 2);
+        VecOperandU32 vdst3(gpuDynInst, extData.VDST + 3);
+
+        for (int lane = 0; lane < NumVecElemPerVecReg; ++lane) {
+            if (gpuDynInst->exec_mask[lane]) {
+                vdst0[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4];
+                vdst1[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 1];
+                vdst2[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 2];
+                vdst3[lane] = (reinterpret_cast<VecElemU32*>(
+                    gpuDynInst->d_data))[lane * 4 + 3];
+            }
+        }
+
+        vdst0.write();
+        vdst1.write();
+        vdst2.write();
+        vdst3.write();
+    } // completeAcc
 
     Inst_MUBUF__BUFFER_LOAD_FORMAT_X
         ::Inst_MUBUF__BUFFER_LOAD_FORMAT_X(InFmt_MUBUF *iFmt)
@@ -36105,7 +36313,7 @@ namespace Gcn3ISA
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -36154,7 +36362,7 @@ namespace Gcn3ISA
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
     void
@@ -39175,8 +39383,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     } // execute
 
@@ -39239,8 +39450,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39302,8 +39516,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39394,8 +39611,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39458,8 +39678,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39522,8 +39745,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39595,8 +39821,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39680,8 +39909,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     } // execute
 
@@ -39743,8 +39975,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39806,8 +40041,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39870,8 +40108,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -39942,8 +40183,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40018,8 +40262,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe
                 .issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40085,8 +40332,11 @@ namespace Gcn3ISA
                      "Flats to private aperture not tested yet\n");
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
 
         ConstVecOperandU32 data(gpuDynInst, extData.DATA);
@@ -40199,8 +40449,11 @@ namespace Gcn3ISA
                      "Flats to private aperture not tested yet\n");
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40283,8 +40536,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40367,8 +40623,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
     void
@@ -40625,8 +40884,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40709,8 +40971,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40835,8 +41100,11 @@ namespace Gcn3ISA
                      "Flats to private aperture not tested yet\n");
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -40920,8 +41188,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -41006,8 +41277,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -41274,8 +41548,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 
@@ -41361,8 +41638,11 @@ namespace Gcn3ISA
         if (gpuDynInst->executedAs() == enums::SC_GLOBAL) {
             gpuDynInst->computeUnit()->globalMemoryPipe.
                 issueRequest(gpuDynInst);
+        } else if (gpuDynInst->executedAs() == enums::SC_GROUP) {
+            gpuDynInst->computeUnit()->localMemoryPipe
+                .issueRequest(gpuDynInst);
         } else {
-            fatal("Non global flat instructions not implemented yet.\n");
+            fatal("Unsupported scope for flat instruction.\n");
         }
     }
 

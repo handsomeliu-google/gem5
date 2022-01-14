@@ -43,9 +43,14 @@
 #include "arch/riscv/regs/misc.hh"
 #include "base/bitfield.hh"
 #include "base/compiler.hh"
+#include "base/logging.hh"
+#include "base/trace.hh"
 #include "cpu/base.hh"
 #include "debug/Checkpoint.hh"
+#include "debug/LLSC.hh"
 #include "debug/RiscvMisc.hh"
+#include "mem/packet.hh"
+#include "mem/request.hh"
 #include "params/RiscvISA.hh"
 #include "sim/pseudo_inst.hh"
 
@@ -55,7 +60,7 @@ namespace gem5
 namespace RiscvISA
 {
 
-GEM5_VAR_USED const std::array<const char *, NUM_MISCREGS> MiscRegNames = {{
+[[maybe_unused]] const std::array<const char *, NUM_MISCREGS> MiscRegNames = {{
     [MISCREG_PRV]           = "PRV",
     [MISCREG_ISA]           = "ISA",
     [MISCREG_VENDORID]      = "VENDORID",
@@ -186,15 +191,27 @@ GEM5_VAR_USED const std::array<const char *, NUM_MISCREGS> MiscRegNames = {{
     [MISCREG_NMIP]          = "NMIP",
 }};
 
+namespace
+{
+
+/* Not applicable to RISCV */
+RegClass vecRegClass(VecRegClass, "vector", 1, debug::IntRegs);
+RegClass vecElemClass(VecElemClass, "vector_element", 2, debug::IntRegs);
+RegClass vecPredRegClass(VecPredRegClass, "vector_predicate", 1,
+        debug::IntRegs);
+RegClass ccRegClass(CCRegClass, "condition_code", 0, debug::IntRegs);
+
+} // anonymous namespace
+
 ISA::ISA(const Params &p) : BaseISA(p)
 {
-    _regClasses.emplace_back(NumIntRegs, 0);
-    _regClasses.emplace_back(NumFloatRegs);
-    _regClasses.emplace_back(1); // Not applicable to RISCV
-    _regClasses.emplace_back(2); // Not applicable to RISCV
-    _regClasses.emplace_back(1); // Not applicable to RISCV
-    _regClasses.emplace_back(0); // Not applicable to RISCV
-    _regClasses.emplace_back(NUM_MISCREGS);
+    _regClasses.push_back(&intRegClass);
+    _regClasses.push_back(&floatRegClass);
+    _regClasses.push_back(&vecRegClass);
+    _regClasses.push_back(&vecElemClass);
+    _regClasses.push_back(&vecPredRegClass);
+    _regClasses.push_back(&ccRegClass);
+    _regClasses.push_back(&miscRegClass);
 
     miscRegFile.resize(NUM_MISCREGS);
     clear();
@@ -204,12 +221,12 @@ void
 ISA::copyRegsFrom(ThreadContext *src)
 {
     // First loop through the integer registers.
-    for (int i = 0; i < NumIntRegs; ++i)
-        tc->setIntReg(i, src->readIntReg(i));
+    for (auto &id: intRegClass)
+        tc->setReg(id, src->getReg(id));
 
     // Second loop through the float registers.
-    for (int i = 0; i < NumFloatRegs; ++i)
-        tc->setFloatReg(i, src->readFloatReg(i));
+    for (auto &id: floatRegClass)
+        tc->setReg(id, src->getReg(id));
 
     // Lastly copy PC/NPC
     tc->pcState(src->pcState());
@@ -259,22 +276,19 @@ ISA::hpmCounterEnabled(int misc_reg) const
 }
 
 RegVal
-ISA::readMiscRegNoEffect(int misc_reg) const
+ISA::readMiscRegNoEffect(RegIndex idx) const
 {
-    if (misc_reg > NUM_MISCREGS || misc_reg < 0) {
-        // Illegal CSR
-        panic("Illegal CSR index %#x\n", misc_reg);
-        return -1;
-    }
+    // Illegal CSR
+    panic_if(idx > NUM_MISCREGS, "Illegal CSR index %#x\n", idx);
     DPRINTF(RiscvMisc, "Reading MiscReg %s (%d): %#x.\n",
-            MiscRegNames[misc_reg], misc_reg, miscRegFile[misc_reg]);
-    return miscRegFile[misc_reg];
+            MiscRegNames[idx], idx, miscRegFile[idx]);
+    return miscRegFile[idx];
 }
 
 RegVal
-ISA::readMiscReg(int misc_reg)
+ISA::readMiscReg(RegIndex idx)
 {
-    switch (misc_reg) {
+    switch (idx) {
       case MISCREG_HARTID:
         return tc->contextId();
       case MISCREG_CYCLE:
@@ -320,7 +334,7 @@ ISA::readMiscReg(int misc_reg)
       case MISCREG_MEPC:
         {
             auto misa = readMiscRegNoEffect(MISCREG_ISA);
-            auto val = readMiscRegNoEffect(misc_reg);
+            auto val = readMiscRegNoEffect(idx);
             // if compressed instructions are disabled, epc[1] is set to 0
             if ((misa & ISA_EXT_C_MASK) == 0)
                 return mbits(val, 63, 2);
@@ -331,41 +345,39 @@ ISA::readMiscReg(int misc_reg)
       default:
         // Try reading HPM counters
         // As a placeholder, all HPM counters are just cycle counters
-        if (misc_reg >= MISCREG_HPMCOUNTER03 &&
-                misc_reg <= MISCREG_HPMCOUNTER31) {
-            if (hpmCounterEnabled(misc_reg)) {
+        if (idx >= MISCREG_HPMCOUNTER03 &&
+                idx <= MISCREG_HPMCOUNTER31) {
+            if (hpmCounterEnabled(idx)) {
                 DPRINTF(RiscvMisc, "HPM counter %d: %llu.\n",
-                        misc_reg - MISCREG_CYCLE, tc->getCpuPtr()->curCycle());
+                        idx - MISCREG_CYCLE, tc->getCpuPtr()->curCycle());
                 return tc->getCpuPtr()->curCycle();
             } else {
-                warn("HPM counter %d disabled.\n", misc_reg - MISCREG_CYCLE);
+                warn("HPM counter %d disabled.\n", idx - MISCREG_CYCLE);
                 return 0;
             }
         }
-        return readMiscRegNoEffect(misc_reg);
+        return readMiscRegNoEffect(idx);
     }
 }
 
 void
-ISA::setMiscRegNoEffect(int misc_reg, RegVal val)
+ISA::setMiscRegNoEffect(RegIndex idx, RegVal val)
 {
-    if (misc_reg > NUM_MISCREGS || misc_reg < 0) {
-        // Illegal CSR
-        panic("Illegal CSR index %#x\n", misc_reg);
-    }
+    // Illegal CSR
+    panic_if(idx > NUM_MISCREGS, "Illegal CSR index %#x\n", idx);
     DPRINTF(RiscvMisc, "Setting MiscReg %s (%d) to %#x.\n",
-            MiscRegNames[misc_reg], misc_reg, val);
-    miscRegFile[misc_reg] = val;
+            MiscRegNames[idx], idx, val);
+    miscRegFile[idx] = val;
 }
 
 void
-ISA::setMiscReg(int misc_reg, RegVal val)
+ISA::setMiscReg(RegIndex idx, RegVal val)
 {
-    if (misc_reg >= MISCREG_CYCLE && misc_reg <= MISCREG_HPMCOUNTER31) {
+    if (idx >= MISCREG_CYCLE && idx <= MISCREG_HPMCOUNTER31) {
         // Ignore writes to HPM counters for now
-        warn("Ignoring write to %s.\n", CSRData.at(misc_reg).name);
+        warn("Ignoring write to %s.\n", CSRData.at(idx).name);
     } else {
-        switch (misc_reg) {
+        switch (idx) {
 
           // From section 3.7.1 of RISCV priv. specs
           // V1.12, the odd-numbered configuration
@@ -394,13 +406,13 @@ ISA::setMiscReg(int misc_reg, RegVal val)
                     // Form pmp_index using the index i and
                     // PMPCFG register number
                     // Note: MISCREG_PMPCFG2 - MISCREG_PMPCFG0 = 1
-                    // 8*(misc_reg-MISCREG_PMPCFG0) will be useful
+                    // 8*(idx-MISCREG_PMPCFG0) will be useful
                     // if a system contains more than 16 PMP entries
-                    uint32_t pmp_index = i+(8*(misc_reg-MISCREG_PMPCFG0));
+                    uint32_t pmp_index = i+(8*(idx-MISCREG_PMPCFG0));
                     mmu->getPMP()->pmpUpdateCfg(pmp_index,cfg_val);
                 }
 
-                setMiscRegNoEffect(misc_reg, val);
+                setMiscRegNoEffect(idx, val);
             }
             break;
           case MISCREG_PMPADDR00 ... MISCREG_PMPADDR15:
@@ -410,10 +422,10 @@ ISA::setMiscReg(int misc_reg, RegVal val)
 
                 auto mmu = dynamic_cast<RiscvISA::MMU *>
                               (tc->getMMUPtr());
-                uint32_t pmp_index = misc_reg-MISCREG_PMPADDR00;
+                uint32_t pmp_index = idx-MISCREG_PMPADDR00;
                 mmu->getPMP()->pmpUpdateAddr(pmp_index, val);
 
-                setMiscRegNoEffect(misc_reg, val);
+                setMiscRegNoEffect(idx, val);
             }
             break;
 
@@ -435,43 +447,45 @@ ISA::setMiscReg(int misc_reg, RegVal val)
             {
                 // we only support bare and Sv39 mode; setting a different mode
                 // shall have no effect (see 4.1.12 in priv ISA manual)
-                SATP cur_val = readMiscRegNoEffect(misc_reg);
+                SATP cur_val = readMiscRegNoEffect(idx);
                 SATP new_val = val;
                 if (new_val.mode != AddrXlateMode::BARE &&
                     new_val.mode != AddrXlateMode::SV39)
                     new_val.mode = cur_val.mode;
-                setMiscRegNoEffect(misc_reg, new_val);
+                setMiscRegNoEffect(idx, new_val);
             }
             break;
           case MISCREG_TSELECT:
             {
                 // we don't support debugging, so always set a different value
                 // than written
-                setMiscRegNoEffect(misc_reg, val + 1);
+                setMiscRegNoEffect(idx, val + 1);
             }
             break;
           case MISCREG_ISA:
             {
-                auto cur_val = readMiscRegNoEffect(misc_reg);
+                auto cur_val = readMiscRegNoEffect(idx);
                 // only allow to disable compressed instructions
                 // if the following instruction is 4-byte aligned
                 if ((val & ISA_EXT_C_MASK) == 0 &&
-                    bits(tc->pcState().npc(), 2, 0) != 0)
+                        bits(tc->pcState().as<RiscvISA::PCState>().npc(),
+                            2, 0) != 0) {
                     val |= cur_val & ISA_EXT_C_MASK;
-                setMiscRegNoEffect(misc_reg, val);
+                }
+                setMiscRegNoEffect(idx, val);
             }
             break;
           case MISCREG_STATUS:
             {
                 // SXL and UXL are hard-wired to 64 bit
-                auto cur = readMiscRegNoEffect(misc_reg);
+                auto cur = readMiscRegNoEffect(idx);
                 val &= ~(STATUS_SXL_MASK | STATUS_UXL_MASK);
                 val |= cur & (STATUS_SXL_MASK | STATUS_UXL_MASK);
-                setMiscRegNoEffect(misc_reg, val);
+                setMiscRegNoEffect(idx, val);
             }
             break;
           default:
-            setMiscRegNoEffect(misc_reg, val);
+            setMiscRegNoEffect(idx, val);
         }
     }
 }
@@ -488,6 +502,77 @@ ISA::unserialize(CheckpointIn &cp)
 {
     DPRINTF(Checkpoint, "Unserializing Riscv Misc Registers\n");
     UNSERIALIZE_CONTAINER(miscRegFile);
+}
+
+const int WARN_FAILURE = 10000;
+
+// RISC-V allows multiple locks per hart, but each SC has to unlock the most
+// recent one, so we use a stack here.
+std::unordered_map<int, std::stack<Addr>> locked_addrs;
+
+void
+ISA::handleLockedSnoop(PacketPtr pkt, Addr cacheBlockMask)
+{
+    std::stack<Addr>& locked_addr_stack = locked_addrs[tc->contextId()];
+
+    if (locked_addr_stack.empty())
+        return;
+    Addr snoop_addr = pkt->getAddr() & cacheBlockMask;
+    DPRINTF(LLSC, "Locked snoop on address %x.\n", snoop_addr);
+    if ((locked_addr_stack.top() & cacheBlockMask) == snoop_addr)
+        locked_addr_stack.pop();
+}
+
+
+void
+ISA::handleLockedRead(const RequestPtr &req)
+{
+    std::stack<Addr>& locked_addr_stack = locked_addrs[tc->contextId()];
+
+    locked_addr_stack.push(req->getPaddr() & ~0xF);
+    DPRINTF(LLSC, "[cid:%d]: Reserved address %x.\n",
+            req->contextId(), req->getPaddr() & ~0xF);
+}
+
+bool
+ISA::handleLockedWrite(const RequestPtr &req, Addr cacheBlockMask)
+{
+    std::stack<Addr>& locked_addr_stack = locked_addrs[tc->contextId()];
+
+    // Normally RISC-V uses zero to indicate success and nonzero to indicate
+    // failure (right now only 1 is reserved), but in gem5 zero indicates
+    // failure and one indicates success, so here we conform to that (it should
+    // be switched in the instruction's implementation)
+
+    DPRINTF(LLSC, "[cid:%d]: locked_addrs empty? %s.\n", req->contextId(),
+            locked_addr_stack.empty() ? "yes" : "no");
+    if (!locked_addr_stack.empty()) {
+        DPRINTF(LLSC, "[cid:%d]: addr = %x.\n", req->contextId(),
+                req->getPaddr() & ~0xF);
+        DPRINTF(LLSC, "[cid:%d]: last locked addr = %x.\n", req->contextId(),
+                locked_addr_stack.top());
+    }
+    if (locked_addr_stack.empty()
+            || locked_addr_stack.top() != ((req->getPaddr() & ~0xF))) {
+        req->setExtraData(0);
+        int stCondFailures = tc->readStCondFailures();
+        tc->setStCondFailures(++stCondFailures);
+        if (stCondFailures % WARN_FAILURE == 0) {
+            warn("%i: context %d: %d consecutive SC failures.\n",
+                    curTick(), tc->contextId(), stCondFailures);
+        }
+        return false;
+    }
+    if (req->isUncacheable()) {
+        req->setExtraData(2);
+    }
+    return true;
+}
+
+void
+ISA::globalClearExclusive()
+{
+    tc->getCpuPtr()->wakeup(tc->threadId());
 }
 
 } // namespace RiscvISA

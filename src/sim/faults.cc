@@ -42,8 +42,7 @@
 
 #include <csignal>
 
-#include "arch/decoder.hh"
-#include "arch/locked_mem.hh"
+#include "arch/generic/decoder.hh"
 #include "base/logging.hh"
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
@@ -74,9 +73,9 @@ SESyscallFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
     tc->getSystemPtr()->workload->syscall(tc);
     // Move the PC forward since that doesn't happen automatically.
-    TheISA::PCState pc = tc->pcState();
-    inst->advancePC(pc);
-    tc->pcState(pc);
+    std::unique_ptr<PCStateBase> pc(tc->pcState().clone());
+    inst->advancePC(*pc);
+    tc->pcState(*pc);
 }
 
 void
@@ -115,7 +114,7 @@ void GenericHtmFailureFault::invoke(ThreadContext *tc,
                                     const StaticInstPtr &inst)
 {
     // reset decoder
-    TheISA::Decoder* dcdr = tc->getDecoderPtr();
+    InstDecoder* dcdr = tc->getDecoderPtr();
     dcdr->reset();
 
     // restore transaction checkpoint
@@ -126,7 +125,7 @@ void GenericHtmFailureFault::invoke(ThreadContext *tc,
     checkpoint->restore(tc, getHtmFailureFaultCause());
 
     // reset the global monitor
-    TheISA::globalClearExclusive(tc);
+    tc->getIsaPtr()->globalClearExclusive();
 
     // send abort packet to ruby (in final breath)
     tc->htmAbortTransaction(htmUid, cause);

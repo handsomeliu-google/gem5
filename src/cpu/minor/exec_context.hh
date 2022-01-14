@@ -87,17 +87,16 @@ class ExecContext : public gem5::ExecContext
     ExecContext (
         MinorCPU &cpu_,
         SimpleThread &thread_, Execute &execute_,
-        MinorDynInstPtr inst_, RegIndex zeroReg) :
+        MinorDynInstPtr inst_) :
         cpu(cpu_),
         thread(thread_),
         execute(execute_),
         inst(inst_)
     {
-        DPRINTF(MinorExecute, "ExecContext setting PC: %s\n", inst->pc);
-        pcState(inst->pc);
+        DPRINTF(MinorExecute, "ExecContext setting PC: %s\n", *inst->pc);
+        pcState(*inst->pc);
         setPredicate(inst->readPredicate());
         setMemAccPredicate(inst->readMemAccPredicate());
-        thread.setIntReg(zeroReg, 0);
     }
 
     ~ExecContext()
@@ -145,102 +144,39 @@ class ExecContext : public gem5::ExecContext
     }
 
     RegVal
-    readIntRegOperand(const StaticInst *si, int idx) override
+    getRegOperand(const StaticInst *si, int idx) override
     {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.is(IntRegClass));
-        return thread.readIntReg(reg.index());
-    }
-
-    RegVal
-    readFloatRegOperandBits(const StaticInst *si, int idx) override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.is(FloatRegClass));
-        return thread.readFloatReg(reg.index());
-    }
-
-    const TheISA::VecRegContainer &
-    readVecRegOperand(const StaticInst *si, int idx) const override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.is(VecRegClass));
-        return thread.readVecReg(reg);
-    }
-
-    TheISA::VecRegContainer &
-    getWritableVecRegOperand(const StaticInst *si, int idx) override
-    {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(VecRegClass));
-        return thread.getWritableVecReg(reg);
-    }
-
-    TheISA::VecElem
-    readVecElemOperand(const StaticInst *si, int idx) const override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.is(VecElemClass));
-        return thread.readVecElem(reg);
-    }
-
-    const TheISA::VecPredRegContainer&
-    readVecPredRegOperand(const StaticInst *si, int idx) const override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.is(VecPredRegClass));
-        return thread.readVecPredReg(reg);
-    }
-
-    TheISA::VecPredRegContainer&
-    getWritableVecPredRegOperand(const StaticInst *si, int idx) override
-    {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(VecPredRegClass));
-        return thread.getWritableVecPredReg(reg);
+        const RegId &reg = si->srcRegIdx(idx);
+        if (reg.is(InvalidRegClass))
+            return 0;
+        return thread.getReg(reg);
     }
 
     void
-    setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
+    getRegOperand(const StaticInst *si, int idx, void *val) override
     {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(IntRegClass));
-        thread.setIntReg(reg.index(), val);
+        thread.getReg(si->srcRegIdx(idx), val);
+    }
+
+    void *
+    getWritableRegOperand(const StaticInst *si, int idx) override
+    {
+        return thread.getWritableReg(si->destRegIdx(idx));
     }
 
     void
-    setFloatRegOperandBits(const StaticInst *si, int idx, RegVal val) override
+    setRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(FloatRegClass));
-        thread.setFloatReg(reg.index(), val);
+        const RegId &reg = si->destRegIdx(idx);
+        if (reg.is(InvalidRegClass))
+            return;
+        thread.setReg(si->destRegIdx(idx), val);
     }
 
     void
-    setVecRegOperand(const StaticInst *si, int idx,
-                     const TheISA::VecRegContainer& val) override
+    setRegOperand(const StaticInst *si, int idx, const void *val) override
     {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(VecRegClass));
-        thread.setVecReg(reg, val);
-    }
-
-    void
-    setVecPredRegOperand(const StaticInst *si, int idx,
-                         const TheISA::VecPredRegContainer& val) override
-    {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(VecPredRegClass));
-        thread.setVecPredReg(reg, val);
-    }
-
-    void
-    setVecElemOperand(const StaticInst *si, int idx,
-                      const TheISA::VecElem val) override
-    {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(VecElemClass));
-        thread.setVecElem(reg, val);
+        thread.setReg(si->destRegIdx(idx), val);
     }
 
     bool
@@ -300,14 +236,14 @@ class ExecContext : public gem5::ExecContext
         return 0;
     }
 
-    TheISA::PCState
+    const PCStateBase &
     pcState() const override
     {
         return thread.pcState();
     }
 
     void
-    pcState(const TheISA::PCState &val) override
+    pcState(const PCStateBase &val) override
     {
         thread.pcState(val);
     }
@@ -360,22 +296,6 @@ class ExecContext : public gem5::ExecContext
     demapPage(Addr vaddr, uint64_t asn) override
     {
         thread.getMMUPtr()->demapPage(vaddr, asn);
-    }
-
-    RegVal
-    readCCRegOperand(const StaticInst *si, int idx) override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.is(CCRegClass));
-        return thread.readCCReg(reg.index());
-    }
-
-    void
-    setCCRegOperand(const StaticInst *si, int idx, RegVal val) override
-    {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.is(CCRegClass));
-        thread.setCCReg(reg.index(), val);
     }
 
     BaseCPU *getCpuPtr() { return &cpu; }
