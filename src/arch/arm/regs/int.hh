@@ -441,11 +441,11 @@ const RegMap Reg64Map = {
     R8Fiq,  R9Fiq,  R10Fiq, R11Fiq, R12Fiq, R13Fiq, R14Fiq, Zero
 };
 
-static inline const RegId &
+static inline const RegId
 x(unsigned index)
 {
     assert(index < NumArchRegs);
-    return Reg64Map[index];
+    return intRegClass[_X0Idx + index];
 }
 
 const RegMap RegUsrMap = {
