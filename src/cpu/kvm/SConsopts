@@ -69,8 +69,7 @@ def create_use_kvm_var():
                     'Enable hardware virtualized (KVM) CPU models', True))
     else:
         main['USE_KVM'] = False
+        export_vars.append('USE_KVM')
         warning("Cannot enable KVM, host seems to lack KVM support")
-
-    export_vars.append('USE_KVM')
 
 AfterSConsopts(create_use_kvm_var)
