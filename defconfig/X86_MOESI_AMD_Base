@@ -1,0 +1,3 @@
+RUBY=y
+RubyProtocolMoesiAmdBase=y
+USE_X86_ISA=y

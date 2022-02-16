@@ -40,7 +40,7 @@
 
 Import('*')
 
-if env['CONF']['USE_ARM']:
+if env['CONF']['USE_ARM_ISA']:
     env.TagImplies('arm isa', 'gem5 lib')
 
 GTest('aapcs64.test', 'aapcs64.test.cc', '../../base/debug.cc',

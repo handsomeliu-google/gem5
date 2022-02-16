@@ -1,0 +1,3 @@
+USE_ARM_ISA=y
+RUBY=y
+RubyProtocolMesiThreeLevel=y

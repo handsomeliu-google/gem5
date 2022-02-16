@@ -43,19 +43,19 @@ def get_runtime_isas() -> typing.List[ISA]:
     """
 
     isas = []
-    if buildEnv['USE_ARM']:
+    if buildEnv['USE_ARM_ISA']:
         isas.append(ISA.ARM)
-    if buildEnv['USE_MIPS']:
+    if buildEnv['USE_MIPS_ISA']:
         isas.append(ISA.MIPS)
-    if buildEnv['USE_NULL']:
+    if buildEnv['USE_NULL_ISA']:
         isas.append(ISA.NULL)
-    if buildEnv['USE_POWER']:
+    if buildEnv['USE_POWER_ISA']:
         isas.append(ISA.POWER)
-    if buildEnv['USE_RISCV']:
+    if buildEnv['USE_RISCV_ISA']:
         isas.append(ISA.RISCV)
-    if buildEnv['USE_SPARC']:
+    if buildEnv['USE_SPARC_ISA']:
         isas.append(ISA.SPARC)
-    if buildEnv['USE_X86']:
+    if buildEnv['USE_X86_ISA']:
         isas.append(ISA.X86)
 
     return isas

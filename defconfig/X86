@@ -1,0 +1,4 @@
+RUBY=y
+NUMBER_BITS_PER_SET=128
+RubyProtocolMesiTwoLevel=y
+USE_X86_ISA=y

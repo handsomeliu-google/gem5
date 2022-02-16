@@ -1,0 +1,3 @@
+RUBY=y
+RubyProtocolMesiTwoLevel=y
+USE_NULL_ISA=y

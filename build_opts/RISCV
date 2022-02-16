@@ -1,2 +1,2 @@
-USE_RISCV = True
+USE_RISCV_ISA = True
 PROTOCOL = 'MI_example'

@@ -1,0 +1,3 @@
+RUBY=y
+RubyProtocolMoesiCmpToken=y
+USE_NULL_ISA=y

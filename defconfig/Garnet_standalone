@@ -1,0 +1,3 @@
+RUBY=y
+RubyProtocolGarnetStandalone=y
+USE_NULL_ISA=y

@@ -1,0 +1,3 @@
+RUBY=y
+RubyProtocolMiExample=y
+USE_NULL_ISA=y

@@ -24,4 +24,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Import('*')
-sticky_vars.Add(BoolVariable('USE_ARM', 'Enable ARM ISA support', False))
+sticky_vars.Add(BoolVariable('USE_ARM_ISA', 'Enable ARM ISA support', False))

@@ -24,4 +24,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Import('*')
-sticky_vars.Add(BoolVariable('USE_X86', 'Enable X86 ISA support', False))
+sticky_vars.Add(BoolVariable('USE_X86_ISA', 'Enable X86 ISA support', False))

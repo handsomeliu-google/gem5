@@ -23,10 +23,5 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-config TARGET_ISA
-    default "mips" if MIPS_ISA
-
-cont_choice "TARGET_ISA"
-    config MIPS_ISA
-        bool "MIPS"
-endchoice
+config USE_MIPS_ISA
+    bool "MIPS ISA support"

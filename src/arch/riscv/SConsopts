@@ -24,4 +24,5 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Import('*')
-sticky_vars.Add(BoolVariable('USE_RISCV', 'Enable RISC-V ISA support', False))
+sticky_vars.Add(BoolVariable('USE_RISCV_ISA', 'Enable RISC-V ISA support',
+            False))

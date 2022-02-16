@@ -24,4 +24,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Import('*')
-sticky_vars.Add(BoolVariable('USE_NULL', 'Enable NULL ISA support', False))
+sticky_vars.Add(BoolVariable('USE_NULL_ISA', 'Enable NULL ISA support', False))

@@ -1,2 +1,2 @@
-USE_SPARC = True
+USE_SPARC_ISA = True
 PROTOCOL = 'MI_example'

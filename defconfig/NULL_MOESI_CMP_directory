@@ -1,0 +1,3 @@
+RUBY=y
+RubyProtocolMoesiCmpDirectory=y
+USE_NULL_ISA=y
