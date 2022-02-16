@@ -57,7 +57,7 @@ Import('*')
 
 amdgpu_isa = ['gcn3', 'vega']
 
-if env['BUILD_GPU']:
+if env['CONF']['BUILD_GPU']:
     env.SwitchingHeaders(
         Split('''
             gpu_decoder.hh
@@ -65,8 +65,9 @@ if env['BUILD_GPU']:
             gpu_registers.hh
             gpu_types.hh
             '''),
-        '{}'.format('amdgpu/' if env['TARGET_GPU_ISA'] in amdgpu_isa else '')+
-        env.subst('${TARGET_GPU_ISA}'))
+        '{}'.format('amdgpu/' if
+            env['CONF']['TARGET_GPU_ISA'] in amdgpu_isa else '') +
+        env.subst('${CONF["TARGET_GPU_ISA"]}'))
 
 #################################################################
 #

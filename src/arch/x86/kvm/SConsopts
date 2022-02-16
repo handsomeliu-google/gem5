@@ -40,6 +40,6 @@ if host_isa == 'x86_64':
     with gem5_scons.Configure(main) as conf:
         if conf.CheckTypeSize('struct kvm_xsave',
                 '#include <linux/kvm.h>') != 0:
-            conf.env['KVM_ISA'] = 'x86'
+            conf.env['CONF']['KVM_ISA'] = 'x86'
         else:
             warning("KVM on x86 requires xsave support in kernel headers.")

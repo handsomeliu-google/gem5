@@ -43,7 +43,7 @@
 
 Import('*')
 
-if env['USE_RISCV']:
+if env['CONF']['USE_RISCV']:
     env.TagImplies('riscv isa', 'gem5 lib')
 
 Source('decoder.cc', tags='riscv isa')

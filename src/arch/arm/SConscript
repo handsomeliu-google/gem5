@@ -40,7 +40,7 @@
 
 Import('*')
 
-if env['USE_ARM']:
+if env['CONF']['USE_ARM']:
     env.TagImplies('arm isa', 'gem5 lib')
 
 GTest('aapcs64.test', 'aapcs64.test.cc', '../../base/debug.cc',
@@ -66,7 +66,7 @@ Source('insts/vfp.cc', tags='arm isa')
 Source('insts/fplib.cc', tags='arm isa')
 Source('insts/crypto.cc', tags='arm isa')
 Source('insts/tme64.cc', tags='arm isa')
-if env['PROTOCOL'] == 'MESI_Three_Level_HTM':
+if env['CONF']['PROTOCOL'] == 'MESI_Three_Level_HTM':
     Source('insts/tme64ruby.cc', tags='arm isa')
 else:
     Source('insts/tme64classic.cc', tags='arm isa')

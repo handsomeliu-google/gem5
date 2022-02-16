@@ -33,4 +33,4 @@ except:
     pass
 
 if host_isa in ('armv7l', 'aarch64'):
-    main['KVM_ISA'] = 'arm'
+    main['CONF']['KVM_ISA'] = 'arm'

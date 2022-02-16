@@ -25,4 +25,3 @@
 
 Import('*')
 sticky_vars.Add(BoolVariable('USE_RISCV', 'Enable RISC-V ISA support', False))
-export_vars.append('USE_RISCV')

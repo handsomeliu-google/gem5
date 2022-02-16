@@ -33,7 +33,7 @@
 
 Import('*')
 
-if not env['BUILD_GPU']:
+if not env['CONF']['BUILD_GPU']:
     Return()
 
 SimObject('HSADevice.py')

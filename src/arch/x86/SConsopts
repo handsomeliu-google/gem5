@@ -25,4 +25,3 @@
 
 Import('*')
 sticky_vars.Add(BoolVariable('USE_X86', 'Enable X86 ISA support', False))
-export_vars.append('USE_X86')

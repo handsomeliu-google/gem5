@@ -25,4 +25,3 @@
 
 Import('*')
 sticky_vars.Add(BoolVariable('USE_NULL', 'Enable NULL ISA support', False))
-export_vars.append('USE_NULL')

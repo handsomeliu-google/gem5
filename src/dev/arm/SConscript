@@ -49,7 +49,7 @@ SimObject('UFSHostDevice.py', tags='arm isa')
 SimObject('EnergyCtrl.py', tags='arm isa')
 SimObject('NoMali.py', tags='arm isa')
 SimObject('VirtIOMMIO.py', tags='arm isa')
-if env['USE_ARM_FASTMODEL']:
+if env['CONF']['USE_ARM_FASTMODEL']:
     SimObject('VExpressFastmodel.py', tags='arm isa')
 
 Source('a9scu.cc', tags='arm isa')

@@ -35,7 +35,7 @@ import sys
 
 Import('*')
 
-if env['TARGET_GPU_ISA'] == 'vega':
+if env['CONF']['TARGET_GPU_ISA'] == 'vega':
     Source('decoder.cc')
     Source('insts/gpu_static_inst.cc')
     Source('insts/instructions.cc')

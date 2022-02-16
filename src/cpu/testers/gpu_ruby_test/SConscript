@@ -33,10 +33,10 @@
 
 Import('*')
 
-if not env['BUILD_GPU']:
+if not env['CONF']['BUILD_GPU']:
     Return()
 
-if env['PROTOCOL'] == 'None':
+if env['CONF']['PROTOCOL'] == 'None':
     Return()
 
 SimObject('ProtocolTester.py')
