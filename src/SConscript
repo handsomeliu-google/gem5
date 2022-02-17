@@ -495,7 +495,10 @@ for opt in export_vars:
 def makeTheGPUISA(source, target, env):
     gpu_isa = env['TARGET_GPU_ISA']
 
-    namespace = gpu_isa[0].upper() + gpu_isa[1:].lower() + 'ISA'
+    if gpu_isa:
+        namespace = gpu_isa[0].upper() + gpu_isa[1:].lower() + 'ISA'
+    else:
+        namespace = 'None'
 
     code = code_formatter()
     code('''\
