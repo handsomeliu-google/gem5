@@ -38,7 +38,7 @@ menu "Fast Model"
 
         config PVLIB_FLAVOR
             string "What build flavor of the Fast Model pvlib to use"
-            default "Linux64_GCC-6.4"
+            default "Linux64_GCC-7.3"
 
         config MAXCORE_HOME
             string "Fast Model tools directory"

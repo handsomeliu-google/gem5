@@ -26,12 +26,6 @@
 config TARGET_GPU_ISA
     string
 
-if BUILD_GPU
-choice "TARGET_GPU_ISA"
-prompt "GPU ISA"
-endchoice
-endif
-
 rsource "arm/Kconfig"
 rsource "mips/Kconfig"
 rsource "null/Kconfig"
@@ -40,5 +34,4 @@ rsource "riscv/Kconfig"
 rsource "sparc/Kconfig"
 rsource "x86/Kconfig"
 
-rsource "gcn3/Kconfig"
-rsource "vega/Kconfig"
+rsource "amdgpu/Kconfig"

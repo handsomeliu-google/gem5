@@ -40,7 +40,7 @@
 
 Import('*')
 
-if env['CONF']['PROTOCOL'] == 'None':
+if not env['CONF']['RUBY']:
     Return()
 
 env.Append(CPPDEFINES=['PROTOCOL_' + env['CONF']['PROTOCOL']])
