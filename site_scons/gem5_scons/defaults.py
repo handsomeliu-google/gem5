@@ -48,7 +48,8 @@ def EnvDefaults(env):
                      'LIBRARY_PATH', 'PATH', 'PKG_CONFIG_PATH', 'PROTOC',
                      'PYTHONPATH', 'RANLIB', 'TERM', 'PYTHON_CONFIG',
                      'CCFLAGS_EXTRA', 'GEM5PY_CCFLAGS_EXTRA',
-                     'GEM5PY_LINKFLAGS_EXTRA', 'LINKFLAGS_EXTRA'])
+                     'GEM5PY_LINKFLAGS_EXTRA', 'LINKFLAGS_EXTRA',
+                     'DISPLAY'])
 
     use_prefixes = [
         "ASAN_",           # address sanitizer symbolizer path and settings
