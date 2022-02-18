@@ -240,6 +240,7 @@ Targets:
 
 kconfig_actions = (
     'defconfig',
+    'listnewconfig',
     'menuconfig',
     'setconfig',
 )
@@ -270,6 +271,13 @@ Kconfig tools:
         implicitly specified in the build path via `build/<defconfig file>/`
 
         scons defconfig build/foo/bar defconfig/MIPS
+
+
+        listnewconfig:
+        Lists config options which are new in the Kconfig and which are not
+        currently set in the existing config file.
+
+        scons listnewconfig build/foo/bar
 
 
         menuconfig:
@@ -729,6 +737,9 @@ for variant_path in variant_paths:
             defconfig_path = makePathAbsolute(kconfig_args[0])
             kconfig.defconfig(env, kconfig_file.abspath,
                     defconfig_path, config_file.abspath)
+        elif kconfig_action == 'listnewconfig':
+            kconfig.listnewconfig(env, kconfig_file.abspath,
+                    config_file.abspath)
         elif kconfig_action == 'menuconfig':
             kconfig.menuconfig(env, kconfig_file.abspath, config_file.abspath,
                     variant_path)
