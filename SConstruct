@@ -240,6 +240,7 @@ Targets:
 
 kconfig_actions = (
     'defconfig',
+    'guiconfig',
     'listnewconfig',
     'menuconfig',
     'setconfig',
@@ -271,6 +272,13 @@ Kconfig tools:
         implicitly specified in the build path via `build/<defconfig file>/`
 
         scons defconfig build/foo/bar defconfig/MIPS
+
+
+        guiconfig:
+        Opens the guiconfig editor which will let you view and edit config
+        values, and view help text. guiconfig runs as a graphical application.
+
+        scons guiconfig build/foo/bar
 
 
         listnewconfig:
@@ -737,6 +745,9 @@ for variant_path in variant_paths:
             defconfig_path = makePathAbsolute(kconfig_args[0])
             kconfig.defconfig(env, kconfig_file.abspath,
                     defconfig_path, config_file.abspath)
+        elif kconfig_action == 'guiconfig':
+            kconfig.guiconfig(env, kconfig_file.abspath, config_file.abspath,
+                    variant_path)
         elif kconfig_action == 'listnewconfig':
             kconfig.listnewconfig(env, kconfig_file.abspath,
                     config_file.abspath)

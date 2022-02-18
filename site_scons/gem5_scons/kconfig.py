@@ -30,6 +30,7 @@ import kconfiglib
 
 _kconfig_helpers = {
     'DEFCONFIG_PY': 'defconfig.py',
+    'GUICONFIG_PY': 'guiconfig.py',
     'LISTNEWCONFIG_PY': 'listnewconfig.py',
     'MENUCONFIG_PY': 'menuconfig.py',
     'SETCONFIG_PY': 'setconfig.py',
@@ -69,6 +70,12 @@ def defconfig(env, base_kconfig, config_in, config_out):
     if kconfig_env.Execute('"${DEFCONFIG_PY}" --kconfig "${BASE_KCONFIG}" '
             '"${CONFIG_IN}"') != 0:
         error("Failed to run defconfig")
+
+def guiconfig(env, base_kconfig, config_path, main_menu_text):
+    kconfig_env = _prep_env(env, base_kconfig, config_path)
+    kconfig_env['ENV']['MAIN_MENU_TEXT'] = main_menu_text
+    if kconfig_env.Execute('"${GUICONFIG_PY}" "${BASE_KCONFIG}"') != 0:
+        error("Failed to run guiconfig")
 
 def listnewconfig(env, base_kconfig, config_path):
     kconfig_env = _prep_env(env, base_kconfig, config_path)
