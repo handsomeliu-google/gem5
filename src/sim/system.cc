@@ -179,7 +179,7 @@ System::System(const Params &p)
       kvmVM(p.kvm_vm),
 #endif
       physmem(name() + ".physmem", p.memories, p.mmap_using_noreserve,
-              p.shared_backstore),
+              p.shared_backstore, p.auto_unlink_shared_backstore),
       ShadowRomRanges(p.shadow_rom_ranges.begin(),
                       p.shadow_rom_ranges.end()),
       memoryMode(p.mem_mode),
