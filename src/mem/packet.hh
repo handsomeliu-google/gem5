@@ -58,6 +58,7 @@
 #include "base/flags.hh"
 #include "base/logging.hh"
 #include "base/printable.hh"
+#include "base/refcnt.hh"
 #include "base/types.hh"
 #include "mem/htm.hh"
 #include "mem/request.hh"
@@ -71,6 +72,50 @@ typedef Packet *PacketPtr;
 typedef uint8_t* PacketDataPtr;
 typedef std::list<PacketPtr> PacketList;
 typedef uint64_t PacketId;
+
+/**
+ * This is base of every extension.
+ */
+class ExtensionBase : public RefCounted
+{
+  public:
+    explicit ExtensionBase(const unsigned int id)
+        : extID(id) {}
+
+    virtual ~ExtensionBase() = default;
+
+    virtual ExtensionBase* clone() = 0;
+
+    static unsigned int
+    maxNumExtensions()
+    {
+        static unsigned int max_num = 0;
+        return ++max_num;
+    }
+
+    unsigned int getExtensionID() { return extID; }
+
+  private:
+    const unsigned int extID;
+};
+
+/**
+ * This is the extension for carrying additional information.
+ * Each type of extension will have a unique extensionID.
+ * This extensionID will assign to base class for comparsion.
+ */
+template <typename T>
+class Extension : public ExtensionBase
+{
+  public:
+    Extension() : ExtensionBase(extensionID) {}
+
+    const static unsigned int extensionID;
+};
+
+template <typename T>
+const unsigned int Extension<T>::extensionID =
+        ExtensionBase::maxNumExtensions() - 1;
 
 class MemCmd
 {
@@ -408,6 +453,29 @@ class Packet : public Printable
      */
     uint64_t htmTransactionUid;
 
+    // Linked list of extensions.
+    std::list<RefCountingPtr<ExtensionBase>> extensions;
+
+    /**
+     * Go through the extension list and return the iterator to the instance of
+     * the type of extension. If there is no such an extension, return the end
+     * iterator of the list.
+     *
+     *  @return The iterator to the extension type T if there exists.
+     */
+    template <typename T>
+    std::list<RefCountingPtr<ExtensionBase>>::iterator
+    findExtension()
+    {
+        auto it = extensions.begin();
+        while (it != extensions.end()) {
+            if ((*it)->getExtensionID() == T::extensionID)
+                break;
+            it++;
+        }
+        return it;
+    }
+
   public:
 
     /**
@@ -570,6 +638,66 @@ class Packet : public Printable
             sender_state = sender_state->predecessor;
         }
         return t;
+    }
+
+    /**
+     * Set a new extension to the packet and replace the old one, if there
+     * already exists the same type of extension in this packet. This new
+     * extension will be deleted automatically with the RefCountingPtr<>.
+     *
+     * @param ext Extension to set
+     */
+    template <typename T>
+    void
+    setExtension(T* ext)
+    {
+        static_assert(std::is_base_of<ExtensionBase, T>::value,
+                      "Extension should inherit from ExtensionBase.");
+        ExtensionBase* ext_base = static_cast<ExtensionBase*>(ext);
+        assert(ext_base);
+
+        auto it = findExtension<T>();
+
+        if (it != extensions.end()) {
+            // There exists the same type of extension in the list.
+            // Replace it to the new one.
+            *it = ext_base;
+        } else {
+            // Add ext into the linked list.
+            extensions.emplace_back(ext_base);
+        }
+    }
+
+    /**
+     * Remove the extension based on its type.
+     *
+     * @param ext Extension to remove
+     */
+    template <typename T>
+    void
+    removeExtension(void)
+    {
+        static_assert(std::is_base_of<ExtensionBase, T>::value,
+                      "Extension should inherit from ExtensionBase.");
+
+        auto it = findExtension<T>();
+        if (it != extensions.end())
+            extensions.erase(it);
+    }
+
+    /**
+     * Get the extension pointer by linear search with the extensionID.
+     */
+    template <typename T>
+    T*
+    getExtension()
+    {
+        static_assert(std::is_base_of<ExtensionBase, T>::value,
+                      "Extension should inherit from ExtensionBase.");
+        auto it = findExtension<T>();
+        if (it == extensions.end())
+            return nullptr;
+        return static_cast<T*>((*it).get());
     }
 
     /// Return the string name of the cmd field (for debugging and
@@ -928,6 +1056,12 @@ class Packet : public Printable
            payloadDelay(pkt->payloadDelay),
            senderState(pkt->senderState)
     {
+        // Clone every extension of pkt into this packet.
+        for (auto& ext : pkt->extensions) {
+            ExtensionBase* clone_ext = ext->clone();
+            extensions.emplace_back(clone_ext);
+        }
+
         if (!clear_flags)
             flags.set(pkt->flags & COPY_FLAGS);
 
