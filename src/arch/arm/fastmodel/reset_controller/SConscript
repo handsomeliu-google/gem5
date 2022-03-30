@@ -25,9 +25,6 @@
 
 Import('*')
 
-if not env['CONF']['USE_ARM_FASTMODEL']:
-    Return()
+SimObject('FastModelResetControllerExample.py', tags='arm fastmodel')
 
-SimObject('FastModelResetControllerExample.py')
-
-Source('example.cc')
+Source('example.cc', tags='arm fastmodel')
