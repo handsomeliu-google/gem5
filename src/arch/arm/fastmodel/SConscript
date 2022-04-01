@@ -254,7 +254,7 @@ class ProjectFileParser(Grammar):
         t[0] = t[1]
 
 
-license_count = int(env['CONF']['ARMLMD_LICENSE_COUNT'])
+license_count = max(int(env['CONF']['ARMLMD_LICENSE_COUNT']), 1)
 arm_licenses = list((Value(object()) for i in range(license_count)))
 license_cycle = cycle(arm_licenses)
 
