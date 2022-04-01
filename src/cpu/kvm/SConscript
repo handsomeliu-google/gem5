@@ -39,7 +39,7 @@ Import('*')
 
 if env['USE_KVM']:
     env.TagImplies('kvm', 'gem5 lib')
-    env.TagImplies(env.subst('${KVM_ISA} kvm'), 'kvm')
+    env.TagImplies(env.subst('${KVM_ISA} kvm'), env.subst('${KVM_ISA} isa'))
 
 if env['USE_KVM']:
     SimObject('KvmVM.py', tags='kvm')
