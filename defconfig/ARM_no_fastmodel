@@ -1,0 +1,4 @@
+USE_ARM_ISA=y
+DONT_FORCE_ARM_FASTMODEL=y
+RUBY=y
+RubyProtocolChi=y
