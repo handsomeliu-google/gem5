@@ -41,5 +41,6 @@ config HAVE_POSIX_CLOCK
 config USE_POSIX_CLOCK
     depends on HAVE_POSIX_CLOCK
     bool "Use POSIX clocks"
+    default y
 
 rsource "stats/Kconfig"
