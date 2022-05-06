@@ -53,8 +53,8 @@ with gem5_scons.Configure(main) as conf:
 
         # Check if the exclude_host attribute is available. We want this to
         # get accurate instruction counts in KVM.
-        conf.env['CONF']['HAVE_PERF_ATTR_EXCLUDE_HOST'] = conf.CheckMember(
-            'linux/perf_event.h', 'struct perf_event_attr', 'exclude_host')
+        conf.env['CONF']['HAVE_PERF_ATTR_EXCLUDE_HOST'] = bool(conf.CheckMember(
+            'linux/perf_event.h', 'struct perf_event_attr', 'exclude_host'))
 
         # Warn about missing optional functionality
         if not conf.env['CONF']['HAVE_PERF_ATTR_EXCLUDE_HOST']:
