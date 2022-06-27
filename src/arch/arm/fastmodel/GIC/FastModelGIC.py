@@ -75,7 +75,8 @@ class SCFastModelGIC(SystemC_ScModule):
             "parameter.")
     has_gicv4_1 = Param.Bool(False, "Enable GICv4.1 functionality; when "
             "false the component is inactive.")
-    vPEID_bits = Param.Unsigned(16, "Number of bits of vPEID with GICv4.1.")
+    GICD_TYPER2 = Param.Unsigned(0, "GICD_TYPER2 value containing VID and VIL "
+            "to define the width of vPEID for GICv4.1.")
     print_mmap = Param.Bool(False, "Print memory map to stdout")
     monolithic = Param.Bool(False, "Indicate that the implementation is not "
             "distributed")
@@ -436,8 +437,6 @@ class SCFastModelGIC(SystemC_ScModule):
             "are:\n  - 0, feature is not enabled.\n  - 1, feature is "
             "implemented if ARMv8.4 is enabled.\n  - 2, feature is "
             "implemented.")
-    mpam_max_partid = Param.UInt16(0xffff, "MPAM Maximum PARTID Supported")
-    mpam_max_pmg = Param.Unsigned(255, "MPAM Maximum PMG Supported")
     output_attributes = Param.String("ExtendedID[62:55]=MPAM_PMG, "
             "ExtendedID[54:39]=MPAM_PARTID, ExtendedID[38]=MPAM_NS",
             "User-defined transform to be applied to bus attributes like "

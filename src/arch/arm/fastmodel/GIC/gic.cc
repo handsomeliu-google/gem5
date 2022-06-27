@@ -86,7 +86,7 @@ SCGIC::SCGIC(const SCFastModelGICParams &params,
     set_parameter("gic.enabled", params.enabled);
     set_parameter("gic.has-gicv3", params.has_gicv3);
     set_parameter("gic.has-gicv4.1", params.has_gicv4_1);
-    set_parameter("gic.vPEID-bits", params.vPEID_bits);
+    set_parameter("gic.GICD_TYPER2", params.GICD_TYPER2);
     set_parameter("gic.print-memory-map", params.print_mmap);
     set_parameter("gic.monolithic", params.monolithic);
     set_parameter("gic.direct-lpi-support", params.direct_lpi_support);
@@ -286,8 +286,6 @@ SCGIC::SCGIC(const SCFastModelGICParams &params,
                   params.common_LPI_configuration);
     set_parameter("gic.single-set-support", params.single_set_support);
     set_parameter("gic.has_mpam", params.has_mpam);
-    set_parameter("gic.mpam_partid_max", params.mpam_max_partid);
-    set_parameter("gic.mpam_pmg_max", params.mpam_max_pmg);
     set_parameter("gic.output_attributes", params.output_attributes);
     set_parameter("gic.has_VPENDBASER-dirty-flag-on-load",
                   params.has_DirtyVLPIOnLoad);
