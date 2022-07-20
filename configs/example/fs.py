@@ -76,17 +76,17 @@ def cmd_line_template():
 
 def build_test_system(np):
     cmdline = cmd_line_template()
-    if buildEnv['USE_MIPS']:
+    if buildEnv['USE_MIPS_ISA']:
         test_sys = makeLinuxMipsSystem(test_mem_mode, bm[0], cmdline=cmdline)
-    elif buildEnv['USE_SPARC']:
+    elif buildEnv['USE_SPARC_ISA']:
         test_sys = makeSparcSystem(test_mem_mode, bm[0], cmdline=cmdline)
-    elif buildEnv['USE_RISCV']:
+    elif buildEnv['USE_RISCV_ISA']:
         test_sys = makeBareMetalRiscvSystem(test_mem_mode, bm[0],
                                             cmdline=cmdline)
-    elif buildEnv['USE_X86']:
+    elif buildEnv['USE_X86_ISA']:
         test_sys = makeLinuxX86System(test_mem_mode, np, bm[0], args.ruby,
                                       cmdline=cmdline)
-    elif buildEnv['USE_ARM']:
+    elif buildEnv['USE_ARM_ISA']:
         test_sys = makeArmSystem(
             test_mem_mode,
             args.machine_type,
@@ -123,7 +123,7 @@ def build_test_system(np):
                                              voltage_domain =
                                              test_sys.cpu_voltage_domain)
 
-    if buildEnv['USE_RISCV']:
+    if buildEnv['USE_RISCV_ISA']:
         test_sys.workload.bootloader = args.kernel
     elif args.kernel is not None:
         test_sys.workload.object_file = binary(args.kernel)
@@ -233,14 +233,14 @@ def build_drive_system(np):
     DriveMemClass = SimpleMemory
 
     cmdline = cmd_line_template()
-    if buildEnv['USE_MIPS']:
+    if buildEnv['USE_MIPS_ISA']:
         drive_sys = makeLinuxMipsSystem(drive_mem_mode, bm[1], cmdline=cmdline)
-    elif buildEnv['USE_SPARC']:
+    elif buildEnv['USE_SPARC_ISA']:
         drive_sys = makeSparcSystem(drive_mem_mode, bm[1], cmdline=cmdline)
-    elif buildEnv['USE_X86']:
+    elif buildEnv['USE_X86_ISA']:
         drive_sys = makeLinuxX86System(drive_mem_mode, np, bm[1],
                                        cmdline=cmdline)
-    elif buildEnv['USE_ARM']:
+    elif buildEnv['USE_ARM_ISA']:
         drive_sys = makeArmSystem(drive_mem_mode, args.machine_type, np,
                                   bm[1], args.dtb_filename, cmdline=cmdline)
 
@@ -358,7 +358,7 @@ if args.timesync:
 if args.frame_capture:
     VncServer.frame_capture = True
 
-if buildEnv['USE_ARM'] and not args.bare_metal and not args.dtb_filename:
+if buildEnv['USE_ARM_ISA'] and not args.bare_metal and not args.dtb_filename:
     if args.machine_type not in ["VExpress_GEM5",
                                     "VExpress_GEM5_V1",
                                     "VExpress_GEM5_V2",

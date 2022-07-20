@@ -140,7 +140,7 @@ class L1Cache(L1Cache_Controller):
            3. The local exclusive monitor in ARM systems
         """
         if type(cpu) is DerivO3CPU or \
-                buildEnv['USE_X86'] or buildEnv['USE_ARM']:
+                buildEnv['USE_X86_ISA'] or buildEnv['USE_ARM_ISA']:
             return True
         return False
 

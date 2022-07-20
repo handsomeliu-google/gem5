@@ -90,7 +90,7 @@ class PageTableWalkerCache(Cache):
     tgts_per_mshr = 12
 
     # the x86 table walker actually writes to the table-walker cache
-    if buildEnv['USE_X86'] or buildEnv['USE_RISCV']:
+    if buildEnv['USE_X86_ISA'] or buildEnv['USE_RISCV_ISA']:
         is_read_only = False
     else:
         is_read_only = True

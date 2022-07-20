@@ -46,22 +46,22 @@ from common.Benchmarks import *
 from common import ObjectList
 
 # Populate to reflect supported os types per target ISA
-if m5.defines.buildEnv['USE_ARM']:
+if m5.defines.buildEnv['USE_ARM_ISA']:
     os_types = [ 'linux',
                  'android-gingerbread',
                  'android-ics',
                  'android-jellybean',
                  'android-kitkat',
                  'android-nougat', ]
-elif m5.defines.buildEnv['USE_MIPS']:
+elif m5.defines.buildEnv['USE_MIPS_ISA']:
     os_types = [ 'linux' ]
-elif m5.defines.buildEnv['USE_POWER']:
+elif m5.defines.buildEnv['USE_POWER_ISA']:
     os_types = [ 'linux' ]
-elif m5.defines.buildEnv['USE_RISCV']:
+elif m5.defines.buildEnv['USE_RISCV_ISA']:
     os_types = [ 'linux' ] # TODO that's a lie
-elif m5.defines.buildEnv['USE_SPARC']:
+elif m5.defines.buildEnv['USE_SPARC_ISA']:
     os_types = [ 'linux' ]
-elif m5.defines.buildEnv['USE_X86']:
+elif m5.defines.buildEnv['USE_X86_ISA']:
     os_types = [ 'linux' ]
 
 class CowIdeDisk(IdeDisk):

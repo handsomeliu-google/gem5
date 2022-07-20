@@ -136,7 +136,7 @@ if args.bench:
 
     for app in apps:
         try:
-            if buildEnv['USE_ARM']:
+            if buildEnv['USE_ARM_ISA']:
                 exec("workload = %s('arm_%s', 'linux', '%s')" % (
                         app, args.arm_iset, args.spec_input))
             else:
@@ -198,7 +198,7 @@ for cpu in system.cpu:
     cpu.clk_domain = system.cpu_clk_domain
 
 if ObjectList.is_kvm_cpu(CPUClass) or ObjectList.is_kvm_cpu(FutureClass):
-    if buildEnv['USE_X86']:
+    if buildEnv['USE_X86_ISA']:
         system.kvm_vm = KvmVM()
         system.m5ops_base = 0xffff0000
         for process in multiprocesses:

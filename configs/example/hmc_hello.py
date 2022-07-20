@@ -66,17 +66,17 @@ system.cpu.createInterruptController()
 # functional-only port to allow the system to read and write memory.
 system.system_port = system.membus.slave
 # get ISA for the binary to run.
-if m5.defines.buildEnv['USE_ARM']:
+if m5.defines.buildEnv['USE_ARM_ISA']:
     isa = 'arm'
-elif m5.defines.buildEnv['USE_MIPS']:
+elif m5.defines.buildEnv['USE_MIPS_ISA']:
     isa = 'mips'
-elif m5.defines.buildEnv['USE_POWER']:
+elif m5.defines.buildEnv['USE_POWER_ISA']:
     isa = 'power'
-elif m5.defines.buildEnv['USE_RISCV']:
+elif m5.defines.buildEnv['USE_RISCV_ISA']:
     isa = 'riscv'
-elif m5.defines.buildEnv['USE_SPARC']:
+elif m5.defines.buildEnv['USE_SPARC_ISA']:
     isa = 'sparc'
-elif m5.defines.buildEnv['USE_X86']:
+elif m5.defines.buildEnv['USE_X86_ISA']:
     isa = 'x86'
 # run 'hello' and use the compiled ISA to find the binary
 binary = 'tests/test-progs/hello/bin/' + isa + '/linux/hello'
