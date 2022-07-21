@@ -195,7 +195,7 @@ serialize(const ThreadContext &tc, CheckpointOut &cp)
         }
 
         arrayParamOut(cp, std::string("regs.") + reg_class->name(), regs,
-                reg_count);
+                reg_count * reg_bytes);
     }
 
     tc.pcState().serialize(cp);
@@ -216,7 +216,7 @@ unserialize(ThreadContext &tc, CheckpointIn &cp)
 
         uint8_t regs[reg_count * reg_bytes];
         arrayParamIn(cp, std::string("regs.") + reg_class->name(), regs,
-                reg_count);
+                reg_count * reg_bytes);
 
         auto *reg_ptr = regs;
         for (const auto &id: *reg_class) {
