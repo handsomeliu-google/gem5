@@ -626,7 +626,8 @@ class Packet : public Printable, public Extensible<Packet>
     bool isWholeLineWrite(unsigned blk_size)
     {
         return (cmd == MemCmd::WriteReq || cmd == MemCmd::WriteLineReq) &&
-            getOffset(blk_size) == 0 && getSize() == blk_size;
+            getOffset(blk_size) == 0 && getSize() == blk_size &&
+            !isMaskedWrite();
     }
 
     //@{
