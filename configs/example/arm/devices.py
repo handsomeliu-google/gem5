@@ -246,7 +246,9 @@ class FastmodelCluster(SubSystem):
                       FastModelCortexA76x3, FastModelCortexA76x4]
         CpuClass = CpuClasses[num_cpus - 1]
 
-        cpu = CpuClass(GICDISABLE=False)
+        cpu = CpuClass(GICDISABLE=False,
+                       BROADCASTATOMIC=False,
+                       BROADCASTOUTER=False)
         for core in cpu.cores:
             core.semihosting_enable = False
             core.RVBARADDR = 0x10
