@@ -31,6 +31,8 @@ from m5.objects.SubSystem import SubSystem
 class VExpressFastmodel(VExpress_GEM5_Base):
     gic = FastModelGIC(
         sc_gic=SCFastModelGIC(
+            its_count=1,
+            its0_base=0x2e010000,
             reg_base=0x2c000000,
             reg_base_per_redistributor="0.0.0.0=0x2c010000",
             spi_count=988,
