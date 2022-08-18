@@ -61,6 +61,11 @@ class RemoteGDB : public BaseRemoteGDB
     class RiscvGdbRegCache : public BaseGdbRegCache
     {
       using BaseGdbRegCache::BaseGdbRegCache;
+#ifdef USE_RISCV_RV32
+      using uintxlen_t = uint32_t;
+#else
+      using uintxlen_t = uint64_t;
+#endif
       private:
         /**
          * RISC-V Register Cache
@@ -72,63 +77,63 @@ class RemoteGDB : public BaseRemoteGDB
          */
         struct
         {
-            uint64_t gpr[int_reg::NumArchRegs];
-            uint64_t pc;
+            uintxlen_t gpr[int_reg::NumArchRegs];
+            uintxlen_t pc;
             uint64_t fpu[float_reg::NumRegs];
             uint32_t fflags;
             uint32_t frm;
             uint32_t fcsr;
             // Placeholder for byte alignment
             uint32_t placeholder;
-            uint64_t cycle;
-            uint64_t time;
-            uint64_t ustatus;
-            uint64_t uie;
-            uint64_t utvec;
-            uint64_t uscratch;
-            uint64_t uepc;
-            uint64_t ucause;
-            uint64_t utval;
-            uint64_t uip;
-            uint64_t sstatus;
-            uint64_t sedeleg;
-            uint64_t sideleg;
-            uint64_t sie;
-            uint64_t stvec;
-            uint64_t scounteren;
-            uint64_t sscratch;
-            uint64_t sepc;
-            uint64_t scause;
-            uint64_t stval;
-            uint64_t sip;
-            uint64_t satp;
-            uint64_t mvendorid;
-            uint64_t marchid;
-            uint64_t mimpid;
-            uint64_t mhartid;
-            uint64_t mstatus;
-            uint64_t misa;
-            uint64_t medeleg;
-            uint64_t mideleg;
-            uint64_t mie;
-            uint64_t mtvec;
-            uint64_t mcounteren;
-            uint64_t mscratch;
-            uint64_t mepc;
-            uint64_t mcause;
-            uint64_t mtval;
-            uint64_t mip;
-            uint64_t hstatus;
-            uint64_t hedeleg;
-            uint64_t hideleg;
-            uint64_t hie;
-            uint64_t htvec;
-            uint64_t hscratch;
-            uint64_t hepc;
-            uint64_t hcause;
-            uint64_t hbadaddr;
-            uint64_t hip;
-        } r;
+            uintxlen_t cycle;
+            uintxlen_t time;
+            uintxlen_t ustatus;
+            uintxlen_t uie;
+            uintxlen_t utvec;
+            uintxlen_t uscratch;
+            uintxlen_t uepc;
+            uintxlen_t ucause;
+            uintxlen_t utval;
+            uintxlen_t uip;
+            uintxlen_t sstatus;
+            uintxlen_t sedeleg;
+            uintxlen_t sideleg;
+            uintxlen_t sie;
+            uintxlen_t stvec;
+            uintxlen_t scounteren;
+            uintxlen_t sscratch;
+            uintxlen_t sepc;
+            uintxlen_t scause;
+            uintxlen_t stval;
+            uintxlen_t sip;
+            uintxlen_t satp;
+            uintxlen_t mvendorid;
+            uintxlen_t marchid;
+            uintxlen_t mimpid;
+            uintxlen_t mhartid;
+            uintxlen_t mstatus;
+            uintxlen_t misa;
+            uintxlen_t medeleg;
+            uintxlen_t mideleg;
+            uintxlen_t mie;
+            uintxlen_t mtvec;
+            uintxlen_t mcounteren;
+            uintxlen_t mscratch;
+            uintxlen_t mepc;
+            uintxlen_t mcause;
+            uintxlen_t mtval;
+            uintxlen_t mip;
+            uintxlen_t hstatus;
+            uintxlen_t hedeleg;
+            uintxlen_t hideleg;
+            uintxlen_t hie;
+            uintxlen_t htvec;
+            uintxlen_t hscratch;
+            uintxlen_t hepc;
+            uintxlen_t hcause;
+            uintxlen_t hbadaddr;
+            uintxlen_t hip;
+        } __attribute__((packed)) r;
       public:
         char *data() const { return (char *)&r; }
         size_t size() const { return sizeof(r); }

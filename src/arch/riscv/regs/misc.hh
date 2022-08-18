@@ -550,9 +550,13 @@ const std::map<int, CSRMetadata> CSRData = {
  * the fields for higher privileges.
  */
 BitUnion64(STATUS)
+#ifdef USE_RISCV_RV32
+    Bitfield<31> sd;
+#else
     Bitfield<63> sd;
     Bitfield<35, 34> sxl;
     Bitfield<33, 32> uxl;
+#endif
     Bitfield<22> tsr;
     Bitfield<21> tw;
     Bitfield<20> tvm;
@@ -589,9 +593,13 @@ BitUnion64(INTERRUPT)
     Bitfield<0> usi;
 EndBitUnion(INTERRUPT)
 
+#ifdef USE_RISCV_RV32
+const off_t MXL_OFFSET = (sizeof(uint32_t) * 8 - 2);
+#else
 const off_t MXL_OFFSET = (sizeof(uint64_t) * 8 - 2);
 const off_t SXL_OFFSET = 34;
 const off_t UXL_OFFSET = 32;
+#endif
 const off_t FS_OFFSET = 13;
 const off_t FRM_OFFSET = 5;
 
@@ -600,9 +608,14 @@ const RegVal ISA_EXT_MASK = mask(26);
 const RegVal ISA_EXT_C_MASK = 1UL << ('c' - 'a');
 const RegVal MISA_MASK = ISA_MXL_MASK | ISA_EXT_MASK;
 
+
+#ifdef USE_RISCV_RV32
+const RegVal STATUS_SD_MASK = 1ULL << ((sizeof(uint32_t) * 8) - 1);
+#else
 const RegVal STATUS_SD_MASK = 1ULL << ((sizeof(uint64_t) * 8) - 1);
 const RegVal STATUS_SXL_MASK = 3ULL << SXL_OFFSET;
 const RegVal STATUS_UXL_MASK = 3ULL << UXL_OFFSET;
+#endif
 const RegVal STATUS_TSR_MASK = 1ULL << 22;
 const RegVal STATUS_TW_MASK = 1ULL << 21;
 const RegVal STATUS_TVM_MASK = 1ULL << 20;
@@ -619,6 +632,22 @@ const RegVal STATUS_UPIE_MASK = 1ULL << 4;
 const RegVal STATUS_MIE_MASK = 1ULL << 3;
 const RegVal STATUS_SIE_MASK = 1ULL << 1;
 const RegVal STATUS_UIE_MASK = 1ULL << 0;
+#ifdef USE_RISCV_RV32
+const RegVal MSTATUS_MASK = STATUS_SD_MASK | STATUS_TSR_MASK |
+                            STATUS_TW_MASK | STATUS_TVM_MASK |
+                            STATUS_MXR_MASK | STATUS_SUM_MASK |
+                            STATUS_MPRV_MASK | STATUS_XS_MASK |
+                            STATUS_FS_MASK | STATUS_MPP_MASK |
+                            STATUS_SPP_MASK | STATUS_MPIE_MASK |
+                            STATUS_SPIE_MASK | STATUS_UPIE_MASK |
+                            STATUS_MIE_MASK | STATUS_SIE_MASK |
+                            STATUS_UIE_MASK;
+const RegVal SSTATUS_MASK = STATUS_SD_MASK | STATUS_MXR_MASK |
+                            STATUS_SUM_MASK | STATUS_XS_MASK |
+                            STATUS_FS_MASK | STATUS_SPP_MASK |
+                            STATUS_SPIE_MASK | STATUS_UPIE_MASK |
+                            STATUS_SIE_MASK | STATUS_UIE_MASK;
+#else
 const RegVal MSTATUS_MASK = STATUS_SD_MASK | STATUS_SXL_MASK |
                             STATUS_UXL_MASK | STATUS_TSR_MASK |
                             STATUS_TW_MASK | STATUS_TVM_MASK |
@@ -635,6 +664,7 @@ const RegVal SSTATUS_MASK = STATUS_SD_MASK | STATUS_UXL_MASK |
                             STATUS_SPP_MASK | STATUS_SPIE_MASK |
                             STATUS_UPIE_MASK | STATUS_SIE_MASK |
                             STATUS_UIE_MASK;
+#endif
 const RegVal USTATUS_MASK = STATUS_SD_MASK | STATUS_MXR_MASK |
                             STATUS_SUM_MASK | STATUS_XS_MASK |
                             STATUS_FS_MASK | STATUS_UPIE_MASK |
@@ -658,6 +688,12 @@ const RegVal SI_MASK = SEI_MASK | UEI_MASK |
 const RegVal UI_MASK = UEI_MASK | UTI_MASK | USI_MASK;
 const RegVal FFLAGS_MASK = (1 << FRM_OFFSET) - 1;
 const RegVal FRM_MASK = 0x7;
+
+#ifdef USE_RISCV_RV32
+const RegVal CAUSE_INTERRUPT_MASK = (1ULL << 31);
+#else
+const RegVal CAUSE_INTERRUPT_MASK = (1ULL << 63);
+#endif
 
 const std::map<int, RegVal> CSRMasks = {
     {CSR_USTATUS, USTATUS_MASK},

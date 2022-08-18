@@ -64,10 +64,12 @@ output decoder {{
 #include <cmath>
 #include <limits>
 #include <string>
+#include <type_traits>
 
 #include "arch/riscv/decoder.hh"
 #include "arch/riscv/faults.hh"
 #include "arch/riscv/mmu.hh"
+#include "base/bitfield.hh"
 #include "base/cprintf.hh"
 #include "base/loader/symtab.hh"
 #include "cpu/thread_context.hh"
@@ -90,6 +92,7 @@ output exec {{
 #include "arch/generic/memhelpers.hh"
 #include "arch/riscv/faults.hh"
 #include "arch/riscv/fp_inst.hh"
+#include "arch/riscv/isa/util.hh"
 #include "arch/riscv/mmu.hh"
 #include "arch/riscv/reg_abi.hh"
 #include "arch/riscv/regs/float.hh"

@@ -135,10 +135,14 @@
 
 #include <string>
 
-#include "arch/riscv/gdb-xml/gdb_xml_riscv_cpu.hh"
-#include "arch/riscv/gdb-xml/gdb_xml_riscv_csr.hh"
-#include "arch/riscv/gdb-xml/gdb_xml_riscv_fpu.hh"
-#include "arch/riscv/gdb-xml/gdb_xml_riscv_target.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_32bit_cpu.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_32bit_csr.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_32bit_fpu.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_32bit_target.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_64bit_cpu.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_64bit_csr.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_64bit_fpu.hh"
+#include "arch/riscv/gdb-xml/gdb_xml_riscv_64bit_target.hh"
 #include "arch/riscv/mmu.hh"
 #include "arch/riscv/pagetable_walker.hh"
 #include "arch/riscv/regs/float.hh"
@@ -473,10 +477,17 @@ RemoteGDB::getXferFeaturesRead(const std::string &annex, std::string &output)
                        Blobs::s##_len)                           \
     }
     static const std::map<std::string, std::string> annexMap{
-        GDB_XML("target.xml", gdb_xml_riscv_target),
-        GDB_XML("riscv-64bit-cpu.xml", gdb_xml_riscv_cpu),
-        GDB_XML("riscv-64bit-fpu.xml", gdb_xml_riscv_fpu),
-        GDB_XML("riscv-64bit-csr.xml", gdb_xml_riscv_csr)};
+#ifdef USE_RISCV_RV32
+        GDB_XML("target.xml", gdb_xml_riscv_32bit_target),
+#else
+        GDB_XML("target.xml", gdb_xml_riscv_64bit_target),
+#endif
+        GDB_XML("riscv-32bit-cpu.xml", gdb_xml_riscv_32bit_cpu),
+        GDB_XML("riscv-32bit-fpu.xml", gdb_xml_riscv_32bit_fpu),
+        GDB_XML("riscv-32bit-csr.xml", gdb_xml_riscv_32bit_csr),
+        GDB_XML("riscv-64bit-cpu.xml", gdb_xml_riscv_64bit_cpu),
+        GDB_XML("riscv-64bit-fpu.xml", gdb_xml_riscv_64bit_fpu),
+        GDB_XML("riscv-64bit-csr.xml", gdb_xml_riscv_64bit_csr)};
 #undef GDB_XML
     auto it = annexMap.find(annex);
     if (it == annexMap.end())

@@ -38,7 +38,10 @@ def operand_types {{
     'sd' : 'int64_t',
     'ud' : 'uint64_t',
     'sf' : 'float',
-    'df' : 'double'
+    'df' : 'double',
+# integer type depending on XLEN.
+    'sx' : 'std::conditional<IS_RV32(), int32_t, int64_t>::type',
+    'ux' : 'std::conditional<IS_RV32(), uint32_t, uint64_t>::type',
 }};
 
 let {{
@@ -51,18 +54,18 @@ let {{
 
 def operands {{
 #General Purpose Integer Reg Operands
-    'Rd': IntReg('ud', 'RD', 'IsInteger', 1),
-    'Rs1': IntReg('ud', 'RS1', 'IsInteger', 2),
-    'Rs2': IntReg('ud', 'RS2', 'IsInteger', 3),
-    'Rt': IntReg('ud', 'AMOTempReg', 'IsInteger', 4),
-    'Rc1': IntReg('ud', 'RC1', 'IsInteger', 2),
-    'Rc2': IntReg('ud', 'RC2', 'IsInteger', 3),
-    'Rp1': IntReg('ud', 'RP1 + 8', 'IsInteger', 2),
-    'Rp2': IntReg('ud', 'RP2 + 8', 'IsInteger', 3),
-    'ra': IntReg('ud', 'ReturnAddrReg', 'IsInteger', 1),
-    'sp': IntReg('ud', 'StackPointerReg', 'IsInteger', 2),
+    'Rd': IntReg('ux', 'RD', 'IsInteger', 1),
+    'Rs1': IntReg('ux', 'RS1', 'IsInteger', 2),
+    'Rs2': IntReg('ux', 'RS2', 'IsInteger', 3),
+    'Rt': IntReg('ux', 'AMOTempReg', 'IsInteger', 4),
+    'Rc1': IntReg('ux', 'RC1', 'IsInteger', 2),
+    'Rc2': IntReg('ux', 'RC2', 'IsInteger', 3),
+    'Rp1': IntReg('ux', 'RP1 + 8', 'IsInteger', 2),
+    'Rp2': IntReg('ux', 'RP2 + 8', 'IsInteger', 3),
+    'ra': IntReg('ux', 'ReturnAddrReg', 'IsInteger', 1),
+    'sp': IntReg('ux', 'StackPointerReg', 'IsInteger', 2),
 
-    'a0': IntReg('ud', '10', 'IsInteger', 1),
+    'a0': IntReg('ux', '10', 'IsInteger', 1),
 
     'Fd': FloatRegOp('df', 'FD', 'IsFloating', 1),
     'Fd_bits': FloatRegOp('ud', 'FD', 'IsFloating', 1),
@@ -80,9 +83,9 @@ def operands {{
     'Fp2_bits': FloatRegOp('ud', 'FP2 + 8', 'IsFloating', 2),
 
 #Memory Operand
-    'Mem': MemOp('ud', None, (None, 'IsLoad', 'IsStore'), 5),
+    'Mem': MemOp('ux', None, (None, 'IsLoad', 'IsStore'), 5),
 
 #Program Counter Operands
-    'PC': PCStateOp('ud', 'pc', (None, None, 'IsControl'), 7),
-    'NPC': PCStateOp('ud', 'npc', (None, None, 'IsControl'), 8),
+    'PC': PCStateOp('ux', 'pc', (None, None, 'IsControl'), 7),
+    'NPC': PCStateOp('ux', 'npc', (None, None, 'IsControl'), 8),
 }};

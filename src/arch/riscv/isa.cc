@@ -237,12 +237,20 @@ void ISA::clear()
     std::fill(miscRegFile.begin(), miscRegFile.end(), 0);
 
     miscRegFile[MISCREG_PRV] = PRV_M;
+#ifdef USE_RISCV_RV32
+    miscRegFile[MISCREG_ISA] = (1ULL << MXL_OFFSET) | 0x14112D;
+#else
     miscRegFile[MISCREG_ISA] = (2ULL << MXL_OFFSET) | 0x14112D;
+#endif
     miscRegFile[MISCREG_VENDORID] = 0;
     miscRegFile[MISCREG_ARCHID] = 0;
     miscRegFile[MISCREG_IMPID] = 0;
+#ifdef USE_RISCV_RV32
+    miscRegFile[MISCREG_STATUS] = (1ULL << FS_OFFSET);
+#else
     miscRegFile[MISCREG_STATUS] = (2ULL << UXL_OFFSET) | (2ULL << SXL_OFFSET) |
                                   (1ULL << FS_OFFSET);
+#endif
     miscRegFile[MISCREG_MCOUNTEREN] = 0x7;
     miscRegFile[MISCREG_SCOUNTEREN] = 0x7;
     // don't set it to zero; software may try to determine the supported
@@ -477,10 +485,12 @@ ISA::setMiscReg(RegIndex idx, RegVal val)
             break;
           case MISCREG_STATUS:
             {
+#ifndef USE_RISCV_RV32
                 // SXL and UXL are hard-wired to 64 bit
                 auto cur = readMiscRegNoEffect(idx);
                 val &= ~(STATUS_SXL_MASK | STATUS_UXL_MASK);
                 val |= cur & (STATUS_SXL_MASK | STATUS_UXL_MASK);
+#endif
                 setMiscRegNoEffect(idx, val);
             }
             break;

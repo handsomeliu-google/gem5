@@ -25,3 +25,10 @@
 
 config USE_RISCV_ISA
     bool "RISC-V ISA support"
+
+if USE_RISCV_ISA
+  config USE_RISCV_RV32
+    bool "RV32 support"
+    default n
+    depends on USE_RISCV_ISA
+endif
