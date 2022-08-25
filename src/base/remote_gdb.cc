@@ -1282,13 +1282,14 @@ std::map<std::string, BaseRemoteGDB::QuerySetCommand>
     { "sThreadInfo", { &BaseRemoteGDB::querySThreadInfo } },
 };
 
-void
+bool
 BaseRemoteGDB::queryC(QuerySetCommand::Context &ctx)
 {
     send("QC%x", encodeThreadId(tc->contextId()));
+    return true;
 }
 
-void
+bool
 BaseRemoteGDB::querySupported(QuerySetCommand::Context &ctx)
 {
     std::ostringstream oss;
@@ -1299,9 +1300,10 @@ BaseRemoteGDB::querySupported(QuerySetCommand::Context &ctx)
     for (const auto& feature : availableFeatures())
         oss << ';' << feature;
     send(oss.str());
+    return true;
 }
 
-void
+bool
 BaseRemoteGDB::queryXfer(QuerySetCommand::Context &ctx)
 {
     auto split = splitAt(ctx.args.at(0), ":");
@@ -1340,15 +1342,16 @@ BaseRemoteGDB::queryXfer(QuerySetCommand::Context &ctx)
     std::string encoded;
     encodeXferResponse(content, encoded, offset, length);
     send(encoded);
+    return true;
 }
-void
+bool
 BaseRemoteGDB::querySymbol(QuerySetCommand::Context &ctx)
 {
     //The target does not need to look up any (more) symbols.
     send("OK");
+    return true;
 }
-
-void
+bool
 BaseRemoteGDB::queryAttached(QuerySetCommand::Context &ctx)
 {
     std::string pid="";
@@ -1358,17 +1361,19 @@ BaseRemoteGDB::queryAttached(QuerySetCommand::Context &ctx)
     DPRINTF(GDBMisc, "QAttached : pid=%s\n",pid);
     //The remote server is attached to an existing process.
     send("1");
+    return true;
 }
 
 
-void
+bool
 BaseRemoteGDB::queryFThreadInfo(QuerySetCommand::Context &ctx)
 {
     threadInfoIdx = 0;
     querySThreadInfo(ctx);
+    return true;
 }
 
-void
+bool
 BaseRemoteGDB::querySThreadInfo(QuerySetCommand::Context &ctx)
 {
     if (threadInfoIdx >= threads.size()) {
@@ -1379,6 +1384,7 @@ BaseRemoteGDB::querySThreadInfo(QuerySetCommand::Context &ctx)
         std::advance(it, threadInfoIdx++);
         send("m%x", encodeThreadId(it->second->contextId()));
     }
+    return true;
 }
 
 bool
@@ -1410,10 +1416,9 @@ BaseRemoteGDB::cmdQueryVar(GdbCommand::Context &ctx)
             remaining = std::move(arg_split.second);
         }
     }
-
-    (this->*(query.func))(qctx);
-
-    return true;
+    //returning true if the query want to pursue GDB command processing
+    //false means that the command processing stop until it's trigger again.
+    return (this->*(query.func))(qctx);
 }
 
 std::vector<std::string>
