@@ -430,7 +430,7 @@ AbstractMemory::access(PacketPtr pkt)
             if (overwrite_mem)
                 std::memcpy(host_addr, &overwrite_val[0], pkt->getSize());
 
-            // assert(!pkt->req->isInstFetch());
+            assert(!pkt->req->isInstFetch());
             TRACE_PACKET("Read/Write");
             stats.numOther[pkt->req->requestorId()]++;
         }
@@ -463,7 +463,7 @@ AbstractMemory::access(PacketPtr pkt)
                 DPRINTF(MemoryAccess, "%s write due to %s\n",
                         __func__, pkt->print());
             }
-            // assert(!pkt->req->isInstFetch());
+            assert(!pkt->req->isInstFetch());
             TRACE_PACKET("Write");
             stats.numWrites[pkt->req->requestorId()]++;
             stats.bytesWritten[pkt->req->requestorId()] += pkt->getSize();
