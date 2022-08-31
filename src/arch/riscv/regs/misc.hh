@@ -46,8 +46,8 @@
 #ifndef __ARCH_RISCV_REGS_MISC_HH__
 #define __ARCH_RISCV_REGS_MISC_HH__
 
-#include <map>
 #include <string>
+#include <unordered_map>
 
 #include "arch/generic/vec_pred_reg.hh"
 #include "arch/generic/vec_reg.hh"
@@ -378,7 +378,7 @@ struct CSRMetadata
     const int physIndex;
 };
 
-const std::map<int, CSRMetadata> CSRData = {
+const std::unordered_map<int, CSRMetadata> CSRData = {
     {CSR_USTATUS, {"ustatus", MISCREG_STATUS}},
     {CSR_UIE, {"uie", MISCREG_IE}},
     {CSR_UTVEC, {"utvec", MISCREG_UTVEC}},
@@ -695,7 +695,7 @@ const RegVal CAUSE_INTERRUPT_MASK = (1ULL << 31);
 const RegVal CAUSE_INTERRUPT_MASK = (1ULL << 63);
 #endif
 
-const std::map<int, RegVal> CSRMasks = {
+const std::unordered_map<int, RegVal> CSRMasks = {
     {CSR_USTATUS, USTATUS_MASK},
     {CSR_UIE, UI_MASK},
     {CSR_UIP, UI_MASK},
