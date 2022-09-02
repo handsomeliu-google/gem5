@@ -51,6 +51,8 @@
 #include <cassert>
 #include <initializer_list>
 #include <list>
+#include <memory>
+#include <utility>
 
 #include "base/addr_range.hh"
 #include "base/cast.hh"
@@ -58,7 +60,6 @@
 #include "base/flags.hh"
 #include "base/logging.hh"
 #include "base/printable.hh"
-#include "base/refcnt.hh"
 #include "base/types.hh"
 #include "mem/htm.hh"
 #include "mem/request.hh"
@@ -76,7 +77,7 @@ typedef uint64_t PacketId;
 /**
  * This is base of every extension.
  */
-class ExtensionBase : public RefCounted
+class ExtensionBase
 {
   public:
     explicit ExtensionBase(const unsigned int id)
@@ -84,7 +85,7 @@ class ExtensionBase : public RefCounted
 
     virtual ~ExtensionBase() = default;
 
-    virtual ExtensionBase* clone() = 0;
+    virtual ExtensionBase* clone() const = 0;
 
     static unsigned int
     maxNumExtensions()
@@ -454,7 +455,7 @@ class Packet : public Printable
     uint64_t htmTransactionUid;
 
     // Linked list of extensions.
-    std::list<RefCountingPtr<ExtensionBase>> extensions;
+    std::list<std::shared_ptr<ExtensionBase>> extensions;
 
     /**
      * Go through the extension list and return the iterator to the instance of
@@ -464,7 +465,7 @@ class Packet : public Printable
      *  @return The iterator to the extension type T if there exists.
      */
     template <typename T>
-    std::list<RefCountingPtr<ExtensionBase>>::iterator
+    std::list<std::shared_ptr<ExtensionBase>>::iterator
     findExtension()
     {
         auto it = extensions.begin();
@@ -643,28 +644,27 @@ class Packet : public Printable
     /**
      * Set a new extension to the packet and replace the old one, if there
      * already exists the same type of extension in this packet. This new
-     * extension will be deleted automatically with the RefCountingPtr<>.
+     * extension will be deleted automatically with the shared_ptr<>.
      *
      * @param ext Extension to set
      */
     template <typename T>
     void
-    setExtension(T* ext)
+    setExtension(std::shared_ptr<T> ext)
     {
         static_assert(std::is_base_of<ExtensionBase, T>::value,
                       "Extension should inherit from ExtensionBase.");
-        ExtensionBase* ext_base = static_cast<ExtensionBase*>(ext);
-        assert(ext_base);
+        assert(ext.get() != nullptr);
 
         auto it = findExtension<T>();
 
         if (it != extensions.end()) {
             // There exists the same type of extension in the list.
             // Replace it to the new one.
-            *it = ext_base;
+            *it = std::move(ext);
         } else {
             // Add ext into the linked list.
-            extensions.emplace_back(ext_base);
+            extensions.emplace_back(std::move(ext));
         }
     }
 
@@ -689,7 +689,7 @@ class Packet : public Printable
      * Get the extension pointer by linear search with the extensionID.
      */
     template <typename T>
-    T*
+    std::shared_ptr<T>
     getExtension()
     {
         static_assert(std::is_base_of<ExtensionBase, T>::value,
@@ -697,7 +697,7 @@ class Packet : public Printable
         auto it = findExtension<T>();
         if (it == extensions.end())
             return nullptr;
-        return static_cast<T*>((*it).get());
+        return std::static_pointer_cast<T>(*it);
     }
 
     /// Return the string name of the cmd field (for debugging and
