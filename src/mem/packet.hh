@@ -80,43 +80,56 @@ typedef uint64_t PacketId;
 class ExtensionBase
 {
   public:
-    explicit ExtensionBase(const unsigned int id)
-        : extID(id) {}
 
     virtual ~ExtensionBase() = default;
 
     virtual ExtensionBase* clone() const = 0;
 
+    virtual unsigned int getExtensionID() const = 0;
+
+  protected:
     static unsigned int
-    maxNumExtensions()
+    makeExtensionID()
     {
-        static unsigned int max_num = 0;
-        return ++max_num;
+        static unsigned int id = 0;
+        return id++;
     }
-
-    unsigned int getExtensionID() { return extID; }
-
-  private:
-    const unsigned int extID;
 };
 
 /**
  * This is the extension for carrying additional information.
  * Each type of extension will have a unique extensionID.
- * This extensionID will assign to base class for comparsion.
+ *
+ * Example:
+ *   class MyExtension : public Extension<MyExtension>
+ *   {
+ *     public:
+ *       MyExtension();
+ *       ExtensionBase* clone() const override;
+ *   };
+ *
+ *   PacketPtr pkt;
+ *   std::shared_ptr<MyExtension> sh_ptr(new MyExtension);
+ *   pkt->setExtension(sh_ptr);
+ *   std::shared_ptr<MyExtension> ext = pkt->getExtension<MyExtension>();
+ *   pkt->removeExtension<MyExtension>();
  */
 template <typename T>
 class Extension : public ExtensionBase
 {
   public:
-    Extension() : ExtensionBase(extensionID) {}
 
-    const static unsigned int extensionID;
+    unsigned int
+    getExtensionID() const override
+    {
+        return extensionID;
+    }
+    static const unsigned int extensionID;
 };
 
 template <typename T>
 const unsigned int Extension<T>::extensionID =
-        ExtensionBase::maxNumExtensions() - 1;
+    ExtensionBase::makeExtensionID();
 
 class MemCmd
 {
@@ -652,8 +665,8 @@ class Packet : public Printable
     void
     setExtension(std::shared_ptr<T> ext)
     {
-        static_assert(std::is_base_of<ExtensionBase, T>::value,
-                      "Extension should inherit from ExtensionBase.");
+        static_assert(std::is_base_of<Extension<T>, T>::value,
+                      "ext should inherit from Extension class.");
         assert(ext.get() != nullptr);
 
         auto it = findExtension<T>();
@@ -677,8 +690,8 @@ class Packet : public Printable
     void
     removeExtension(void)
     {
-        static_assert(std::is_base_of<ExtensionBase, T>::value,
-                      "Extension should inherit from ExtensionBase.");
+        static_assert(std::is_base_of<Extension<T>, T>::value,
+                      "ext should inherit from Extension class.");
 
         auto it = findExtension<T>();
         if (it != extensions.end())
@@ -686,14 +699,16 @@ class Packet : public Printable
     }
 
     /**
-     * Get the extension pointer by linear search with the extensionID.
+     * Get the extension pointer carried in the packet.
+     *
+     * @return The extension pointer.
      */
     template <typename T>
     std::shared_ptr<T>
     getExtension()
     {
-        static_assert(std::is_base_of<ExtensionBase, T>::value,
-                      "Extension should inherit from ExtensionBase.");
+        static_assert(std::is_base_of<Extension<T>, T>::value,
+                      "ext should inherit from Extension class.");
         auto it = findExtension<T>();
         if (it == extensions.end())
             return nullptr;
