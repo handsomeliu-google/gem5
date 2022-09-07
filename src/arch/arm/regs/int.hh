@@ -623,6 +623,12 @@ isSP(RegIndex reg)
     return reg == int_reg::Spx;
 }
 
+static inline bool
+couldBeZero(RegIndex reg)
+{
+    return (reg == int_reg::X31 || reg == int_reg::Zero);
+}
+
 // Semantically meaningful register indices
 inline constexpr size_t NumArgumentRegs = 4;
 inline constexpr size_t NumArgumentRegs64 = 8;
