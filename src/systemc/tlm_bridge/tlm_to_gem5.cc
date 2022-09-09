@@ -396,12 +396,6 @@ TlmToGem5Bridge<BITWIDTH>::get_direct_mem_ptr(tlm::tlm_generic_payload &trans,
         pkt = extension->getPacket();
     } else {
         pkt = payload2packet(_id, trans);
-        // We don't expect the data_ptr from trans payload is valid in DMI
-        // request. Therefore, we let the pkt allocate a new data_ptr for
-        // itself.
-        pkt->deleteData();
-        pkt->allocate();
-
         pkt->req->setFlags(Request::NO_ACCESS);
     }
 
