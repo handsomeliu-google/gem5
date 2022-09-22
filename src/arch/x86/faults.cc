@@ -72,13 +72,16 @@ X86FaultBase::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     HandyM5Reg m5reg = tc->readMiscRegNoEffect(misc_reg::M5Reg);
     MicroPC entry;
     if (m5reg.mode == LongMode) {
-        entry = isSoft() ? extern_label_longModeSoftInterrupt :
-                           extern_label_longModeInterrupt;
+        entry = extern_label_longModeInterrupt;
     } else {
-        entry = extern_label_legacyModeInterrupt;
+        if (m5reg.submode == RealMode)
+            entry = extern_label_realModeInterrupt;
+        else
+            entry = extern_label_legacyModeInterrupt;
     }
     tc->setReg(intRegMicro(1), vector);
-    tc->setReg(intRegMicro(7), pc.pc());
+    Addr cs_base = tc->readMiscRegNoEffect(misc_reg::CsEffBase);
+    tc->setReg(intRegMicro(7), pc.pc() - cs_base);
     if (errorCode != (uint64_t)(-1)) {
         if (m5reg.mode == LongMode) {
             entry = extern_label_longModeInterruptWithError;
@@ -86,9 +89,6 @@ X86FaultBase::invoke(ThreadContext *tc, const StaticInstPtr &inst)
             panic("Legacy mode interrupts with error codes "
                     "aren't implemented.");
         }
-        // Software interrupts shouldn't have error codes. If one
-        // does, there would need to be microcode to set it up.
-        assert(!isSoft());
         tc->setReg(intRegMicro(15), errorCode);
     }
     pc.upc(romMicroPC(entry));
@@ -254,6 +254,7 @@ InitInterrupt::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     tc->setMiscReg(misc_reg::IdtrLimit, 0xffff);
 
     SegAttr tslAttr = 0;
+    tslAttr.unusable = 1;
     tslAttr.present = 1;
     tslAttr.type = 2; // LDT
     tc->setMiscReg(misc_reg::Tsl, 0);
@@ -262,6 +263,7 @@ InitInterrupt::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     tc->setMiscReg(misc_reg::TslAttr, tslAttr);
 
     SegAttr trAttr = 0;
+    trAttr.unusable = 0;
     trAttr.present = 1;
     trAttr.type = 3; // Busy 16-bit TSS
     tc->setMiscReg(misc_reg::Tr, 0);

@@ -86,6 +86,14 @@ import SCons.Node
 import SCons.Node.FS
 import SCons.Tool
 
+if getattr(SCons, '__version__', None) in ('3.0.0', '3.0.1'):
+    # Monkey patch a fix which appears in version 3.0.2, since we only
+    # require version 3.0.0
+    def __hash__(self):
+        return hash(self.lstr)
+    import SCons.Subst
+    SCons.Subst.Literal.__hash__ = __hash__
+
 
 ########################################################################
 #
@@ -201,8 +209,9 @@ Targets:
         scons build/X86/gem5.opt
 
         The "build" component tells SCons that the next part names an initial
-        configuration, and the part after that is the actual target.
-        The predefined targets currently available are:
+        configuration, and the part after that is the actual target. The
+        predefined targets are specified by files in the defconfig directory.
+        The current options are:
 
 {defconfig_list}
 
@@ -448,7 +457,10 @@ def config_embedded_python(env):
         if conf.TryAction(f'@{python_config} --embed')[0]:
             cmd.append('--embed')
 
-    def flag_filter(env, cmd_output):
+    def flag_filter(env, cmd_output, unique=True):
+        # Since this function does not use the `unique` param, one should not
+        # pass any value to this param.
+        assert(unique==True)
         flags = cmd_output.split()
         prefixes = ('-l', '-L', '-I')
         is_useful = lambda x: any(x.startswith(prefix) for prefix in prefixes)
@@ -532,7 +544,18 @@ for variant_path in variant_paths:
         if linker:
             with gem5_scons.Configure(env) as conf:
                 if not conf.CheckLinkFlag(f'-fuse-ld={linker}'):
-                    error(f'Linker "{linker}" is not supported')
+                    # check mold support for gcc older than 12.1.0
+                    if linker == 'mold' and \
+                       (env['GCC'] and \
+                           compareVersions(env['CXXVERSION'],
+                                           "12.1.0") < 0) and \
+                       ((isdir('/usr/libexec/mold') and \
+                           conf.CheckLinkFlag('-B/usr/libexec/mold')) or \
+                       (isdir('/usr/local/libexec/mold') and \
+                           conf.CheckLinkFlag('-B/usr/local/libexec/mold'))):
+                        pass # support mold
+                    else:
+                        error(f'Linker "{linker}" is not supported')
                 if linker == 'gold' and not GetOption('with_lto'):
                     # Tell the gold linker to use threads. The gold linker
                     # segfaults if both threads and LTO are enabled.

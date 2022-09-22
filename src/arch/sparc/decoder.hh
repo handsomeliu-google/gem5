@@ -53,8 +53,7 @@ class Decoder : public InstDecoder
     RegVal asi = 0;
 
   public:
-    Decoder(const SparcDecoderParams &p) : InstDecoder(p, &machInst)
-    {}
+    Decoder(const SparcDecoderParams &p) : InstDecoder(p, &machInst) {}
 
     // Use this to give data to the predecoder. This should be used
     // when there is control flow.

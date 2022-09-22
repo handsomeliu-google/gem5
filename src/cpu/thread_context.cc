@@ -109,7 +109,7 @@ ThreadContext::compare(ThreadContext *one, ThreadContext *two)
         }
     }
 
-    for (int i = 0; i < regClasses.at(MiscRegClass)->size(); ++i) {
+    for (int i = 0; i < regClasses.at(MiscRegClass)->numRegs(); ++i) {
         RegVal t1 = one->readMiscRegNoEffect(i);
         RegVal t2 = two->readMiscRegNoEffect(i);
         if (t1 != t2)
@@ -185,9 +185,10 @@ serialize(const ThreadContext &tc, CheckpointOut &cp)
             continue;
 
         const size_t reg_bytes = reg_class->regBytes();
-        const size_t reg_count = reg_class->size();
+        const size_t reg_count = reg_class->numRegs();
+        const size_t array_bytes = reg_bytes * reg_count;
 
-        uint8_t regs[reg_count * reg_bytes];
+        uint8_t regs[array_bytes];
         auto *reg_ptr = regs;
         for (const auto &id: *reg_class) {
             tc.getReg(id, reg_ptr);
@@ -195,7 +196,7 @@ serialize(const ThreadContext &tc, CheckpointOut &cp)
         }
 
         arrayParamOut(cp, std::string("regs.") + reg_class->name(), regs,
-                reg_count * reg_bytes);
+                array_bytes);
     }
 
     tc.pcState().serialize(cp);
@@ -212,11 +213,12 @@ unserialize(ThreadContext &tc, CheckpointIn &cp)
             continue;
 
         const size_t reg_bytes = reg_class->regBytes();
-        const size_t reg_count = reg_class->size();
+        const size_t reg_count = reg_class->numRegs();
+        const size_t array_bytes = reg_bytes * reg_count;
 
-        uint8_t regs[reg_count * reg_bytes];
+        uint8_t regs[array_bytes];
         arrayParamIn(cp, std::string("regs.") + reg_class->name(), regs,
-                reg_count * reg_bytes);
+                array_bytes);
 
         auto *reg_ptr = regs;
         for (const auto &id: *reg_class) {

@@ -41,10 +41,8 @@
 #ifndef __CPU__REG_CLASS_HH__
 #define __CPU__REG_CLASS_HH__
 
-#include <any>
 #include <cstddef>
 #include <iterator>
-#include <limits>
 #include <string>
 
 #include "base/cprintf.hh"
@@ -70,6 +68,15 @@ enum RegClassType
     MiscRegClass,       ///< Control (misc) register
     InvalidRegClass = -1
 };
+
+// "Standard" register class names. Using these is encouraged but optional.
+inline constexpr char IntRegClassName[] = "integer";
+inline constexpr char FloatRegClassName[] = "floating_point";
+inline constexpr char VecRegClassName[] = "vector";
+inline constexpr char VecElemClassName[] = "vector_element";
+inline constexpr char VecPredRegClassName[] = "vector_predicate";
+inline constexpr char CCRegClassName[] = "condition_code";
+inline constexpr char MiscRegClassName[] = "miscellaneous";
 
 class RegClass;
 class RegClassIterator;
@@ -146,7 +153,7 @@ class RegId
     /** Return a const char* with the register class name. */
     inline constexpr const char* className() const;
 
-    inline constexpr bool flat() const;
+    inline constexpr bool isFlat() const;
     inline RegId flatten(const BaseISA &isa) const;
 
     int getNumPinnedWrites() const { return numPinnedWrites; }
@@ -158,8 +165,11 @@ class RegId
 class RegClassOps
 {
   public:
+    /** Print the name of the register specified in id. */
     virtual std::string regName(const RegId &id) const;
+    /** Print the value of a register pointed to by val of size size. */
     virtual std::string valString(const void *val, size_t size) const;
+    /** Flatten register id id using information in the ISA object isa. */
     virtual RegId
     flatten(const BaseISA &isa, const RegId &id) const
     {
@@ -175,7 +185,7 @@ class RegClass
     RegClassType _type;
     const char *_name;
 
-    size_t _size;
+    size_t _numRegs;
     size_t _regBytes = sizeof(RegVal);
     // This is how much to shift an index by to get an offset of a register in
     // a register file from the register index, which would otherwise need to
@@ -190,8 +200,8 @@ class RegClass
 
   public:
     constexpr RegClass(RegClassType type, const char *new_name,
-            size_t new_size, const debug::Flag &debug_flag) :
-        _type(type), _name(new_name), _size(new_size), debugFlag(debug_flag)
+            size_t num_regs, const debug::Flag &debug_flag) :
+        _type(type), _name(new_name), _numRegs(num_regs), debugFlag(debug_flag)
     {}
 
     constexpr RegClass
@@ -222,11 +232,11 @@ class RegClass
 
     constexpr RegClassType type() const { return _type; }
     constexpr const char *name() const { return _name; }
-    constexpr size_t size() const { return _size; }
+    constexpr size_t numRegs() const { return _numRegs; }
     constexpr size_t regBytes() const { return _regBytes; }
     constexpr size_t regShift() const { return _regShift; }
     constexpr const debug::Flag &debug() const { return debugFlag; }
-    constexpr bool flat() const { return _flat; }
+    constexpr bool isFlat() const { return _flat; }
 
     std::string regName(const RegId &id) const { return _ops->regName(id); }
     std::string
@@ -237,7 +247,7 @@ class RegClass
     RegId
     flatten(const BaseISA &isa, const RegId &id) const
     {
-        return flat() ? id : _ops->flatten(isa, id);
+        return isFlat() ? id : _ops->flatten(isa, id);
     }
 
     using iterator = RegClassIterator;
@@ -262,7 +272,7 @@ RegId::is(RegClassType reg_class) const
 constexpr RegClassType RegId::classValue() const { return _regClass->type(); }
 constexpr const char* RegId::className() const { return _regClass->name(); }
 
-constexpr bool RegId::flat() const { return _regClass->flat(); }
+constexpr bool RegId::isFlat() const { return _regClass->isFlat(); }
 RegId
 RegId::flatten(const BaseISA &isa) const
 {
@@ -280,7 +290,7 @@ class RegClassIterator
   private:
     RegId id;
 
-    RegClassIterator(const RegClass &reg_class, RegIndex idx=0) :
+    RegClassIterator(const RegClass &reg_class, RegIndex idx) :
         id(reg_class, idx)
     {}
 
@@ -333,7 +343,7 @@ RegClass::begin() const
 RegClassIterator
 RegClass::end() const
 {
-    return RegClassIterator(*this, size());
+    return RegClassIterator(*this, numRegs());
 }
 
 constexpr RegId
@@ -361,7 +371,9 @@ class VecElemRegClassOps : public TypedRegClassOps<ValueType>
     size_t elemsPerVec;
 
   public:
-    VecElemRegClassOps(size_t elems_per_vec) : elemsPerVec(elems_per_vec) {}
+    explicit VecElemRegClassOps(size_t elems_per_vec) :
+        elemsPerVec(elems_per_vec)
+    {}
 
     std::string
     regName(const RegId &id) const override

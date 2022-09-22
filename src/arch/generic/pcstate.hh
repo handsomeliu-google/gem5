@@ -581,13 +581,6 @@ class DelaySlotUPCState : public DelaySlotPCState<InstWidth>
         this->_upc = 0;
         this->_nupc = 1;
     }
-
-    bool
-    equals(const PCStateBase &other) const override
-    {
-        auto &ps = other.as<DelaySlotUPCState<InstWidth>>();
-        return Base::equals(other) && ps._nnpc == this->_nnpc;
-    }
 };
 
 }

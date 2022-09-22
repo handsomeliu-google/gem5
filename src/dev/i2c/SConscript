@@ -37,5 +37,5 @@
 
 Import('*')
 
-SimObject('I2C.py')
+SimObject('I2C.py', sim_objects=['I2CDevice', 'I2CBus'])
 Source('bus.cc')

@@ -453,8 +453,7 @@ ArmFault::update(ThreadContext *tc)
         toEL = fromEL;
 
     // Check for Set Priviledge Access Never, if PAN is supported
-    AA64MMFR1 mmfr1 = tc->readMiscReg(MISCREG_ID_AA64MMFR1_EL1);
-    if (mmfr1.pan) {
+    if (HaveExt(tc, ArmExtension::FEAT_PAN)) {
         if (toEL == EL1) {
             const SCTLR sctlr = tc->readMiscReg(MISCREG_SCTLR_EL1);
             span = !sctlr.span;
@@ -735,7 +734,7 @@ ArmFault::vectorCatch(ThreadContext *tc, const StaticInstPtr &inst)
 {
     SelfDebug *sd = ArmISA::ISA::getSelfDebug(tc);
     VectorCatch* vc = sd->getVectorCatch(tc);
-    if (!vc->isVCMatch()) {
+    if (vc && !vc->isVCMatch()) {
         Fault fault = sd->testVectorCatch(tc, 0x0, this);
         if (fault != NoFault)
             fault->invoke(tc, inst);
@@ -870,15 +869,15 @@ SupervisorCall::invoke(ThreadContext *tc, const StaticInstPtr &inst)
         return;
     }
 
-    // As of now, there isn't a 32 bit thumb version of this instruction.
-    assert(!machInst.bigThumb);
-    tc->getSystemPtr()->workload->syscall(tc);
-
     // Advance the PC since that won't happen automatically.
     PCState pc = tc->pcState().as<PCState>();
     assert(inst);
     inst->advancePC(pc);
     tc->pcState(pc);
+
+    // As of now, there isn't a 32 bit thumb version of this instruction.
+    assert(!machInst.bigThumb);
+    tc->getSystemPtr()->workload->syscall(tc);
 }
 
 bool
@@ -1384,7 +1383,7 @@ DataAbort::routeToHyp(ThreadContext *tc) const
 
     bool amo = hcr.amo;
     if (hcr.tge == 1)
-        amo =  (!HaveVirtHostExt(tc) || hcr.e2h == 0);
+        amo =  (!HaveExt(tc, ArmExtension::FEAT_VHE) || hcr.e2h == 0);
 
     // if in Hyp mode then stay in Hyp mode
     toHyp = fromEL == EL2 ||

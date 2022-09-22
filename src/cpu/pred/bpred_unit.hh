@@ -155,7 +155,9 @@ class BPredUnit : public SimObject
     bool BTBValid(Addr instPC) { return BTB.valid(instPC, 0); }
 
     /**
-     * Looks up a given PC in the BTB to get the predicted target.
+     * Looks up a given PC in the BTB to get the predicted target. The PC may
+     * be changed or deleted in the future, so it needs to be used immediately,
+     * and/or copied for use later.
      * @param inst_PC The PC to look up.
      * @return The address of the target of the branch.
      */

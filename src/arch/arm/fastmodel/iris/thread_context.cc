@@ -637,7 +637,7 @@ void
 ThreadContext::getReg(const RegId &reg, void *val) const
 {
     const RegIndex idx = reg.index();
-    const bool flat = reg.regClass().flat();
+    const bool flat = reg.regClass().isFlat();
     const RegClassType type = reg.classValue();
     if (flat) {
         switch (type) {
@@ -690,7 +690,7 @@ void
 ThreadContext::setReg(const RegId &reg, const void *val)
 {
     const RegIndex idx = reg.index();
-    const bool flat = reg.regClass().flat();
+    const bool flat = reg.regClass().isFlat();
     const RegClassType type = reg.classValue();
     if (flat) {
         switch (type) {
@@ -743,7 +743,7 @@ void *
 ThreadContext::getWritableReg(const RegId &reg)
 {
     const RegIndex idx = reg.index();
-    const bool flat = reg.regClass().flat();
+    const bool flat = reg.regClass().isFlat();
     const RegClassType type = reg.classValue();
     if (flat) {
         switch (type) {

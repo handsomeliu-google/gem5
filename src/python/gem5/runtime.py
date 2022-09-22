@@ -29,36 +29,63 @@ This file contains functions to extract gem5 runtime information.
 """
 
 from m5.defines import buildEnv
-import typing
+from m5.util import warn
 
-from .isas import ISA
+from .isas import ISA, get_isa_from_str, get_isas_str_set
 from .coherence_protocol import CoherenceProtocol
+from typing import Set
 
 
-def get_runtime_isas() -> typing.List[ISA]:
-    """Gets the ISAs gem5 has support for.
-    This can be inferred at runtime.
+def get_supported_isas() -> Set[ISA]:
+    """
+    Returns the set of all the ISAs compiled into the current binary.
+    """
+    supported_isas = set()
 
-    :returns: A list of the supported ISAs.
+    if "TARGET_ISA" in buildEnv.keys():
+        supported_isas.add(get_isa_from_str(buildEnv["TARGET_ISA"]))
+
+    for key in get_isas_str_set():
+        if buildEnv.get(f"USE_{key.upper()}_ISA", False):
+            supported_isas.add(get_isa_from_str(key))
+
+    return supported_isas
+
+
+def get_runtime_isa() -> ISA:
+    """
+    Returns a single target ISA at runtime.
+
+    This determined via the "TARGET_ISA" parameter, which is set at
+    compilation. If not set, but only one ISA is compiled, we assume it's the
+    one ISA. If neither the "TARGET_ISA" parameter is set and there are
+    multiple ISA targets, an exception is thrown.
+
+    **WARNING**: This function is deprecated and may be removed in future
+    versions of gem5. This function should not be relied upon to run gem5
+    simulations.
+
+    :returns: The target ISA.
     """
 
-    isas = []
-    if buildEnv['USE_ARM_ISA']:
-        isas.append(ISA.ARM)
-    if buildEnv['USE_MIPS_ISA']:
-        isas.append(ISA.MIPS)
-    if buildEnv['USE_NULL_ISA']:
-        isas.append(ISA.NULL)
-    if buildEnv['USE_POWER_ISA']:
-        isas.append(ISA.POWER)
-    if buildEnv['USE_RISCV_ISA']:
-        isas.append(ISA.RISCV)
-    if buildEnv['USE_SPARC_ISA']:
-        isas.append(ISA.SPARC)
-    if buildEnv['USE_X86_ISA']:
-        isas.append(ISA.X86)
+    warn(
+        "The `get_runtime_isa` function is deprecated. Please migrate away "
+        "from using this function."
+    )
 
-    return isas
+    if "TARGET_ISA" in buildEnv.keys():
+        return get_isa_from_str(buildEnv["TARGET_ISA"])
+
+    supported_isas = get_supported_isas()
+
+    if len(supported_isas) == 1:
+        return next(iter(supported_isas))
+
+    raise Exception(
+        "Cannot determine the the runtime ISA. Either the "
+        "'TARGET_ISA' parameter must be set or the binary only "
+        "compiled to one ISA."
+    )
 
 
 def get_runtime_coherence_protocol() -> CoherenceProtocol:

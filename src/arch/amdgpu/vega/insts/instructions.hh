@@ -2,8 +2,6 @@
  * Copyright (c) 2015-2021 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -1539,6 +1537,74 @@ namespace VegaISA
 
         void execute(GPUDynInstPtr) override;
     }; // Inst_SOP2__S_RFE_RESTORE_B64
+
+    class Inst_SOP2__S_MUL_HI_U32 : public Inst_SOP2
+    {
+      public:
+        Inst_SOP2__S_MUL_HI_U32(InFmt_SOP2*);
+        ~Inst_SOP2__S_MUL_HI_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 2; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //ssrc_0
+                return 4;
+              case 1: //ssrc_1
+                return 4;
+              case 2: //sdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_SOP2__S_MUL_HI_U32
+
+    class Inst_SOP2__S_MUL_HI_I32 : public Inst_SOP2
+    {
+      public:
+        Inst_SOP2__S_MUL_HI_I32(InFmt_SOP2*);
+        ~Inst_SOP2__S_MUL_HI_I32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 2; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //ssrc_0
+                return 4;
+              case 1: //ssrc_1
+                return 4;
+              case 2: //sdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_SOP2__S_MUL_HI_I32
 
     class Inst_SOPK__S_MOVK_I32 : public Inst_SOPK
     {
@@ -24674,6 +24740,42 @@ namespace VegaISA
         void execute(GPUDynInstPtr) override;
     }; // Inst_VOP3__V_OR_B32
 
+    class Inst_VOP3__V_OR3_B32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_OR3_B32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_OR3_B32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 3; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //src_2
+                return 4;
+              case 3: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_OR_B32
+
     class Inst_VOP3__V_XOR_B32 : public Inst_VOP3A
     {
       public:
@@ -25609,6 +25711,108 @@ namespace VegaISA
 
         void execute(GPUDynInstPtr) override;
     }; // Inst_VOP3__V_LDEXP_F16
+
+    class Inst_VOP3__V_ADD_U32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_ADD_U32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_ADD_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 2; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_ADD_U32
+
+    class Inst_VOP3__V_SUB_U32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_SUB_U32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_SUB_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 2; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_SUB_U32
+
+    class Inst_VOP3__V_SUBREV_U32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_SUBREV_U32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_SUBREV_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 2; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_SUBREV_U32
 
     class Inst_VOP3__V_NOP : public Inst_VOP3A
     {
@@ -29460,6 +29664,186 @@ namespace VegaISA
         void execute(GPUDynInstPtr) override;
     }; // Inst_VOP3__V_MAD_I64_I32
 
+    class Inst_VOP3__V_LSHL_ADD_U32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_LSHL_ADD_U32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_LSHL_ADD_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 3; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //src_2
+                return 4;
+              case 3: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_LSHL_ADD_U32
+
+    class Inst_VOP3__V_ADD_LSHL_U32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_ADD_LSHL_U32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_ADD_LSHL_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 3; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //src_2
+                return 4;
+              case 3: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_ADD_LSHL_U32
+
+    class Inst_VOP3__V_ADD3_U32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_ADD3_U32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_ADD3_U32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 3; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //src_2
+                return 4;
+              case 3: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_ADD3_U32
+
+    class Inst_VOP3__V_LSHL_OR_B32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_LSHL_OR_B32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_LSHL_OR_B32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 3; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //src_2
+                return 4;
+              case 3: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_LSHL_OR_B32
+
+    class Inst_VOP3__V_AND_OR_B32 : public Inst_VOP3A
+    {
+      public:
+        Inst_VOP3__V_AND_OR_B32(InFmt_VOP3A*);
+        ~Inst_VOP3__V_AND_OR_B32();
+
+        int
+        getNumOperands() override
+        {
+            return numDstRegOperands() + numSrcRegOperands();
+        } // getNumOperands
+
+        int numDstRegOperands() override { return 1; }
+        int numSrcRegOperands() override { return 3; }
+
+        int
+        getOperandSize(int opIdx) override
+        {
+            switch (opIdx) {
+              case 0: //src_0
+                return 4;
+              case 1: //src_1
+                return 4;
+              case 2: //src_2
+                return 4;
+              case 3: //vdst
+                return 4;
+              default:
+                fatal("op idx %i out of bounds\n", opIdx);
+                return -1;
+            }
+        } // getOperandSize
+
+        void execute(GPUDynInstPtr) override;
+    }; // Inst_VOP3__V_AND_OR_B32
+
     class Inst_VOP3__V_MAD_F16 : public Inst_VOP3A
     {
       public:
@@ -31112,6 +31496,8 @@ namespace VegaISA
         } // getOperandSize
 
         void execute(GPUDynInstPtr) override;
+        void initiateAcc(GPUDynInstPtr gpuDynInst);
+        void completeAcc(GPUDynInstPtr gpuDynInst);
     }; // Inst_DS__DS_OR_B32
 
     class Inst_DS__DS_XOR_B32 : public Inst_DS
@@ -35328,6 +35714,8 @@ namespace VegaISA
         } // getOperandSize
 
         void execute(GPUDynInstPtr) override;
+        void initiateAcc(GPUDynInstPtr) override;
+        void completeAcc(GPUDynInstPtr) override;
     }; // Inst_DS__DS_WRITE_B96
 
     class Inst_DS__DS_WRITE_B128 : public Inst_DS
@@ -35360,6 +35748,8 @@ namespace VegaISA
         } // getOperandSize
 
         void execute(GPUDynInstPtr) override;
+        void initiateAcc(GPUDynInstPtr) override;
+        void completeAcc(GPUDynInstPtr) override;
     }; // Inst_DS__DS_WRITE_B128
 
     class Inst_DS__DS_READ_B96 : public Inst_DS
@@ -35392,6 +35782,8 @@ namespace VegaISA
         } // getOperandSize
 
         void execute(GPUDynInstPtr) override;
+        void initiateAcc(GPUDynInstPtr) override;
+        void completeAcc(GPUDynInstPtr) override;
     }; // Inst_DS__DS_READ_B96
 
     class Inst_DS__DS_READ_B128 : public Inst_DS
@@ -35424,6 +35816,8 @@ namespace VegaISA
         } // getOperandSize
 
         void execute(GPUDynInstPtr) override;
+        void initiateAcc(GPUDynInstPtr) override;
+        void completeAcc(GPUDynInstPtr) override;
     }; // Inst_DS__DS_READ_B128
 
     class Inst_MUBUF__BUFFER_LOAD_FORMAT_X : public Inst_MUBUF

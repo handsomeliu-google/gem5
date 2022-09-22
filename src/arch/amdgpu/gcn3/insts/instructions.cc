@@ -2,8 +2,6 @@
  * Copyright (c) 2015-2021 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -5318,6 +5316,8 @@ namespace Gcn3ISA
     Inst_SMEM__S_MEMTIME::Inst_SMEM__S_MEMTIME(InFmt_SMEM *iFmt)
         : Inst_SMEM(iFmt, "s_memtime")
     {
+        // s_memtime does not issue a memory request
+        setFlag(ALU);
     } // Inst_SMEM__S_MEMTIME
 
     Inst_SMEM__S_MEMTIME::~Inst_SMEM__S_MEMTIME()
@@ -5328,7 +5328,9 @@ namespace Gcn3ISA
     void
     Inst_SMEM__S_MEMTIME::execute(GPUDynInstPtr gpuDynInst)
     {
-        panicUnimplemented();
+        ScalarOperandU64 sdst(gpuDynInst, instData.SDATA);
+        sdst = (ScalarRegU64)gpuDynInst->computeUnit()->curCycle();
+        sdst.write();
     }
 
     Inst_SMEM__S_MEMREALTIME::Inst_SMEM__S_MEMREALTIME(InFmt_SMEM *iFmt)

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 The Regents of the University of California
+# Copyright (c) 2022 The Regents of the University of California
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from abc import ABCMeta, abstractmethod
+import inspect
 
 from .mem_mode import MemMode, mem_mode_to_string
+from ...resources.workload import AbstractWorkload
 
 from m5.objects import (
     System,
@@ -37,10 +39,10 @@ from m5.objects import (
     VoltageDomain,
 )
 
-from typing import List, final
+from typing import List
 
 
-class AbstractBoard(System):
+class AbstractBoard:
     """The abstract board interface.
 
     Boards are used as the object which can connect together all other
@@ -65,16 +67,18 @@ class AbstractBoard(System):
         self,
         clk_freq: str,
         processor: "AbstractProcessor",
-        memory: "AbstractMemory",
+        memory: "AbstractMemorySystem",
         cache_hierarchy: "AbstractCacheHierarchy",
     ) -> None:
-        super().__init__()
         """
         :param clk_freq: The clock frequency for this board.
         :param processor: The processor for this board.
         :param memory: The memory for this board.
         :param cache_hierarchy: The Cachie Hierarchy for this board.
         """
+
+        if not isinstance(self, System):
+            raise Exception("A gem5 stdlib board must inherit from System.")
 
         # Set up the clock domain and the voltage domain.
         self.clk_domain = SrcClockDomain()
@@ -86,6 +90,14 @@ class AbstractBoard(System):
         self.memory = memory
         self.cache_hierarchy = cache_hierarchy
 
+        # This variable determines whether the board is to be executed in
+        # full-system or syscall-emulation mode. This is set when the workload
+        # is defined. Whether or not the board is to be run in FS mode is
+        # determined by which kind of workload is set.
+        self._is_fs = None
+
+        # Setup the board and memory system's memory ranges.
+        self._setup_memory_ranges()
 
         # Setup board properties unique to the board being constructed.
         self._setup_board()
@@ -138,13 +150,74 @@ class AbstractBoard(System):
         """
         return self.clk_domain
 
+    def _set_fullsystem(self, is_fs: bool) -> None:
+        """
+        Sets whether this board is to be run in FS or SE mode. This is set
+        via the workload (the workload specified determines whether this will
+        be run in FS mode or not). This is not intended to be set in a
+        configuration script ergo, it's private.
+
+        :param is_fs: Set whether the board is to be run in FS mode or SE mode.
+        """
+        self._is_fs = is_fs
+
+    def is_fullsystem(self) -> bool:
+        """
+        Returns True if the board is to be run in FS mode. Otherwise the board
+        is to be run in Se mode. An exception will be thrown if this has not
+        been set.
+
+        This function is used by the Simulator module to setup the simulation
+        correctly.
+        """
+        if self._is_fs == None:
+            raise Exception(
+                "The workload for this board not yet to be set. "
+                "Whether the board is to be executed in FS or SE "
+                "mode is determined by which 'set workload' "
+                "function is run."
+            )
+        return self._is_fs
+
+    def set_workload(self, workload: AbstractWorkload) -> None:
+        """
+        Set the workload for this board to run.
+
+        This function will take the workload specified and run the correct
+        workload function (e.g., `set_kernel_disk_workload`) with the correct
+        parameters
+
+        :params workload: The workload to be set to this board.
+        """
+
+        try:
+            func = getattr(self, workload.get_function_str())
+        except AttributeError:
+            raise Exception(
+                "This board does not support this workload type. "
+                f"This board does not contain the necessary "
+                f"`{workload.get_function_str()}` function"
+            )
+
+        func_signature = inspect.signature(func)
+        for param_name in workload.get_parameters().keys():
+            if param_name not in func_signature.parameters.keys():
+                raise Exception(
+                    "Workload specifies non-existent parameter "
+                    f"`{param_name}` for function "
+                    f"`{workload.get_function_str()}` "
+                )
+
+        func(**workload.get_parameters())
+
     @abstractmethod
     def _setup_board(self) -> None:
         """
         This function is called in the AbstractBoard constructor, before the
         memory, processor, and cache hierarchy components are incorporated via
-        `_connect_thing()`. This function should be overridden by boards to
-        specify components, connections unique to that board.
+        `_connect_thing()`, but after the `_setup_memory_ranges()` function.
+        This function should be overridden by boards to specify components,
+        connections unique to that board.
         """
         raise NotImplementedError
 
@@ -212,39 +285,51 @@ class AbstractBoard(System):
         raise NotImplementedError
 
     @abstractmethod
-    def setup_memory_ranges(self) -> None:
+    def _setup_memory_ranges(self) -> None:
         """
-        Set the memory ranges for this board.
+        Set the memory ranges for this board and memory system.
 
-        This is called by at the end of the constructor. It can query the
-        board's memory to determine the size and the set the memory ranges on
-        the memory if it needs to move the memory devices.
+        This is called in the constructor, prior to `_setup_board` and
+        `_connect_things`. It should query the board's memory to determine the
+        size and the set the memory ranges on the memory system and on the
+        board.
 
-        The simplest implementation just sets the board's memory range to be
-        the size of memory and memory's memory range to be the same as the
-        board. Full system implementations will likely need something more
-        complicated.
+        The simplest implementation sets the board's memory range to the size
+        of memory and memory system's range to be the same as the board. Full
+        system implementations will likely need something more complicated.
+
+        Notes
+        -----
+        * This *must* be called prior to the incorporation of the cache
+        hierarchy (via `_connect_things`) as cache hierarchies depend upon
+        knowing the memory system's ranges.
         """
         raise NotImplementedError
 
-    @final
     def _connect_things(self) -> None:
         """Connects all the components to the board.
 
         The order of this board is always:
 
         1. Connect the memory.
-        2. Connect the processor.
-        3. Connect the cache hierarchy.
+        2. Connect the cache hierarchy.
+        3. Connect the processor.
 
         Developers may build upon this assumption when creating components.
+
+        Notes
+        -----
+
+        * The processor is incorporated after the cache hierarchy due to a bug
+        noted here: https://gem5.atlassian.net/browse/GEM5-1113. Until this
+        bug is fixed, this ordering must be maintained.
         """
 
         # Incorporate the memory into the motherboard.
         self.get_memory().incorporate_memory(self)
 
-        # Incorporate the processor into the motherboard.
-        self.get_processor().incorporate_processor(self)
-
         # Incorporate the cache hierarchy for the motherboard.
         self.get_cache_hierarchy().incorporate_cache(self)
+
+        # Incorporate the processor into the motherboard.
+        self.get_processor().incorporate_processor(self)

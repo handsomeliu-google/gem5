@@ -77,9 +77,6 @@ struct Result<MipsISA::SEWorkload::SyscallABI, SyscallReturn>
     static void
     store(ThreadContext *tc, const SyscallReturn &ret)
     {
-        if (ret.suppressed() || ret.needsRetry())
-            return;
-
         if (ret.successful()) {
             // no error
             tc->setReg(MipsISA::int_reg::SyscallSuccess, (RegVal)0);

@@ -193,19 +193,19 @@ CPU::CPU(const BaseO3CPUParams &params)
     const auto &regClasses = params.isa[0]->regClasses();
 
     assert(params.numPhysIntRegs >=
-            numThreads * regClasses.at(IntRegClass)->size());
+            numThreads * regClasses.at(IntRegClass)->numRegs());
     assert(params.numPhysFloatRegs >=
-            numThreads * regClasses.at(FloatRegClass)->size());
+            numThreads * regClasses.at(FloatRegClass)->numRegs());
     assert(params.numPhysVecRegs >=
-            numThreads * regClasses.at(VecRegClass)->size());
+            numThreads * regClasses.at(VecRegClass)->numRegs());
     assert(params.numPhysVecPredRegs >=
-            numThreads * regClasses.at(VecPredRegClass)->size());
+            numThreads * regClasses.at(VecPredRegClass)->numRegs());
     assert(params.numPhysCCRegs >=
-            numThreads * regClasses.at(CCRegClass)->size());
+            numThreads * regClasses.at(CCRegClass)->numRegs());
 
     // Just make this a warning and go ahead anyway, to keep from having to
     // add checks everywhere.
-    warn_if(regClasses.at(CCRegClass)->size() == 0 &&
+    warn_if(regClasses.at(CCRegClass)->numRegs() == 0 &&
             params.numPhysCCRegs != 0,
             "Non-zero number of physical CC regs specified, even though\n"
             "    ISA does not use them.");

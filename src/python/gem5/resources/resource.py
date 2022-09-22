@@ -73,12 +73,44 @@ class CustomResource(AbstractResource):
     repository.
     """
 
-    def __init__(self, local_path: str, metadata: Optional[Dict] = None):
+    def __init__(self, local_path: str, metadata: Dict = {}):
         """
         :param local_path: The path of the resource on the host system.
         :param metadata: Add metadata for the custom resource.
         """
-        super().__init__(local_path=local_path)
+        super().__init__(local_path=local_path, metadata=metadata)
+
+
+class CustomDiskImageResource(CustomResource):
+    """
+    A custom disk image gem5 resource. It can be used to specify a custom,
+    local disk image.
+    """
+
+    def __init__(
+        self,
+        local_path: str,
+        disk_root_partition: Optional[str] = None,
+        metadata: Dict = {},
+    ):
+        """
+        :param local_path: The path of the disk image on the host system.
+        :param disk_root_partition: The root disk partition to use.
+        :param metadata: Metadata for the resource.
+        """
+
+        # Behind the scenes, we set the the root partition via the metadata.
+        # For a traditional, non-custom, resource it is the metadata that is
+        # used to specify the disk image partition root. Therefore, when the
+        # root disk partition specified during the construction, we apply it as
+        # metadata.
+        if disk_root_partition:
+            disk_root_partition_dict = {
+                "additional_metadata": {"root_partition": disk_root_partition}
+            }
+            metadata.update(disk_root_partition_dict)
+
+        super().__init__(local_path=local_path, metadata=metadata)
 
 
 class Resource(AbstractResource):
@@ -123,19 +155,23 @@ class Resource(AbstractResource):
                     )
                 )
         else:
-            os.makedirs(resource_directory)
+            # `exist_ok=True` here as, occasionally, if multiple instance of
+            # gem5 are started simultaneously, a race condition can exist to
+            # create the resource directory. Without `exit_ok=True`, threads
+            # which lose this race will thrown a `FileExistsError` exception.
+            # `exit_ok=True` ensures no exception is thrown.
+            os.makedirs(resource_directory, exist_ok=True)
 
         to_path = os.path.join(resource_directory, resource_name)
 
         super().__init__(
-                    local_path=to_path,
-                    metadata=get_resources_json_obj(resource_name))
+            local_path=to_path, metadata=get_resources_json_obj(resource_name)
+        )
         get_resource(
             resource_name=resource_name,
             to_path=to_path,
-            download_md5_mismatch=download_md5_mismatch
+            download_md5_mismatch=download_md5_mismatch,
         )
-
 
     def _get_default_resource_dir(cls) -> str:
         """
@@ -153,14 +189,16 @@ class Resource(AbstractResource):
         ]
 
         for path in test_list:
-            if os.path.exists(path): # If the path already exists...
-                if os.path.isdir(path): # Check to see the path is a directory.
-                    return path # If so, the path is valid and can be used.
-            else: # If the path does not exist, try to create it.
+            if os.path.exists(path):  # If the path already exists...
+                if os.path.isdir(
+                    path
+                ):  # Check to see the path is a directory.
+                    return path  # If so, the path is valid and can be used.
+            else:  # If the path does not exist, try to create it.
                 try:
                     os.makedirs(path, exist_ok=False)
                     return path
                 except OSError:
-                    continue # If the path cannot be created, then try another.
+                    continue  # If the path cannot be created, then try another.
 
         raise Exception("Cannot find a valid location to download resources")

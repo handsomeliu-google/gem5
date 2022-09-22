@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014, 2017-2020 ARM Limited
+ * Copyright (c) 2010-2014, 2017-2021 ARM Limited
  * Copyright (c) 2013 Advanced Micro Devices, Inc.
  * All rights reserved
  *
@@ -1238,6 +1238,39 @@ LSQUnit::trySendPacket(bool isLoad, PacketPtr data_pkt)
 }
 
 void
+LSQUnit::startStaleTranslationFlush()
+{
+    DPRINTF(LSQUnit, "Unit %p marking stale translations %d %d\n", this,
+        storeQueue.size(), loadQueue.size());
+    for (auto& entry : storeQueue) {
+        if (entry.valid() && entry.hasRequest())
+            entry.request()->markAsStaleTranslation();
+    }
+    for (auto& entry : loadQueue) {
+        if (entry.valid() && entry.hasRequest())
+            entry.request()->markAsStaleTranslation();
+    }
+}
+
+bool
+LSQUnit::checkStaleTranslations() const
+{
+    DPRINTF(LSQUnit, "Unit %p checking stale translations\n", this);
+    for (auto& entry : storeQueue) {
+        if (entry.valid() && entry.hasRequest()
+            && entry.request()->hasStaleTranslation())
+            return true;
+    }
+    for (auto& entry : loadQueue) {
+        if (entry.valid() && entry.hasRequest()
+            && entry.request()->hasStaleTranslation())
+            return true;
+    }
+    DPRINTF(LSQUnit, "Unit %p found no stale translations\n", this);
+    return false;
+}
+
+void
 LSQUnit::recvRetry()
 {
     if (isStoreBlocked) {
@@ -1335,7 +1368,6 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
 
     if (request->mainReq()->isLocalAccess()) {
         assert(!load_inst->memData);
-        assert(!load_inst->inHtmTransactionalState());
         load_inst->memData = new uint8_t[MaxDataBytes];
 
         gem5::ThreadContext *thread = cpu->tcBase(lsqID);
@@ -1348,37 +1380,6 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
         WritebackEvent *wb = new WritebackEvent(load_inst, main_pkt, this);
         cpu->schedule(wb, cpu->clockEdge(delay));
         return NoFault;
-    }
-
-    // hardware transactional memory
-    if (request->mainReq()->isHTMStart() || request->mainReq()->isHTMCommit())
-    {
-        // don't want to send nested transactionStarts and
-        // transactionStops outside of core, e.g. to Ruby
-        if (request->mainReq()->getFlags().isSet(Request::NO_ACCESS)) {
-            Cycles delay(0);
-            PacketPtr data_pkt =
-                new Packet(request->mainReq(), MemCmd::ReadReq);
-
-            // Allocate memory if this is the first time a load is issued.
-            if (!load_inst->memData) {
-                load_inst->memData =
-                    new uint8_t[request->mainReq()->getSize()];
-                // sanity checks espect zero in request's data
-                memset(load_inst->memData, 0, request->mainReq()->getSize());
-            }
-
-            data_pkt->dataStatic(load_inst->memData);
-            if (load_inst->inHtmTransactionalState()) {
-                data_pkt->setHtmTransactional(
-                    load_inst->getHtmTransactionUid());
-            }
-            data_pkt->makeResponse();
-
-            WritebackEvent *wb = new WritebackEvent(load_inst, data_pkt, this);
-            cpu->schedule(wb, cpu->clockEdge(delay));
-            return NoFault;
-        }
     }
 
     // Check the SQ for any previous stores that might lead to forwarding

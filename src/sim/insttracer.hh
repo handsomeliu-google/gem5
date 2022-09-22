@@ -41,6 +41,8 @@
 #ifndef __INSTRECORD_HH__
 #define __INSTRECORD_HH__
 
+#include <memory>
+
 #include "arch/generic/pcstate.hh"
 #include "base/types.hh"
 #include "cpu/inst_res.hh"

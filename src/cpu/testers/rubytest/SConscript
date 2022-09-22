@@ -38,7 +38,7 @@ Import('*')
 if not env['CONF']['RUBY']:
     Return()
 
-SimObject('RubyTester.py')
+SimObject('RubyTester.py', sim_objects=['RubyTester'])
 
 Source('RubyTester.cc')
 Source('Check.cc')

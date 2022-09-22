@@ -52,14 +52,14 @@ def test_kvm_switch(cpu: str, num_cpus: int, mem_system: str, length: str):
     verifiers = []
 
     if mem_system == "mesi_two_level":
-        protocol_to_use = "MESI_Two_Level"
+        protocol_to_use = None
         isa_to_use = constants.x86_tag
     elif mem_system == "mi_example":
-        protocol_to_use = None
+        protocol_to_use = "MI_example"
         isa_to_use = constants.x86_tag
     else:
         protocol_to_use = None
-        isa_to_use = constants.gcn3_x86_tag
+        isa_to_use = constants.vega_x86_tag
 
     gem5_verify_config(
         name=name,
@@ -84,9 +84,10 @@ def test_kvm_switch(cpu: str, num_cpus: int, mem_system: str, length: str):
             "--kernel-args=''",
         ],
         valid_isas=(isa_to_use,),
-        valid_hosts=constants.supported_hosts,
+        valid_hosts=(constants.host_x86_64_tag,),
         protocol=protocol_to_use,
         length=length,
+        uses_kvm=True,
     )
 
 

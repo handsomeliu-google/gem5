@@ -24,17 +24,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-'''
+"""
 Test file for simply building gem5
-'''
+"""
 import re
 import os
 from testlib import *
 
-common_isas = [constants.gcn3_x86_tag, constants.arm_tag, constants.riscv_tag]
+common_isas = [constants.vega_x86_tag, constants.arm_tag, constants.riscv_tag]
+skipped_isas = {constants.null_tag, constants.all_compiled_tag}
 
 for isa in constants.supported_isas:
-    if isa is constants.null_tag: continue
+    if isa in skipped_isas:
+        continue
 
     for variant in constants.supported_variants:
         if isa in common_isas:
@@ -44,9 +46,10 @@ for isa in constants.supported_isas:
 
         tags = [isa, length, variant]
 
-        name = 'build-{isa}-{var}'.format(isa=isa, var=variant)
+        name = "build-{isa}-{var}".format(isa=isa, var=variant)
         fixture = Gem5Fixture(isa, variant)
 
-        function = TestFunction(lambda fixtures: True, name,
-                                fixtures=[fixture])
+        function = TestFunction(
+            lambda fixtures: True, name, fixtures=[fixture]
+        )
         TestSuite(name=name, tests=[function], tags=tags)

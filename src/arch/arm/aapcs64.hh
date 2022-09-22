@@ -283,7 +283,7 @@ struct Result<Aapcs64, Integer, typename std::enable_if_t<
     static void
     store(ThreadContext *tc, const Integer &i)
     {
-        tc->setReg(ArmISA::int_reg::x(0), i);
+        tc->setReg(ArmISA::int_reg::X0, i);
     }
 };
 
@@ -294,8 +294,8 @@ struct Result<Aapcs64, Integer, typename std::enable_if_t<
     static void
     store(ThreadContext *tc, const Integer &i)
     {
-        tc->setReg(ArmISA::int_reg::x(0), (uint64_t)i);
-        tc->setReg(ArmISA::int_reg::x(1), (uint64_t)(i >> 64));
+        tc->setReg(ArmISA::int_reg::X0, (uint64_t)i);
+        tc->setReg(ArmISA::int_reg::X1, (uint64_t)(i >> 64));
     }
 };
 

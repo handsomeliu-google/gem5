@@ -26,6 +26,8 @@
 config TARGET_GPU_ISA
     string
 
+rsource "amdgpu/Kconfig"
+
 rsource "arm/Kconfig"
 rsource "mips/Kconfig"
 rsource "null/Kconfig"
@@ -33,5 +35,3 @@ rsource "power/Kconfig"
 rsource "riscv/Kconfig"
 rsource "sparc/Kconfig"
 rsource "x86/Kconfig"
-
-rsource "amdgpu/Kconfig"

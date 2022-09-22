@@ -59,8 +59,8 @@ PhysRegFile::PhysRegFile(unsigned _numPhysicalIntRegs,
       floatRegFile(*reg_classes.at(FloatRegClass), _numPhysicalFloatRegs),
       vectorRegFile(*reg_classes.at(VecRegClass), _numPhysicalVecRegs),
       vectorElemRegFile(*reg_classes.at(VecElemClass), _numPhysicalVecRegs * (
-                  reg_classes.at(VecElemClass)->size() /
-                  reg_classes.at(VecRegClass)->size())),
+                  reg_classes.at(VecElemClass)->numRegs() /
+                  reg_classes.at(VecRegClass)->numRegs())),
       vecPredRegFile(*reg_classes.at(VecPredRegClass),
               _numPhysicalVecPredRegs),
       ccRegFile(*reg_classes.at(CCRegClass), _numPhysicalCCRegs),
@@ -68,8 +68,8 @@ PhysRegFile::PhysRegFile(unsigned _numPhysicalIntRegs,
       numPhysicalFloatRegs(_numPhysicalFloatRegs),
       numPhysicalVecRegs(_numPhysicalVecRegs),
       numPhysicalVecElemRegs(_numPhysicalVecRegs * (
-                  reg_classes.at(VecElemClass)->size() /
-                  reg_classes.at(VecRegClass)->size())),
+                  reg_classes.at(VecElemClass)->numRegs() /
+                  reg_classes.at(VecRegClass)->numRegs())),
       numPhysicalVecPredRegs(_numPhysicalVecPredRegs),
       numPhysicalCCRegs(_numPhysicalCCRegs),
       totalNumRegs(_numPhysicalIntRegs
@@ -123,7 +123,7 @@ PhysRegFile::PhysRegFile(unsigned _numPhysicalIntRegs,
     }
 
     // Misc regs have a fixed mapping but still need PhysRegIds.
-    for (phys_reg = 0; phys_reg < reg_classes.at(MiscRegClass)->size();
+    for (phys_reg = 0; phys_reg < reg_classes.at(MiscRegClass)->numRegs();
             phys_reg++) {
         miscRegIds.emplace_back(*reg_classes.at(MiscRegClass), phys_reg, 0);
     }

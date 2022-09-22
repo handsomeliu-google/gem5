@@ -48,6 +48,7 @@
 #include "arch/generic/isa.hh"
 #include "base/trace.hh"
 #include "cpu/o3/comm.hh"
+#include "cpu/regfile.hh"
 #include "debug/IEW.hh"
 
 namespace gem5
@@ -70,68 +71,6 @@ class PhysRegFile
     using IdRange = std::pair<PhysIds::iterator,
                               PhysIds::iterator>;
   private:
-    class RegFile
-    {
-      private:
-        std::vector<uint8_t> data;
-        const size_t _size;
-        const size_t _regShift;
-        const size_t _regBytes;
-
-      public:
-        const RegClass &regClass;
-
-        RegFile(const RegClass &info, unsigned num_phys) :
-            data(num_phys << info.regShift()), _size(num_phys),
-            _regShift(info.regShift()), _regBytes(info.regBytes()),
-            regClass(info)
-        {}
-
-        size_t size() const { return _size; }
-        size_t regShift() const { return _regShift; }
-        size_t regBytes() const { return _regBytes; }
-
-        template <typename Reg=RegVal>
-        Reg &
-        reg(size_t idx)
-        {
-            return *reinterpret_cast<Reg *>(data.data() + (idx << _regShift));
-        }
-        template <typename Reg=RegVal>
-        const Reg &
-        reg(size_t idx) const
-        {
-            return *reinterpret_cast<const Reg *>(
-                    data.data() + (idx << _regShift));
-        }
-
-        void *
-        ptr(size_t idx)
-        {
-            return data.data() + (idx << _regShift);
-        }
-
-        const void *
-        ptr(size_t idx) const
-        {
-            return data.data() + (idx << _regShift);
-        }
-
-        void
-        get(size_t idx, void *val) const
-        {
-            std::memcpy(val, ptr(idx), _regBytes);
-        }
-
-        void
-        set(size_t idx, const void *val)
-        {
-            std::memcpy(ptr(idx), val, _regBytes);
-        }
-
-        void clear() { std::fill(data.begin(), data.end(), 0); }
-    };
-
     /** Integer register file. */
     RegFile intRegFile;
     std::vector<PhysRegId> intRegIds;
@@ -202,7 +141,7 @@ class PhysRegFile
                 unsigned _numPhysicalVecRegs,
                 unsigned _numPhysicalVecPredRegs,
                 unsigned _numPhysicalCCRegs,
-                const BaseISA::RegClasses &);
+                const BaseISA::RegClasses &classes);
 
     /**
      * Destructor to free resources
@@ -230,7 +169,7 @@ class PhysRegFile
         switch (type) {
           case IntRegClass:
             val = intRegFile.reg(idx);
-            DPRINTF(IEW, "RegFile: Access to int register %i, has data #x\n",
+            DPRINTF(IEW, "RegFile: Access to int register %i, has data %#x\n",
                     idx, val);
             return val;
           case FloatRegClass:

@@ -90,6 +90,7 @@
 #include "base/intmath.hh"
 #include "base/loader/object_file.hh"
 #include "base/logging.hh"
+#include "base/random.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "cpu/base.hh"
@@ -1671,6 +1672,7 @@ cloneFunc(SyscallDesc *desc, ThreadContext *tc, RegVal flags, RegVal newStack,
     }
 
     if (flags & OS::TGT_CLONE_THREAD) {
+        cp->pTable->initState();
         cp->pTable->shared = true;
         cp->useForClone = true;
     }
@@ -1702,9 +1704,6 @@ cloneFunc(SyscallDesc *desc, ThreadContext *tc, RegVal flags, RegVal newStack,
 
     desc->returnInto(ctc, 0);
 
-    std::unique_ptr<PCStateBase> cpc(tc->pcState().clone());
-    cpc->advance();
-    ctc->pcState(*cpc);
     ctc->activate();
 
     if (flags & OS::TGT_CLONE_VFORK) {
@@ -2266,9 +2265,6 @@ execveFunc(SyscallDesc *desc, ThreadContext *tc,
     new_p->init();
     new_p->initState();
     tc->activate();
-    std::unique_ptr<PCStateBase> pc_state(tc->pcState().clone());
-    pc_state->advance();
-    tc->pcState(*pc_state);
 
     return SyscallReturn();
 }
@@ -2585,9 +2581,15 @@ selectFunc(SyscallDesc *desc, ThreadContext *tc, int nfds,
     if (retval == -1)
         return -errno;
 
-    FD_ZERO(reinterpret_cast<fd_set *>((typename OS::fd_set *)readfds));
-    FD_ZERO(reinterpret_cast<fd_set *>((typename OS::fd_set *)writefds));
-    FD_ZERO(reinterpret_cast<fd_set *>((typename OS::fd_set *)errorfds));
+    if (readfds) {
+        FD_ZERO(reinterpret_cast<fd_set *>((typename OS::fd_set *)readfds));
+    }
+    if (writefds) {
+        FD_ZERO(reinterpret_cast<fd_set *>((typename OS::fd_set *)writefds));
+    }
+    if (errorfds) {
+        FD_ZERO(reinterpret_cast<fd_set *>((typename OS::fd_set *)errorfds));
+    }
 
     /**
      * We need to translate the host file descriptor set into a target file
@@ -3036,6 +3038,23 @@ ftruncateFunc(SyscallDesc *desc, ThreadContext *tc, int tgt_fd,
 
     int result = ftruncate(sim_fd, length);
     return (result == -1) ? -errno : result;
+}
+
+template <typename OS>
+SyscallReturn
+getrandomFunc(SyscallDesc *desc, ThreadContext *tc,
+              VPtr<> buf_ptr, typename OS::size_t count,
+              unsigned int flags)
+{
+    SETranslatingPortProxy proxy(tc);
+
+    TypedBufferArg<uint8_t> buf(buf_ptr, count);
+    for (int i = 0; i < count; ++i) {
+        buf[i] = gem5::random_mt.random<uint8_t>();
+    }
+    buf.copyOut(proxy);
+
+    return count;
 }
 
 } // namespace gem5

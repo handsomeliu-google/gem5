@@ -2,8 +2,6 @@
  * Copyright (c) 2015-2021 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -879,9 +877,9 @@ namespace VegaISA
         &Decoder::decode_OPU_VOP3__V_MIN_U16,
         &Decoder::decode_OPU_VOP3__V_MIN_I16,
         &Decoder::decode_OPU_VOP3__V_LDEXP_F16,
-        &Decoder::decode_invalid,
-        &Decoder::decode_invalid,
-        &Decoder::decode_invalid,
+        &Decoder::decode_OPU_VOP3__V_ADD_U32,
+        &Decoder::decode_OPU_VOP3__V_SUB_U32,
+        &Decoder::decode_OPU_VOP3__V_SUBREV_U32,
         &Decoder::decode_invalid,
         &Decoder::decode_invalid,
         &Decoder::decode_invalid,
@@ -4440,14 +4438,13 @@ namespace VegaISA
     GPUStaticInst*
     Decoder::decode_OP_SOP2__S_MUL_HI_U32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_SOP2__S_MUL_HI_U32(&iFmt->iFmt_SOP2);
     }
 
     GPUStaticInst*
     Decoder::decode_OP_SOP2__S_MUL_HI_I32(MachInst iFmt)
     {
-        return new Inst_SOP2__S_MUL_I32(&iFmt->iFmt_SOP2);
+        return new Inst_SOP2__S_MUL_HI_I32(&iFmt->iFmt_SOP2);
     }
 
     GPUStaticInst*
@@ -6109,6 +6106,24 @@ namespace VegaISA
     } // decode_OPU_VOP3__V_LDEXP_F16
 
     GPUStaticInst*
+    Decoder::decode_OPU_VOP3__V_ADD_U32(MachInst iFmt)
+    {
+        return new Inst_VOP3__V_ADD_U32(&iFmt->iFmt_VOP3A);
+    } // decode_OPU_VOP3__V_ADD_U32
+
+    GPUStaticInst*
+    Decoder::decode_OPU_VOP3__V_SUB_U32(MachInst iFmt)
+    {
+        return new Inst_VOP3__V_SUB_U32(&iFmt->iFmt_VOP3A);
+    } // decode_OPU_VOP3__V_SUB_U32
+
+    GPUStaticInst*
+    Decoder::decode_OPU_VOP3__V_SUBREV_U32(MachInst iFmt)
+    {
+        return new Inst_VOP3__V_SUBREV_U32(&iFmt->iFmt_VOP3A);
+    } // decode_OPU_VOP3__V_SUBREV_U32
+
+    GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_NOP(MachInst iFmt)
     {
         return new Inst_VOP3__V_NOP(&iFmt->iFmt_VOP3A);
@@ -6927,43 +6942,37 @@ namespace VegaISA
     GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_LSHL_ADD_U32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_VOP3__V_LSHL_ADD_U32(&iFmt->iFmt_VOP3A);
     }
 
     GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_ADD_LSHL_U32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_VOP3__V_ADD_LSHL_U32(&iFmt->iFmt_VOP3A);
     }
 
     GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_ADD3_U32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_VOP3__V_ADD3_U32(&iFmt->iFmt_VOP3A);
     }
 
     GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_LSHL_OR_B32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_VOP3__V_LSHL_OR_B32(&iFmt->iFmt_VOP3A);
     }
 
     GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_AND_OR_B32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_VOP3__V_AND_OR_B32(&iFmt->iFmt_VOP3A);
     }
 
     GPUStaticInst*
     Decoder::decode_OPU_VOP3__V_OR3_B32(MachInst iFmt)
     {
-        fatal("Trying to decode instruction without a class\n");
-        return nullptr;
+        return new Inst_VOP3__V_OR_B32(&iFmt->iFmt_VOP3A);
     }
 
     GPUStaticInst*

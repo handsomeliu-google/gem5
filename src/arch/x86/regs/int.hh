@@ -110,7 +110,7 @@ class FlatIntRegClassOps : public RegClassOps
 inline constexpr FlatIntRegClassOps flatIntRegClassOps;
 
 inline constexpr RegClass flatIntRegClass =
-    RegClass(IntRegClass, "integer", int_reg::NumRegs, debug::IntRegs).
+    RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs).
     ops(flatIntRegClassOps);
 
 class IntRegClassOps : public FlatIntRegClassOps
@@ -121,7 +121,7 @@ class IntRegClassOps : public FlatIntRegClassOps
 inline constexpr IntRegClassOps intRegClassOps;
 
 inline constexpr RegClass intRegClass =
-    RegClass(IntRegClass, "integer", int_reg::NumRegs, debug::IntRegs).
+    RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs).
     ops(intRegClassOps).
     needsFlattening();
 

@@ -24,4 +24,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 config USE_NULL_ISA
-    bool "NULL ISA support"
+    bool "Null ISA support"

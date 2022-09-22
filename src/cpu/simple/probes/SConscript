@@ -28,5 +28,6 @@
 
 Import('*')
 
-SimObject('SimPoint.py')
-Source('simpoint.cc')
+if not env['CONF']['USE_NULL_ISA']:
+    SimObject('SimPoint.py', sim_objects=['SimPoint'])
+    Source('simpoint.cc')

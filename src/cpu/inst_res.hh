@@ -40,7 +40,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <string>
+#include <variant>
 
 #include "base/logging.hh"
 #include "base/types.hh"
@@ -52,96 +54,64 @@ namespace gem5
 class InstResult
 {
   private:
-    enum
-    {
-        Valid = 0x1,
-        Blob = 0x2
-    };
-    uint8_t flags = 0;
+    using BlobPtr = std::unique_ptr<const uint8_t[]>;
 
-    bool valid() const { return flags & Valid; }
-    void
-    valid(bool val)
-    {
-        if (val)
-            flags |= Valid;
-        else
-            flags &= ~Valid;
-    }
-
-    bool blob() const { return flags & Blob; }
-    void
-    blob(bool val)
-    {
-        if (val)
-            flags |= Blob;
-        else
-            flags &= ~Blob;
-    }
-
+    std::variant<BlobPtr, RegVal> value;
     const RegClass *_regClass = nullptr;
-    union Value
-    {
-        RegVal reg;
-        const uint8_t *bytes = nullptr;
-    } value;
 
+    bool blob() const { return std::holds_alternative<BlobPtr>(value); }
+    bool valid() const { return _regClass != nullptr; }
+
+    // Raw accessors with no safety checks.
+    RegVal getRegVal() const { return std::get<RegVal>(value); }
+    const void *getBlob() const { return std::get<BlobPtr>(value).get(); }
+
+    // Store copies of blobs, not a pointer to the original.
     void
-    setBytes(const void *val)
+    set(const void *val)
     {
-        const size_t size = _regClass->regBytes();
-        if (blob())
-            delete[] value.bytes;
-        uint8_t *temp = new uint8_t[size];
-        std::memcpy(temp, val, size);
-        value.bytes = temp;
-        blob(true);
+        uint8_t *temp = nullptr;
+        if (val) {
+            const size_t size = _regClass->regBytes();
+            temp = new uint8_t[size];
+            std::memcpy(temp, val, size);
+        }
+        value = BlobPtr(temp);
     }
 
+    void set(RegVal val) { value = val; }
+
     void
-    setRegVal(RegVal val)
+    set(const InstResult &other)
     {
-        if (blob())
-            delete[] value.bytes;
-        blob(false);
-        value.reg = val;
+        other.blob() ? set(other.getBlob()) : set(other.getRegVal());
     }
 
   public:
     /** Default constructor creates an invalid result. */
     InstResult() {}
-    InstResult(const InstResult &) = default;
-
-    InstResult(const RegClass &reg_class, RegVal val) : _regClass(&reg_class)
+    InstResult(const InstResult &other) : _regClass(other._regClass)
     {
-        valid(true);
-        setRegVal(val);
+        set(other);
     }
+
+    InstResult(const RegClass &reg_class, RegVal val) :
+        _regClass(&reg_class)
+    {
+        set(val);
+    }
+
     InstResult(const RegClass &reg_class, const void *val) :
         _regClass(&reg_class)
     {
-        valid(true);
-        setBytes(val);
-    }
-
-    virtual ~InstResult()
-    {
-        if (blob())
-            delete[] value.bytes;
+        set(val);
     }
 
     InstResult &
-    operator=(const InstResult& that)
+    operator=(const InstResult &that)
     {
-        valid(that.valid());
         _regClass = that._regClass;
-
-        if (valid()) {
-            if (that.blob())
-                setBytes(that.value.bytes);
-            else
-                setRegVal(that.value.reg);
-        }
+        set(that);
 
         return *this;
     }
@@ -153,20 +123,22 @@ class InstResult
     bool
     operator==(const InstResult& that) const
     {
-        // If we're not valid, they're equal to us iff they are also not valid.
-        if (!valid())
-            return !that.valid();
-
-        // If both are valid, check if th register class and flags.
-        if (_regClass != that._regClass || flags != that.flags)
+        if (blob() != that.blob() || _regClass != that._regClass)
             return false;
 
-        // Check our data based on whether we store a blob or a RegVal.
         if (blob()) {
-            return std::memcmp(value.bytes, that.value.bytes,
+            const void *my_blob = getBlob();
+            const void *their_blob = that.getBlob();
+
+            // Invalid results always differ.
+            if (!my_blob || !their_blob)
+                return false;
+
+            // Check the contents of the blobs, not their addresses.
+            return std::memcmp(getBlob(), that.getBlob(),
                     _regClass->regBytes()) == 0;
         } else {
-            return value.reg == that.value.reg;
+            return getRegVal() == that.getRegVal();
         }
     }
 
@@ -184,23 +156,25 @@ class InstResult
     asRegVal() const
     {
         assert(!blob());
-        return value.reg;
+        return getRegVal();
     }
 
     const void *
     asBlob() const
     {
         assert(blob());
-        return value.bytes;
+        return getBlob();
     }
 
     std::string
     asString() const
     {
-        if (blob())
-            return _regClass->valString(value.bytes);
-        else
-            return _regClass->valString(&value.reg);
+        if (blob()) {
+            return _regClass->valString(getBlob());
+        } else {
+            RegVal reg = getRegVal();
+            return _regClass->valString(&reg);
+        }
     }
 };
 

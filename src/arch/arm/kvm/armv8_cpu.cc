@@ -41,6 +41,7 @@
 
 #include "arch/arm/regs/int.hh"
 #include "arch/arm/regs/vec.hh"
+#include "arch/arm/utility.hh"
 #include "debug/KvmContext.hh"
 #include "params/ArmV8KvmCPU.hh"
 
@@ -336,7 +337,9 @@ ArmV8KvmCPU::updateThreadContext()
         KvmFPReg reg;
         DPRINTF(KvmContext, "  Q%i: %s\n", i, getAndFormatOneReg(kvmFPReg(i)));
         getOneReg(kvmFPReg(i), reg.data);
-        auto v = tc->getWritableVecReg(vecRegClass[i]).as<VecElem>();
+        auto *vc = static_cast<ArmISA::VecRegContainer *>(
+            tc->getWritableReg(vecRegClass[i]));
+        auto v = vc->as<VecElem>();
         for (int j = 0; j < FP_REGS_PER_VFP_REG; j++)
             v[j] = reg.s[j].i;
         if (!inAArch64(tc))
@@ -391,7 +394,7 @@ ArmV8KvmCPU::getSysRegMap() const
         const uint64_t crm(EXTRACT_FIELD(reg, KVM_REG_ARM64_SYSREG_CRM));
         const uint64_t op2(EXTRACT_FIELD(reg, KVM_REG_ARM64_SYSREG_OP2));
         const MiscRegIndex idx(decodeAArch64SysReg(op0, op1, crn, crm, op2));
-        const auto &info(miscRegInfo[idx]);
+        const auto &info(lookUpMiscReg[idx].info);
         const bool writeable(
             info[MISCREG_USR_NS_WR] || info[MISCREG_USR_S_WR] ||
             info[MISCREG_PRI_S_WR] || info[MISCREG_PRI_NS_WR] ||

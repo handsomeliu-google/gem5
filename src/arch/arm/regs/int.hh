@@ -171,12 +171,12 @@ class IntRegClassOps : public RegClassOps
 inline constexpr IntRegClassOps intRegClassOps;
 
 inline constexpr RegClass intRegClass =
-    RegClass(IntRegClass, "integer", int_reg::NumRegs, debug::IntRegs).
+    RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs).
     ops(intRegClassOps).
     needsFlattening();
 
 inline constexpr RegClass flatIntRegClass =
-    RegClass(IntRegClass, "integer", int_reg::NumRegs, debug::IntRegs);
+    RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs);
 
 namespace int_reg
 {
@@ -441,7 +441,7 @@ const RegMap Reg64Map = {
     R8Fiq,  R9Fiq,  R10Fiq, R11Fiq, R12Fiq, R13Fiq, R14Fiq, Zero
 };
 
-static inline const RegId
+static inline RegId
 x(unsigned index)
 {
     assert(index < NumArchRegs);
@@ -609,12 +609,10 @@ makeSP(RegIndex reg)
     return reg;
 }
 
-static inline RegIndex
-makeZero(RegIndex reg)
+static inline bool
+couldBeSP(RegIndex reg)
 {
-    if (reg == int_reg::X31)
-        reg = int_reg::Zero;
-    return reg;
+    return (reg == int_reg::X31 || reg == int_reg::Spx);
 }
 
 static inline bool
@@ -627,6 +625,20 @@ static inline bool
 couldBeZero(RegIndex reg)
 {
     return (reg == int_reg::X31 || reg == int_reg::Zero);
+}
+
+static inline bool
+isZero(RegIndex reg)
+{
+    return reg == int_reg::Zero;
+}
+
+static inline RegIndex
+makeZero(RegIndex reg)
+{
+    if (reg == int_reg::X31)
+        reg = int_reg::Zero;
+    return reg;
 }
 
 // Semantically meaningful register indices

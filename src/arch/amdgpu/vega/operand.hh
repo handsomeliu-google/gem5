@@ -2,8 +2,6 @@
  * Copyright (c) 2017-2021 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -646,7 +644,10 @@ namespace VegaISA
             ComputeUnit *cu = _gpuDynInst->computeUnit();
             int sgprIdx(-1);
 
-            if (_opIdx == REG_VCC_LO) {
+            if (_opIdx == REG_VCC_HI) {
+                sgprIdx = cu->registerManager
+                    ->mapSgpr(wf, wf->reservedScalarRegs - 1 + dword);
+            } else if (_opIdx == REG_VCC_LO) {
                 sgprIdx = cu->registerManager
                     ->mapSgpr(wf, wf->reservedScalarRegs - 2 + dword);
             } else if (_opIdx == REG_FLAT_SCRATCH_HI) {

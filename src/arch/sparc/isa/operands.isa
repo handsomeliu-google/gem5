@@ -85,7 +85,7 @@ def operands {{
             'IsInteger', 2),
     # The Rd from the next window
     'Rd_next':          IntReg('udw',
-            'RD + 2 * int_reg::NumRegs + int_reg::NumMicroRegs',
+            'RD + 2 * int_reg::NumArchRegs + int_reg::NumMicroRegs',
             'IsInteger', 3),
     # For microcoded twin load instructions, RdTwin appears in the "code"
     # for the instruction is replaced by RdLow or RdHigh by the format

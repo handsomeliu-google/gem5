@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014,2017-2018,2020 ARM Limited
+ * Copyright (c) 2012-2014,2017-2018,2020-2021 ARM Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -316,6 +316,10 @@ class LSQUnit
         lastRetiredHtmUid = htm_uid;
     }
 
+    // Stale translation checks
+    void startStaleTranslationFlush();
+    bool checkStaleTranslations() const;
+
     /** Returns if either the LQ or SQ is full. */
     bool isFull() { return lqFull() || sqFull(); }
 
@@ -541,7 +545,7 @@ class LSQUnit
     Fault read(LSQRequest *request, ssize_t load_idx);
 
     /** Executes the store at the given index. */
-    Fault write(LSQRequest *request, uint8_t *data, ssize_t store_idx);
+    Fault write(LSQRequest *requst, uint8_t *data, ssize_t store_idx);
 
     /** Returns the index of the head load instruction. */
     int getLoadHead() { return loadQueue.head(); }

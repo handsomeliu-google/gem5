@@ -67,6 +67,7 @@ class BaseISA : public SimObject
     RegClasses _regClasses;
 
   public:
+    virtual PCStateBase *newPCState(Addr new_inst_addr=0) const = 0;
     virtual void clear() {}
 
     virtual RegVal readMiscRegNoEffect(RegIndex idx) const = 0;
@@ -75,7 +76,6 @@ class BaseISA : public SimObject
     virtual void setMiscRegNoEffect(RegIndex idx, RegVal val) = 0;
     virtual void setMiscReg(RegIndex idx, RegVal val) = 0;
 
-    virtual PCStateBase *newPCState(Addr new_inst_addr=0) const = 0;
     virtual void takeOverFrom(ThreadContext *new_tc, ThreadContext *old_tc) {}
     virtual void setThreadContext(ThreadContext *_tc) { tc = _tc; }
 

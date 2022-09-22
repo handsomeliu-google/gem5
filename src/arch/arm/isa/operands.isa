@@ -1,5 +1,5 @@
 // -*- mode:c++ -*-
-// Copyright (c) 2010-2014, 2016-2018, 2021 ARM Limited
+// Copyright (c) 2010-2014, 2016-2018, 2021-2022 Arm Limited
 // All rights reserved
 //
 // The license below extends only to copyright in the software and shall
@@ -79,8 +79,8 @@ let {{
 
     class VectorElem(VecElemOp):
         def __init__(self, idx):
-            super(VectorElem, self).__init__(
-                    'sf', idx, 'IsVectorElem', srtNormal)
+            flat_idx = f'((({idx}) / 4) * NumVecElemPerVecReg) + ({idx}) % 4'
+            super().__init__('sf', flat_idx, 'IsVectorElem', srtNormal)
 
     class VectorReg(VecRegOp):
         def __init__(self, idx, base, suffix=''):
@@ -93,12 +93,11 @@ let {{
                 base + 'D' + suffix : ('0', 'df'),
                 base + 'Q' + suffix : ('0', 'tud')
             }
-            super(VectorReg, self).__init__(
-                    'vc', (idx, elems), 'IsVector', srtNormal)
+            super().__init__('vc', (idx, elems), 'IsVector', srtNormal)
 
     class VecPredReg(VecPredRegOp):
         def __init__(self, idx):
-            super(VecPredReg, self).__init__('pc', idx, sort_pri=srtNormal)
+            super().__init__('pc', idx, sort_pri=srtNormal)
 
     class IntRegNPC(IntRegOp):
         @overrideInOperand
@@ -106,16 +105,18 @@ let {{
             return f'gem5::ArmISA::couldBeZero({self.reg_spec}) ? RegId() : ' \
                    f'{self.reg_class}[{self.reg_spec}]'
         def __init__(self, idx, ctype='uw', id=srtNormal):
-            super(IntRegNPC, self).__init__(ctype, idx, 'IsInteger', id)
+            super().__init__(ctype, idx, 'IsInteger', id)
 
     class IntReg(IntRegNPC):
         @overrideInOperand
         def makeRead(self):
+            '''Maybe PC read'''
             return f'{self.base_name} = ({self.reg_spec} == int_reg::Pc) ? ' \
                    f'readPC(xc) : xc->getRegOperand(' \
                    f'this, {self.src_reg_idx});\n'
         @overrideInOperand
         def makeWrite(self):
+            '''Maybe PC write'''
             return f'''
             if ({self.reg_spec} == int_reg::Pc)
                 setNextPC(xc, {self.base_name});
@@ -127,11 +128,12 @@ let {{
 
     class PIntReg(IntReg):
         def __init__(self, idx):
-            super(PIntReg, self).__init__(idx, ctype='pint')
+            super().__init__(idx, ctype='pint')
 
     class IntRegAPC(IntReg):
         @overrideInOperand
         def makeRead(self):
+            '''Maybe aligned PC read'''
             return f'{self.base_name} = ({self.reg_spec} == int_reg::Pc) ? ' \
                    f'(roundDown(readPC(xc), 4)) : ' \
                    f'xc->getRegOperand(this, {self.src_reg_idx});\n'
@@ -139,6 +141,7 @@ let {{
     class IntRegIWPC(IntReg):
         @overrideInOperand
         def makeWrite(self):
+            '''Maybe interworking PC write'''
             return f'''
             if ({self.reg_spec} == int_reg::Pc)
                 setIWNextPC(xc, {self.base_name});
@@ -151,6 +154,7 @@ let {{
     class IntRegAIWPC(IntReg):
         @overrideInOperand
         def makeWrite(self):
+            '''Maybe aligned interworking PC write'''
             return f'''
             if ({self.reg_spec} == int_reg::Pc) {"{"}
                 if ((bool)THUMB)
@@ -171,11 +175,13 @@ let {{
                    f'{self.reg_class}[{self.reg_spec}]'
         @overrideInOperand
         def makeRead(self):
+            '''aarch64 read'''
             return f'{self.base_name} = ' \
                    f'(xc->getRegOperand(this, {self.src_reg_idx})) & ' \
                    f'mask(intWidth);\n'
         @overrideInOperand
         def makeWrite(self):
+            '''aarch64 write'''
             return f'''
             xc->setRegOperand(this, {self.dest_reg_idx}, {self.base_name} &
                 mask(intWidth));
@@ -183,16 +189,18 @@ let {{
                 traceData->setData({self.reg_class}, {self.base_name});
             '''
         def __init__(self, idx, id=srtNormal):
-            super(IntReg64, self).__init__('ud', idx, 'IsInteger', id)
+            super().__init__('ud', idx, 'IsInteger', id)
 
     class IntRegX64(IntReg64):
         @overrideInOperand
         def makeRead(self):
+            '''Maybe masked to 32 bit read'''
             return f'{self.base_name} = ' \
                    f'(xc->getRegOperand(this, {self.src_reg_idx}) & ' \
                     'mask(aarch64 ? 64 : 32));\n'
         @overrideInOperand
         def makeWrite(self):
+            '''Maybe masked to 32 bit write'''
             return f'''
             xc->setRegOperand(this, {self.dest_reg_idx}, {self.base_name} &
                     mask(aarch64 ? 64 : 32));
@@ -203,11 +211,13 @@ let {{
     class IntRegW64(IntReg64):
         @overrideInOperand
         def makeRead(self):
+            '''Masked to 32 bit read'''
             return f'{self.base_name} = ' \
                    f'(xc->getRegOperand(this, {self.src_reg_idx})) & ' \
                    f'mask(32);\n'
         @overrideInOperand
         def makeWrite(self):
+            '''Masked to 32 bit write'''
             return f'''
             xc->setRegOperand(this, {self.dest_reg_idx}, {self.base_name} &
                     mask(32));
@@ -217,11 +227,15 @@ let {{
 
     class CCReg(CCRegOp):
         def __init__(self, idx):
-            super(CCReg, self).__init__('uw', idx, sort_pri=srtNormal)
+            super().__init__('uw', idx, sort_pri=srtNormal)
 
     class CntrlReg(ControlRegOp):
         def __init__(self, idx, id=srtNormal, ctype='uw', flags=None):
-            super(CntrlReg, self).__init__(ctype, idx, flags, id)
+            super().__init__(ctype, idx, flags, id)
+
+    class CntrlReg64(CntrlReg):
+        def __init__(self, idx, id=srtNormal, ctype='ud'):
+            super().__init__(idx, id, ctype)
 
     class CntrlNsBankedReg(CntrlReg):
         @overrideInOperand
@@ -237,20 +251,18 @@ let {{
                 traceData->setData({self.reg_class}, {self.base_name});
             '''
         def __init__(self, idx, id=srtNormal, ctype='uw'):
-            super(CntrlNsBankedReg, self).__init__(idx, id, ctype,
-                    (None, None, 'IsControl'))
+            super().__init__(idx, id, ctype, (None, None, 'IsControl'))
 
     class CntrlNsBankedReg64(CntrlNsBankedReg):
         def __init__(self, idx, id=srtNormal, ctype='ud'):
-            super(CntrlNsBankedReg64, self).__init__(idx, id, ctype)
+            super().__init__(idx, id, ctype)
 
     class CntrlRegNC(CntrlReg):
         pass
 
     class PCStateReg(PCStateOp):
         def __init__(self, idx, id):
-            super(PCStateReg, self).__init__(
-                    'ud', idx, (None, None, 'IsControl'), id)
+            super().__init__('ud', idx, (None, None, 'IsControl'), id)
 }};
 
 def operands {{
@@ -460,23 +472,22 @@ def operands {{
     'FpscrQc': CntrlRegNC('MISCREG_FPSCR_QC'),
     'FpscrExc': CntrlRegNC('MISCREG_FPSCR_EXC'),
     'Cpacr': CntrlReg('MISCREG_CPACR'),
-    'Cpacr64': CntrlReg('MISCREG_CPACR_EL1'),
+    'Cpacr64': CntrlReg64('MISCREG_CPACR_EL1'),
     'Fpexc': CntrlRegNC('MISCREG_FPEXC'),
     'Nsacr': CntrlReg('MISCREG_NSACR'),
     'ElrHyp': CntrlRegNC('MISCREG_ELR_HYP'),
     'Hcr': CntrlReg('MISCREG_HCR'),
-    'Hcr64': CntrlReg('MISCREG_HCR_EL2'),
-    'Hdcr': CntrlReg('MISCREG_HDCR'),
-    'Hcptr': CntrlReg('MISCREG_HCPTR'),
-    'CptrEl264': CntrlReg('MISCREG_CPTR_EL2'),
-    'CptrEl364': CntrlReg('MISCREG_CPTR_EL3'),
+    'Hcr64': CntrlReg64('MISCREG_HCR_EL2'),
+    'CptrEl264': CntrlReg64('MISCREG_CPTR_EL2'),
+    'CptrEl364': CntrlReg64('MISCREG_CPTR_EL3'),
     'Hstr': CntrlReg('MISCREG_HSTR'),
     'Scr': CntrlReg('MISCREG_SCR'),
-    'Scr64': CntrlReg('MISCREG_SCR_EL3'),
+    'Scr64': CntrlReg64('MISCREG_SCR_EL3'),
     'Sctlr': CntrlRegNC('MISCREG_SCTLR'),
     'SevMailbox': CntrlRegNC('MISCREG_SEV_MAILBOX'),
     'LLSCLock': CntrlRegNC('MISCREG_LOCKFLAG'),
     'Dczid' : CntrlRegNC('MISCREG_DCZID_EL0'),
+    'PendingDvm': CntrlRegNC('MISCREG_TLBINEEDSYNC'),
 
     #Register fields for microops
     'URa' : IntReg('ura'),

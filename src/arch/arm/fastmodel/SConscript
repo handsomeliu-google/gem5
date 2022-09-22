@@ -268,6 +268,9 @@ class ProjectFileParser(Grammar):
         t[0] = t[1]
 
 
+# If fast model is disabled, ARMLMD_LICENSE_COUNT will be 0 which will break
+# the cycle() iterator below. The fast model components won't be built, but
+# they still need to be set up successfully with valid license slots.
 license_count = max(int(env['CONF']['ARMLMD_LICENSE_COUNT']), 1)
 arm_licenses = list((Value(object()) for i in range(license_count)))
 license_cycle = cycle(arm_licenses)
@@ -434,7 +437,8 @@ Export('ArmFastModelComponent')
 PySource('m5', 'arm_fast_model.py', tags='arm fastmodel')
 Source('fastmodel.cc', tags='arm fastmodel')
 
-SimObject('FastModel.py', tags='arm fastmodel')
+SimObject('FastModel.py', sim_objects=[
+    'AmbaToTlmBridge64', 'AmbaFromTlmBridge64'], tags='arm fastmodel')
 Source('amba_to_tlm_bridge.cc', tags='arm fastmodel')
 Source('amba_from_tlm_bridge.cc', tags='arm fastmodel')
 Source('remote_gdb.cc', tags='arm fastmodel')

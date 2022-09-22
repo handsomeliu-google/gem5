@@ -322,7 +322,8 @@ X86_64Process::initState()
             // LDT
             tc->setMiscReg(misc_reg::Tsl, 0);
             SegAttr tslAttr = 0;
-            tslAttr.present = 1;
+            tslAttr.unusable = 1;
+            tslAttr.present = 0;
             tslAttr.type = 2;
             tc->setMiscReg(misc_reg::TslAttr, tslAttr);
 
@@ -684,6 +685,9 @@ I386Process::initState()
 
         // Set the LDT selector to 0 to deactivate it.
         tc->setMiscRegNoEffect(misc_reg::Tsl, 0);
+        SegAttr attr = 0;
+        attr.unusable = 1;
+        tc->setMiscRegNoEffect(misc_reg::TslAttr, attr);
 
         Efer efer = 0;
         efer.sce = 1; // Enable system call extensions.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012,2015,2018,2020 ARM Limited
+ * Copyright (c) 2011-2012,2015,2018,2020-2021 ARM Limited
  * Copyright (c) 2013 Advanced Micro Devices, Inc.
  * All rights reserved
  *
@@ -42,6 +42,9 @@
 #ifndef __CPU_SIMPLE_BASE_HH__
 #define __CPU_SIMPLE_BASE_HH__
 
+#include <memory>
+
+#include "arch/generic/pcstate.hh"
 #include "base/statistics.hh"
 #include "cpu/base.hh"
 #include "cpu/checker/cpu.hh"
@@ -185,11 +188,15 @@ class BaseSimpleCPU : public BaseCPU
     void serializeThread(CheckpointOut &cp, ThreadID tid) const override;
     void unserializeThread(CheckpointIn &cp, ThreadID tid) override;
 
-    /** Hardware transactional memory commands (HtmCmds), e.g. start a
-     * transaction and commit a transaction, are memory operations but are
-     * neither really (true) loads nor stores. For this reason the interface
-     * is extended and initiateHtmCmd() is used to instigate the command. */
-    virtual Fault initiateHtmCmd(Request::Flags flags) = 0;
+    /**
+     * Memory management commands such as hardware transactional memory
+     * commands or TLB invalidation commands are memory operations but are
+     * neither really (true) loads nor stores.
+     * For this reason the interface is extended,
+     * and initiateMemMgmtCmd() is used to instigate the command.
+     */
+    virtual Fault initiateMemMgmtCmd(Request::Flags flags) = 0;
+
 };
 
 } // namespace gem5

@@ -35,23 +35,22 @@ Notes
 * This will only function for the X86 ISA.
 """
 
-import m5
-import m5.ticks
-from m5.objects import Root
-
+import m5.stats
 
 from gem5.resources.resource import Resource
 from gem5.components.boards.x86_board import X86Board
-from gem5.components.memory.single_channel import SingleChannelDDR3_1600
+from gem5.components.memory import SingleChannelDDR3_1600
 from gem5.components.processors.simple_switchable_processor import (
     SimpleSwitchableProcessor,
 )
-from gem5.components.processors.cpu_types import CPUTypes
-from gem5.isas import ISA
-from gem5.runtime import (
-    get_runtime_isas,
-    get_runtime_coherence_protocol,
+from gem5.components.processors.cpu_types import (
+    get_cpu_types_str_set,
+    get_cpu_type_from_str,
 )
+from gem5.isas import ISA
+from gem5.runtime import get_runtime_isa, get_runtime_coherence_protocol
+from gem5.simulate.simulator import Simulator
+from gem5.simulate.exit_event import ExitEvent
 from gem5.utils.requires import requires
 
 import time
@@ -79,7 +78,7 @@ parser.add_argument(
     "-b",
     "--boot-cpu",
     type=str,
-    choices=("kvm", "timing", "atomic", "o3"),
+    choices=get_cpu_types_str_set(),
     required=False,
     help="The CPU type to run before and after the ROI. If not specified will "
     "be equal to that of the CPU type used in the ROI.",
@@ -89,7 +88,7 @@ parser.add_argument(
     "-c",
     "--cpu",
     type=str,
-    choices=("kvm", "timing", "atomic", "o3"),
+    choices=get_cpu_types_str_set(),
     required=True,
     help="The CPU type used in the ROI.",
 )
@@ -149,19 +148,15 @@ args = parser.parse_args()
 
 if args.mem_system == "classic":
 
-    from gem5.components.cachehierarchies.classic.\
-        private_l1_private_l2_cache_hierarchy import (
+    from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierarchy import (
         PrivateL1PrivateL2CacheHierarchy,
     )
 
     cache_hierarchy = PrivateL1PrivateL2CacheHierarchy(
-        l1d_size="32kB",
-        l1i_size="32kB",
-        l2_size="256kB",
+        l1d_size="32kB", l1i_size="32kB", l2_size="256kB"
     )
 elif args.mem_system == "mesi_two_level":
-    from gem5.components.cachehierarchies.ruby.\
-        mesi_two_level_cache_hierarchy import (
+    from gem5.components.cachehierarchies.ruby.mesi_two_level_cache_hierarchy import (
         MESITwoLevelCacheHierarchy,
     )
 
@@ -178,23 +173,9 @@ elif args.mem_system == "mesi_two_level":
 # Setup the memory system.
 memory = SingleChannelDDR3_1600(size="3GB")
 
-
-def input_to_cputype(input: str) -> CPUTypes:
-    if input == "kvm":
-        return CPUTypes.KVM
-    elif input == "timing":
-        return CPUTypes.TIMING
-    elif input == "atomic":
-        return CPUTypes.ATOMIC
-    elif input == "o3":
-        return CPUTypes.O3
-    else:
-        raise NotADirectoryError("Unknown CPU type '{}'.".format(input))
-
-
-roi_type = input_to_cputype(args.cpu)
+roi_type = get_cpu_type_from_str(args.cpu)
 if args.boot_cpu != None:
-    boot_type = input_to_cputype(args.boot_cpu)
+    boot_type = get_cpu_type_from_str(args.boot_cpu)
 else:
     boot_type = roi_type
 
@@ -202,6 +183,7 @@ else:
 processor = SimpleSwitchableProcessor(
     starting_core_type=boot_type,
     switch_core_type=roi_type,
+    isa=ISA.X86,
     num_cores=args.num_cpus,
 )
 
@@ -220,123 +202,62 @@ command = (
     + "parsecmgmt -a run -p {} ".format(args.benchmark)
     + "-c gcc-hooks -i {} ".format(args.size)
     + "-n {}\n".format(str(args.num_cpus))
-    + "sleep 5 \n"
-    + "m5 exit \n"
 )
 
 board.set_kernel_disk_workload(
     kernel=Resource(
-        "x86-linux-kernel-5.4.49",
-        resource_directory=args.resource_directory,
+        "x86-linux-kernel-5.4.49", resource_directory=args.resource_directory
     ),
     disk_image=Resource(
-        "x86-parsec",
-        resource_directory=args.resource_directory,
+        "x86-parsec", resource_directory=args.resource_directory
     ),
     readfile_contents=command,
 )
 
-print("Running with ISA: " + get_runtime_isas()[0].name)
+print("Running with ISA: " + get_runtime_isa().name)
 print("Running with protocol: " + get_runtime_coherence_protocol().name)
 print()
 
-root = Root(full_system=True, system=board)
 
-if args.cpu == "kvm" or args.boot_cpu == "kvm":
-    # TODO: This of annoying. Is there a way to fix this to happen
-    # automatically when running KVM?
-    root.sim_quantum = int(1e9)
+# Here we define some custom workbegin/workend exit event generators. Here we
+# want to switch to detailed CPUs at the beginning of the ROI, then continue to
+# the end of of the ROI. Then we exit the simulation.
+def workbegin():
+    processor.switch()
+    yield False
 
-m5.instantiate()
 
-globalStart = time.time()
-print("Beginning the simulation")
+def workend():
+    yield True
 
-start_tick = m5.curTick()
-end_tick = m5.curTick()
 
-m5.stats.reset()
+simulator = Simulator(
+    board=board,
+    on_exit_event={
+        ExitEvent.WORKBEGIN: workbegin(),
+        ExitEvent.WORKEND: workend(),
+    },
+)
 
-exit_event = m5.simulate()
+global_start = time.time()
+simulator.run()
+global_end = time.time()
+global_time = global_end - global_start
 
-if exit_event.getCause() == "workbegin":
-    print("Done booting Linux")
-    # Reached the start of ROI.
-    # The start of the ROI is marked by an m5_work_begin() call.
-    print("Resetting stats at the start of ROI!")
-    m5.stats.reset()
-    start_tick = m5.curTick()
+roi_ticks = simulator.get_roi_ticks()
+assert len(roi_ticks) == 1
 
-    # Switch to the Timing Processor.
-    board.get_processor().switch()
-else:
-    print("Unexpected termination of simulation!")
-    print("Cause: {}".format(exit_event.getCause()))
-    print()
-
-    m5.stats.dump()
-    end_tick = m5.curTick()
-
-    m5.stats.reset()
-    print("Performance statistics:")
-    print("Simulated time: {}s".format((end_tick - start_tick) / 1e12))
-    print("Ran a total of", m5.curTick() / 1e12, "simulated seconds")
-    print(
-        "Total wallclock time: {}s, {} min".format(
-            (
-                time.time() - globalStart,
-                (time.time() - globalStart) / 60,
-            )
-        )
-    )
-    exit(1)
-
-# Simulate the ROI.
-exit_event = m5.simulate()
-
-if exit_event.getCause() == "workend":
-    # Reached the end of ROI
-    # The end of the ROI is marked by an m5_work_end() call.
-    print("Dumping stats at the end of the ROI!")
-    m5.stats.dump()
-    end_tick = m5.curTick()
-
-    m5.stats.reset()
-
-    # Switch back to the Atomic Processor
-    board.get_processor().switch()
-else:
-    print("Unexpected termination of simulation!")
-    print("Cause: {}".format(exit_event.getCause()))
-    print()
-    m5.stats.dump()
-    end_tick = m5.curTick()
-
-    m5.stats.reset()
-    print("Performance statistics:")
-    print("Simulated time: {}s".format((end_tick - start_tick) / 1e12))
-    print("Ran a total of", m5.curTick() / 1e12, "simulated seconds")
-    print(
-        "Total wallclock time: {}s, {} min".format(
-            time.time() - globalStart,
-            (time.time() - globalStart) / 60,
-        )
-    )
-    exit(1)
-
-# Simulate the remaning part of the benchmark
-# Run the rest of the workload until m5 exit
-
-exit_event = m5.simulate()
 
 print("Done running the simulation")
 print()
 print("Performance statistics:")
 
-print("Simulated time in ROI: {}s".format((end_tick - start_tick) / 1e12))
-print("Ran a total of {} simulated seconds".format(m5.curTick() / 1e12))
+print("Simulated time in ROI: {}s".format((roi_ticks[0]) / 1e12))
 print(
-    "Total wallclock time: {}s, {} min".format(
-        time.time() - globalStart, (time.time() - globalStart) / 60
+    "Ran a total of {} simulated seconds".format(
+        simulator.get_current_tick() / 1e12
     )
+)
+print(
+    "Total wallclock time: {}s, {} min".format(global_time, (global_time) / 60)
 )

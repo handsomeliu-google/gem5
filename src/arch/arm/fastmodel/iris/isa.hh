@@ -53,6 +53,12 @@ class ISA : public BaseISA
         return ArmISA::inUserMode(cpsr);
     }
 
+    PCStateBase *
+    newPCState(Addr new_inst_addr=0) const override
+    {
+        return new ArmISA::PCState(new_inst_addr);
+    }
+
     RegVal
     readMiscRegNoEffect(RegIndex idx) const override
     {
@@ -75,12 +81,6 @@ class ISA : public BaseISA
     setMiscReg(RegIndex idx, RegVal val) override
     {
         panic("setMiscReg not implemented.");
-    }
-
-    PCStateBase *
-    newPCState(Addr new_inst_addr=0) const override
-    {
-        return new ArmISA::PCState(new_inst_addr);
     }
 };
 

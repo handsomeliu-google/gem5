@@ -88,9 +88,6 @@ struct Result<ABI, SyscallReturn,
     static void
     store(ThreadContext *tc, const SyscallReturn &ret)
     {
-        if (ret.suppressed() || ret.needsRetry())
-            return;
-
         tc->setReg(X86ISA::int_reg::Rax, ret.encodedValue());
     }
 };

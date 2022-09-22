@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2012-2013, 2016-2020 ARM Limited
+ * Copyright (c) 2010, 2012-2013, 2016-2020, 2022 Arm Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -51,6 +51,7 @@
 #include "base/types.hh"
 #include "cpu/static_inst.hh"
 #include "cpu/thread_context.hh"
+#include "enums/ArmExtension.hh"
 
 namespace gem5
 {
@@ -108,18 +109,11 @@ bool isSecure(ThreadContext *tc);
 
 bool inAArch64(ThreadContext *tc);
 
-static inline OperatingMode
-currOpMode(const ThreadContext *tc)
-{
-    CPSR cpsr = tc->readMiscRegNoEffect(MISCREG_CPSR);
-    return (OperatingMode) (uint8_t) cpsr.mode;
-}
-
-static inline ExceptionLevel
-currEL(const ThreadContext *tc)
-{
-    return opModeToEL(currOpMode(tc));
-}
+/**
+ * Returns the current Exception Level (EL) of the
+ * provided ThreadContext
+ */
+ExceptionLevel currEL(const ThreadContext *tc);
 
 inline ExceptionLevel
 currEL(CPSR cpsr)
@@ -127,10 +121,12 @@ currEL(CPSR cpsr)
     return opModeToEL((OperatingMode) (uint8_t)cpsr.mode);
 }
 
-bool HavePACExt(ThreadContext *tc);
-bool HaveVirtHostExt(ThreadContext *tc);
-bool HaveLVA(ThreadContext *tc);
-bool HaveSecureEL2Ext(ThreadContext *tc);
+/**
+ * Returns true if the provided ThreadContext supports the ArmExtension
+ * passed as a second argument.
+ */
+bool HaveExt(ThreadContext *tc, ArmExtension ext);
+
 bool IsSecureEL2Enabled(ThreadContext *tc);
 bool EL2Enabled(ThreadContext *tc);
 
@@ -214,25 +210,10 @@ Addr purifyTaggedAddr(Addr addr, ThreadContext *tc, ExceptionLevel el,
                       TCR tcr, bool isInstr);
 Addr purifyTaggedAddr(Addr addr, ThreadContext *tc, ExceptionLevel el,
                       bool isInstr);
+Addr maskTaggedAddr(Addr addr, ThreadContext *tc, ExceptionLevel el,
+                    int topbit);
 int computeAddrTop(ThreadContext *tc, bool selbit, bool isInstr,
                    TCR tcr, ExceptionLevel el);
-
-static inline bool
-inSecureState(SCR scr, CPSR cpsr)
-{
-    switch ((OperatingMode) (uint8_t) cpsr.mode) {
-      case MODE_MON:
-      case MODE_EL3T:
-      case MODE_EL3H:
-        return true;
-      case MODE_HYP:
-      case MODE_EL2T:
-      case MODE_EL2H:
-        return false;
-      default:
-        return !scr.ns;
-    }
-}
 
 bool isSecureBelowEL3(ThreadContext *tc);
 
@@ -247,7 +228,7 @@ RegVal readMPIDR(ArmSystem *arm_sys, ThreadContext *tc);
 RegVal getMPIDR(ArmSystem *arm_sys, ThreadContext *tc);
 
 /** Retrieves MPIDR_EL1.{Aff2,Aff1,Aff0} affinity numbers */
-RegVal getAffinity(ArmSystem *arm_sys, ThreadContext *tc);
+Affinity getAffinity(ArmSystem *arm_sys, ThreadContext *tc);
 
 static inline uint32_t
 mcrMrcIssBuild(bool isRead, uint32_t crm, RegIndex rt, uint32_t crn,
@@ -284,26 +265,13 @@ mcrrMrrcIssBuild(bool isRead, uint32_t crm, RegIndex rt, RegIndex rt2,
            (opc1 << 16);
 }
 
-static inline uint32_t
-msrMrs64IssBuild(bool isRead, uint32_t op0, uint32_t op1, uint32_t crn,
-                 uint32_t crm, uint32_t op2, RegIndex rt)
-{
-    return isRead |
-        (crm << 1) |
-        (rt << 5) |
-        (crn << 10) |
-        (op1 << 14) |
-        (op2 << 17) |
-        (op0 << 20);
-}
-
 Fault mcrMrc15Trap(const MiscRegIndex miscReg, ExtMachInst machInst,
                    ThreadContext *tc, uint32_t imm);
 bool mcrMrc15TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc,
                        uint32_t iss, ExceptionClass *ec=nullptr);
 
-bool mcrMrc14TrapToHyp(const MiscRegIndex miscReg, HCR hcr, CPSR cpsr, SCR scr,
-                       HDCR hdcr, HSTR hstr, HCPTR hcptr, uint32_t iss);
+bool mcrMrc14TrapToHyp(const MiscRegIndex miscReg, ThreadContext *tc,
+                       uint32_t iss);
 
 Fault mcrrMrrc15Trap(const MiscRegIndex miscReg, ExtMachInst machInst,
                      ThreadContext *tc, uint32_t imm);

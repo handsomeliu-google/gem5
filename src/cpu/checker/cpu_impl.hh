@@ -593,11 +593,11 @@ Checker<DynInstPtr>::copyResult(
         if (idx.classValue() == InvalidRegClass)
             ; // Do nothing.
         else if (idx.classValue() == MiscRegClass)
-            thread->setMiscReg(idx.index(), mismatch_val.asRegVal());
-        else if (mismatch_val.isBlob())
-            thread->setReg(idx, mismatch_val.asBlob());
+            thread->setMiscReg(idx.index(), 0);
+        else if (res.isBlob())
+            thread->setReg(idx, res.asBlob());
         else
-            thread->setReg(idx, mismatch_val.asRegVal());
+            thread->setReg(idx, res.asRegVal());
     }
 }
 

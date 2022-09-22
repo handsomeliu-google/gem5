@@ -2,8 +2,6 @@
  * Copyright (c) 2011-2015 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -460,9 +458,12 @@ class ComputeUnit : public ClockedObject
     void updatePageDivergenceDist(Addr addr);
 
     RequestorID requestorId() { return _requestorId; }
+    RequestorID vramRequestorId();
 
     bool isDone() const;
     bool isVectorAluIdle(uint32_t simdId) const;
+
+    void handleSQCReturn(PacketPtr pkt);
 
   protected:
     RequestorID _requestorId;
@@ -528,6 +529,28 @@ class ComputeUnit : public ClockedObject
                   saved(sender_state) { }
         };
 
+        class SystemHubEvent : public Event
+        {
+          DataPort *dataPort;
+          PacketPtr reqPkt;
+
+          public:
+            SystemHubEvent(PacketPtr pkt, DataPort *_dataPort)
+                : dataPort(_dataPort), reqPkt(pkt)
+            {
+                setFlags(Event::AutoDelete);
+            }
+
+            void
+            process()
+            {
+                // DMAs do not operate on packets and therefore do not
+                // convert to a response. Do that here instead.
+                reqPkt->makeResponse();
+                dataPort->handleResponse(reqPkt);
+            }
+        };
+
         void processMemReqEvent(PacketPtr pkt);
         EventFunctionWrapper *createMemReqEvent(PacketPtr pkt);
 
@@ -535,6 +558,8 @@ class ComputeUnit : public ClockedObject
         EventFunctionWrapper *createMemRespEvent(PacketPtr pkt);
 
         std::deque<std::pair<PacketPtr, GPUDynInstPtr>> retries;
+
+        bool handleResponse(PacketPtr pkt);
 
       protected:
         ComputeUnit *computeUnit;
@@ -594,6 +619,30 @@ class ComputeUnit : public ClockedObject
             void process();
             const char *description() const;
         };
+
+        class SystemHubEvent : public Event
+        {
+          ScalarDataPort *dataPort;
+          PacketPtr reqPkt;
+
+          public:
+            SystemHubEvent(PacketPtr pkt, ScalarDataPort *_dataPort)
+                : dataPort(_dataPort), reqPkt(pkt)
+            {
+                setFlags(Event::AutoDelete);
+            }
+
+            void
+            process()
+            {
+                // DMAs do not operate on packets and therefore do not
+                // convert to a response. Do that here instead.
+                reqPkt->makeResponse();
+                dataPort->handleResponse(reqPkt);
+            }
+        };
+
+        bool handleResponse(PacketPtr pkt);
 
         std::deque<PacketPtr> retries;
 

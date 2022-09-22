@@ -24,9 +24,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from .abstract_board import AbstractBoard
 from ...resources.resource import AbstractResource
+from gem5.utils.simpoint import SimPoint
 
 from m5.objects import SEWorkload, Process
+
+from typing import Optional, List
+from m5.util import warn
+
 
 class SEBinaryWorkload:
     """
@@ -36,21 +42,65 @@ class SEBinaryWorkload:
     For this to function correctly the SEBinaryWorkload class should be added
     as a superclass to a board (i.e., something that inherits from
     AbstractBoard).
+
+    **Important Notes:** At present this implementation is limited. A single
+    process is added to all cores as the workload. Therefore, despite allowing
+    for multi-core setups, multi-program workloads are not presently supported.
     """
 
-    def set_se_binary_workload(self, binary: AbstractResource) -> None:
+    def set_se_binary_workload(
+        self,
+        binary: AbstractResource,
+        exit_on_work_items: bool = True,
+        stdin_file: Optional[AbstractResource] = None,
+        arguments: List[str] = [],
+        simpoint: SimPoint = None,
+    ) -> None:
         """Set up the system to run a specific binary.
 
         **Limitations**
-        * Only supports single threaded applications
+        * Only supports single threaded applications.
         * Dynamically linked executables are partially supported when the host
           ISA and the simulated ISA are the same.
 
+        **Warning:** SimPoints only works with one core
+
         :param binary: The resource encapsulating the binary to be run.
+        :param exit_on_work_items: Whether the simulation should exit on work
+        items. True by default.
+        :param stdin_file: The input file for the binary
+        :param arguments: The input arguments for the binary
+        :param simpoint: The SimPoint object that contains the list of
+        SimPoints starting instructions, the list of weights, and the SimPoints
+        interval
         """
 
-        self.workload = SEWorkload.init_compatible(binary.get_local_path())
+        # We assume this this is in a multiple-inheritance setup with an
+        # Abstract board. This function will not work otherwise.
+        assert isinstance(self, AbstractBoard)
+
+        # If we are setting a workload of this type, we need to run as a
+        # SE-mode simulation.
+        self._set_fullsystem(False)
+
+        binary_path = binary.get_local_path()
+        self.workload = SEWorkload.init_compatible(binary_path)
 
         process = Process()
-        process.cmd = [binary.get_local_path()]
-        self.get_processor().get_cores()[0].set_workload(process)
+        process.executable = binary_path
+        process.cmd = [binary_path] + arguments
+        if stdin_file is not None:
+            process.input = stdin_file.get_local_path()
+
+        for core in self.get_processor().get_cores():
+            core.set_workload(process)
+
+        if simpoint is not None:
+            if self.get_processor().get_num_cores() > 1:
+                warn("SimPoints only works with one core")
+            self.get_processor().get_cores()[0].set_simpoint(
+                inst_starts=simpoint.get_simpoint_start_insts(), init=True
+            )
+
+        # Set whether to exit on work items for the se_workload
+        self.exit_on_work_items = exit_on_work_items

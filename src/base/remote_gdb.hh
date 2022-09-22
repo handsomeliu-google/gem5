@@ -402,9 +402,9 @@ class BaseRemoteGDB
     void encodeXferResponse(const std::string &unencoded,
         std::string &encoded, size_t offset, size_t unencoded_length) const;
 
-    // checkBpKind checks if a kind of breakpoint is legal. This function
-    // should be implemented by subclasses by arch. The "kind" is considered to
-    // be breakpoint size in some arch.
+    // checkBpKind checks if a kind of breakpoint is legal. This function should
+    // be implemented by subclasses by arch. The "kind" is considered to be
+    // breakpoint size in some arch.
     virtual bool checkBpKind(size_t kind);
 
     virtual BaseGdbRegCache *gdbRegs() = 0;

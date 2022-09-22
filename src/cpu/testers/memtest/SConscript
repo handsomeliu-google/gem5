@@ -28,7 +28,7 @@
 
 Import('*')
 
-SimObject('MemTest.py')
+SimObject('MemTest.py', sim_objects=['MemTest'])
 
 Source('memtest.cc')
 

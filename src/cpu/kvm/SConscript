@@ -42,8 +42,8 @@ if env['CONF']['USE_KVM']:
     env.TagImplies(env.subst('${CONF["KVM_ISA"]} kvm'),
             env.subst('${CONF["KVM_ISA"]} isa'))
 
-    SimObject('KvmVM.py', tags='kvm')
-    SimObject('BaseKvmCPU.py', tags='kvm')
+SimObject('KvmVM.py', sim_objects=['KvmVM'], tags='kvm')
+SimObject('BaseKvmCPU.py', sim_objects=['BaseKvmCPU'], tags='kvm')
 
 Source('base.cc', tags='kvm')
 Source('device.cc', tags='kvm')

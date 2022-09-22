@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014, 2016-2020 ARM Limited
+ * Copyright (c) 2010-2014, 2016-2020,2022 Arm Limited
  * Copyright (c) 2013 Advanced Micro Devices, Inc.
  * All rights reserved
  *
@@ -678,7 +678,7 @@ ArmStaticInst::checkFPAdvSIMDTrap64(ThreadContext *tc, CPSR cpsr) const
         bool trap_el2 = false;
         CPTR cptr_en_check = tc->readMiscReg(MISCREG_CPTR_EL2);
         HCR hcr = tc->readMiscReg(MISCREG_HCR_EL2);
-        if (HaveVirtHostExt(tc) && hcr.e2h == 0x1) {
+        if (HaveExt(tc, ArmExtension::FEAT_VHE) && hcr.e2h == 0x1) {
             switch (cptr_en_check.fpen) {
               case 0:
               case 2:
@@ -715,8 +715,9 @@ ArmStaticInst::checkFPAdvSIMDEnabled64(ThreadContext *tc,
                                        CPSR cpsr, CPACR cpacr) const
 {
     const ExceptionLevel el = currEL(tc);
-    if ((el == EL0 && cpacr.fpen != 0x3) ||
-        (el == EL1 && !(cpacr.fpen & 0x1)))
+    if (((el == EL0 && cpacr.fpen != 0x3) ||
+        (el == EL1 && !(cpacr.fpen & 0x1))) &&
+        !ELIsInHost(tc, el))
         return advSIMDFPAccessTrap64(EL1);
 
     return checkFPAdvSIMDTrap64(tc, cpsr);
@@ -1031,7 +1032,7 @@ ArmStaticInst::checkSveEnabled(ThreadContext *tc, CPSR cpsr, CPACR cpacr) const
     if (el <= EL2 && EL2Enabled(tc)) {
         CPTR cptr_en_check = tc->readMiscReg(MISCREG_CPTR_EL2);
         HCR hcr = tc->readMiscReg(MISCREG_HCR_EL2);
-        if (HaveVirtHostExt(tc) && hcr.e2h) {
+        if (HaveExt(tc, ArmExtension::FEAT_VHE) && hcr.e2h) {
             if (((cptr_en_check.zen & 0x1) == 0x0) ||
                 (cptr_en_check.zen == 0x1 && el == EL0 &&
                  hcr.tge == 0x1)) {

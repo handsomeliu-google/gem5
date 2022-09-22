@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2016 ARM Limited
+ * Copyright (c) 2010, 2016, 2021 ARM Limited
  * Copyright (c) 2013 Advanced Micro Devices, Inc.
  * All rights reserved
  *
@@ -82,13 +82,31 @@ class DynInst : public ExecContext, public RefCounted
     // The list of instructions iterator type.
     typedef typename std::list<DynInstPtr>::iterator ListIt;
 
+    struct Arrays
+    {
+        size_t numSrcs;
+        size_t numDests;
+
+        RegId *flatDestIdx;
+        PhysRegIdPtr *destIdx;
+        PhysRegIdPtr *prevDestIdx;
+        PhysRegIdPtr *srcIdx;
+        uint8_t *readySrcIdx;
+    };
+
+    static void *operator new(size_t count, Arrays &arrays);
+
     /** BaseDynInst constructor given a binary instruction. */
-    DynInst(const StaticInstPtr &staticInst, const StaticInstPtr
-            &macroop, const PCStateBase &pc, const PCStateBase &pred_pc,
-            InstSeqNum seq_num, CPU *cpu);
+    DynInst(const Arrays &arrays, const StaticInstPtr &staticInst,
+            const StaticInstPtr &macroop, InstSeqNum seq_num, CPU *cpu);
+
+    DynInst(const Arrays &arrays, const StaticInstPtr &staticInst,
+            const StaticInstPtr &macroop, const PCStateBase &pc,
+            const PCStateBase &pred_pc, InstSeqNum seq_num, CPU *cpu);
 
     /** BaseDynInst constructor given a static inst pointer. */
-    DynInst(const StaticInstPtr &_staticInst, const StaticInstPtr &_macroop);
+    DynInst(const Arrays &arrays, const StaticInstPtr &_staticInst,
+            const StaticInstPtr &_macroop);
 
     ~DynInst();
 
@@ -196,165 +214,103 @@ class DynInst : public ExecContext, public RefCounted
      */
     std::vector<short> _destMiscRegIdx;
 
-    /**
-     * Collect register related information into a single struct. The number of
-     * source and destination registers can vary, and storage for information
-     * about them needs to be allocated dynamically. This class figures out
-     * how much space is needed and allocates it all at once, and then
-     * trivially divies it up for each type of per-register array.
-     */
-    struct Regs
-    {
-      private:
-        size_t _numSrcs;
-        size_t _numDests;
+    size_t _numSrcs;
+    size_t _numDests;
 
-        using BackingStorePtr = std::unique_ptr<uint8_t[]>;
-        using BufCursor = BackingStorePtr::pointer;
+    // Flattened register index of the destination registers of this
+    // instruction.
+    RegId *_flatDestIdx;
 
-        BackingStorePtr buf;
+    // Physical register index of the destination registers of this
+    // instruction.
+    PhysRegIdPtr *_destIdx;
 
-        // Members should be ordered based on required alignment so that they
-        // can be allocated contiguously.
+    // Physical register index of the previous producers of the
+    // architected destinations.
+    PhysRegIdPtr *_prevDestIdx;
 
-        // Flattened register index of the destination registers of this
-        // instruction.
-        RegId *_flatDestIdx;
+    // Physical register index of the source registers of this instruction.
+    PhysRegIdPtr *_srcIdx;
 
-        // Physical register index of the destination registers of this
-        // instruction.
-        PhysRegIdPtr *_destIdx;
-
-        // Physical register index of the previous producers of the
-        // architected destinations.
-        PhysRegIdPtr *_prevDestIdx;
-
-        static inline size_t
-        bytesForDests(size_t num)
-        {
-            return (sizeof(RegId) + 2 * sizeof(PhysRegIdPtr)) * num;
-        }
-
-        // Physical register index of the source registers of this instruction.
-        PhysRegIdPtr *_srcIdx;
-
-        // Whether or not the source register is ready, one bit per register.
-        uint8_t *_readySrcIdx;
-
-        static inline size_t
-        bytesForSources(size_t num)
-        {
-            return sizeof(PhysRegIdPtr) * num +
-                sizeof(uint8_t) * ((num + 7) / 8);
-        }
-
-        template <class T>
-        static inline void
-        allocate(T *&ptr, BufCursor &cur, size_t count)
-        {
-            ptr = new (cur) T[count];
-            cur += sizeof(T) * count;
-        }
-
-      public:
-        size_t numSrcs() const { return _numSrcs; }
-        size_t numDests() const { return _numDests; }
-
-        void
-        init()
-        {
-            std::fill(_readySrcIdx, _readySrcIdx + (numSrcs() + 7) / 8, 0);
-        }
-
-        Regs(size_t srcs, size_t dests) : _numSrcs(srcs), _numDests(dests),
-            buf(new uint8_t[bytesForSources(srcs) + bytesForDests(dests)])
-        {
-            BufCursor cur = buf.get();
-            allocate(_flatDestIdx, cur, dests);
-            allocate(_destIdx, cur, dests);
-            allocate(_prevDestIdx, cur, dests);
-            allocate(_srcIdx, cur, srcs);
-            allocate(_readySrcIdx, cur, (srcs + 7) / 8);
-
-            init();
-        }
-
-        // Returns the flattened register index of the idx'th destination
-        // register.
-        const RegId &
-        flattenedDestIdx(int idx) const
-        {
-            return _flatDestIdx[idx];
-        }
-
-        // Flattens a destination architectural register index into a logical
-        // index.
-        void
-        flattenedDestIdx(int idx, const RegId &reg_id)
-        {
-            _flatDestIdx[idx] = reg_id;
-        }
-
-        // Returns the physical register index of the idx'th destination
-        // register.
-        PhysRegIdPtr
-        renamedDestIdx(int idx) const
-        {
-            return _destIdx[idx];
-        }
-
-        // Set the renamed dest register id.
-        void
-        renamedDestIdx(int idx, PhysRegIdPtr phys_reg_id)
-        {
-            _destIdx[idx] = phys_reg_id;
-        }
-
-        // Returns the physical register index of the previous physical
-        // register that remapped to the same logical register index.
-        PhysRegIdPtr
-        prevDestIdx(int idx) const
-        {
-            return _prevDestIdx[idx];
-        }
-
-        // Set the previous renamed dest register id.
-        void
-        prevDestIdx(int idx, PhysRegIdPtr phys_reg_id)
-        {
-            _prevDestIdx[idx] = phys_reg_id;
-        }
-
-        // Returns the physical register index of the i'th source register.
-        PhysRegIdPtr
-        renamedSrcIdx(int idx) const
-        {
-            return _srcIdx[idx];
-        }
-
-        void
-        renamedSrcIdx(int idx, PhysRegIdPtr phys_reg_id)
-        {
-            _srcIdx[idx] = phys_reg_id;
-        }
-
-        bool
-        readySrcIdx(int idx) const
-        {
-            uint8_t &byte = _readySrcIdx[idx / 8];
-            return bits(byte, idx % 8);
-        }
-
-        void
-        readySrcIdx(int idx, bool ready)
-        {
-            uint8_t &byte = _readySrcIdx[idx / 8];
-            replaceBits(byte, idx % 8, ready ? 1 : 0);
-        }
-    };
+    // Whether or not the source register is ready, one bit per register.
+    uint8_t *_readySrcIdx;
 
   public:
-    Regs regs;
+    size_t numSrcs() const { return _numSrcs; }
+    size_t numDests() const { return _numDests; }
+
+    // Returns the flattened register index of the idx'th destination
+    // register.
+    const RegId &
+    flattenedDestIdx(int idx) const
+    {
+        return _flatDestIdx[idx];
+    }
+
+    // Flattens a destination architectural register index into a logical
+    // index.
+    void
+    flattenedDestIdx(int idx, const RegId &reg_id)
+    {
+        _flatDestIdx[idx] = reg_id;
+    }
+
+    // Returns the physical register index of the idx'th destination
+    // register.
+    PhysRegIdPtr
+    renamedDestIdx(int idx) const
+    {
+        return _destIdx[idx];
+    }
+
+    // Set the renamed dest register id.
+    void
+    renamedDestIdx(int idx, PhysRegIdPtr phys_reg_id)
+    {
+        _destIdx[idx] = phys_reg_id;
+    }
+
+    // Returns the physical register index of the previous physical
+    // register that remapped to the same logical register index.
+    PhysRegIdPtr
+    prevDestIdx(int idx) const
+    {
+        return _prevDestIdx[idx];
+    }
+
+    // Set the previous renamed dest register id.
+    void
+    prevDestIdx(int idx, PhysRegIdPtr phys_reg_id)
+    {
+        _prevDestIdx[idx] = phys_reg_id;
+    }
+
+    // Returns the physical register index of the i'th source register.
+    PhysRegIdPtr
+    renamedSrcIdx(int idx) const
+    {
+        return _srcIdx[idx];
+    }
+
+    void
+    renamedSrcIdx(int idx, PhysRegIdPtr phys_reg_id)
+    {
+        _srcIdx[idx] = phys_reg_id;
+    }
+
+    bool
+    readySrcIdx(int idx) const
+    {
+        uint8_t &byte = _readySrcIdx[idx / 8];
+        return bits(byte, idx % 8);
+    }
+
+    void
+    readySrcIdx(int idx, bool ready)
+    {
+        uint8_t &byte = _readySrcIdx[idx / 8];
+        replaceBits(byte, idx % 8, ready ? 1 : 0);
+    }
 
     /** The thread this instruction is from. */
     ThreadID threadNumber = 0;
@@ -440,7 +396,7 @@ class DynInst : public ExecContext, public RefCounted
     Fault initiateMemRead(Addr addr, unsigned size, Request::Flags flags,
             const std::vector<bool> &byte_enable) override;
 
-    Fault initiateHtmCmd(Request::Flags flags) override;
+    Fault initiateMemMgmtCmd(Request::Flags flags) override;
 
     Fault writeMem(uint8_t *data, unsigned size, Addr addr,
                    Request::Flags flags, uint64_t *res,
@@ -506,8 +462,8 @@ class DynInst : public ExecContext, public RefCounted
     renameDestReg(int idx, PhysRegIdPtr renamed_dest,
                   PhysRegIdPtr previous_rename)
     {
-        regs.renamedDestIdx(idx, renamed_dest);
-        regs.prevDestIdx(idx, previous_rename);
+        renamedDestIdx(idx, renamed_dest);
+        prevDestIdx(idx, previous_rename);
         if (renamed_dest->isPinned())
             setPinnedRegsRenamed();
     }
@@ -519,7 +475,7 @@ class DynInst : public ExecContext, public RefCounted
     void
     renameSrcReg(int idx, PhysRegIdPtr renamed_src)
     {
-        regs.renamedSrcIdx(idx, renamed_src);
+        renamedSrcIdx(idx, renamed_src);
     }
 
     /** Dumps out contents of this BaseDynInst. */
@@ -718,10 +674,10 @@ class DynInst : public ExecContext, public RefCounted
     }
 
     /** Returns the number of source registers. */
-    size_t numSrcRegs() const { return regs.numSrcs(); }
+    size_t numSrcRegs() const { return numSrcs(); }
 
     /** Returns the number of destination registers. */
-    size_t numDestRegs() const { return regs.numDests(); }
+    size_t numDestRegs() const { return numDests(); }
 
     size_t
     numDestRegs(RegClassType type) const
@@ -1119,9 +1075,14 @@ class DynInst : public ExecContext, public RefCounted
     {
 
         for (int idx = 0; idx < numDestRegs(); idx++) {
-            PhysRegIdPtr prev_phys_reg = regs.prevDestIdx(idx);
+            PhysRegIdPtr prev_phys_reg = prevDestIdx(idx);
             const RegId& original_dest_reg = staticInst->destRegIdx(idx);
             const auto bytes = original_dest_reg.regClass().regBytes();
+
+            // Registers which aren't renamed don't need to be forwarded.
+            if (!original_dest_reg.isRenameable())
+                continue;
+
             if (bytes == sizeof(RegVal)) {
                 setRegOperand(staticInst.get(), idx,
                         cpu->getReg(prev_phys_reg));
@@ -1151,7 +1112,7 @@ class DynInst : public ExecContext, public RefCounted
     RegVal
     getRegOperand(const StaticInst *si, int idx) override
     {
-        const PhysRegIdPtr reg = regs.renamedSrcIdx(idx);
+        const PhysRegIdPtr reg = renamedSrcIdx(idx);
         if (reg->is(InvalidRegClass))
             return 0;
         return cpu->getReg(reg);
@@ -1160,13 +1121,16 @@ class DynInst : public ExecContext, public RefCounted
     void
     getRegOperand(const StaticInst *si, int idx, void *val) override
     {
-        cpu->getReg(regs.renamedSrcIdx(idx), val);
+        const PhysRegIdPtr reg = renamedSrcIdx(idx);
+        if (reg->is(InvalidRegClass))
+            return;
+        cpu->getReg(reg, val);
     }
 
     void *
     getWritableRegOperand(const StaticInst *si, int idx) override
     {
-        return cpu->getWritableReg(regs.renamedDestIdx(idx));
+        return cpu->getWritableReg(renamedDestIdx(idx));
     }
 
     /** @todo: Make results into arrays so they can handle multiple dest
@@ -1175,7 +1139,7 @@ class DynInst : public ExecContext, public RefCounted
     void
     setRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        const PhysRegIdPtr reg = regs.renamedDestIdx(idx);
+        const PhysRegIdPtr reg = renamedDestIdx(idx);
         if (reg->is(InvalidRegClass))
             return;
         cpu->setReg(reg, val);
@@ -1185,7 +1149,9 @@ class DynInst : public ExecContext, public RefCounted
     void
     setRegOperand(const StaticInst *si, int idx, const void *val) override
     {
-        const PhysRegIdPtr reg = regs.renamedDestIdx(idx);
+        const PhysRegIdPtr reg = renamedDestIdx(idx);
+        if (reg->is(InvalidRegClass))
+            return;
         cpu->setReg(reg, val);
         setResult(reg->regClass(), val);
     }

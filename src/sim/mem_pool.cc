@@ -2,8 +2,6 @@
  * Copyright (c) 2011-2021 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -171,6 +169,7 @@ MemPools::freeMemSize(int pool_id) const
 void
 MemPools::serialize(CheckpointOut &cp) const
 {
+    ScopedCheckpointSection sec(cp, "mempools");
     int num_pools = pools.size();
     SERIALIZE_SCALAR(num_pools);
 
@@ -181,6 +180,10 @@ MemPools::serialize(CheckpointOut &cp) const
 void
 MemPools::unserialize(CheckpointIn &cp)
 {
+    // Delete previous mem_pools
+    pools.clear();
+
+    ScopedCheckpointSection sec(cp, "mempools");
     int num_pools = 0;
     UNSERIALIZE_SCALAR(num_pools);
 

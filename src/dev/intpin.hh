@@ -94,7 +94,6 @@ class IntSourcePinBase : public Port
 {
   private:
     IntSinkPinBase *sink = nullptr;
-    bool _state = false;
 
   public:
     IntSourcePinBase(const std::string &_name, PortID _id):

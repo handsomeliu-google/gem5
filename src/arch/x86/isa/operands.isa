@@ -60,8 +60,7 @@ let {{
             return f'(({self.reg_spec}) == gem5::X86ISA::int_reg::T0) ? ' \
                    f'RegId() : {self.reg_class}[{self.reg_spec}]'
         def __init__(self, idx, id, data_size='dataSize', *args, **kwargs):
-            super(IntReg, self).__init__(
-                    'uqw', idx, 'IsInteger', id, *args, **kwargs)
+            super().__init__('uqw', idx, 'IsInteger', id, *args, **kwargs)
             self.attrs['data_size'] = data_size
 
     class PickedReg(IntReg):
@@ -72,7 +71,7 @@ let {{
                         f'{self.data_size});\n'
 
         def __init__(self, idx, id, data_size='dataSize'):
-            super(PickedReg, self).__init__(idx, id, data_size)
+            super().__init__(idx, id, data_size)
 
     class SignedPickedReg(IntReg):
         @overrideInOperand
@@ -82,15 +81,15 @@ let {{
                         f'{self.data_size});\n'
 
         def __init__(self, idx, id, data_size='dataSize'):
-            super(SignedPickedReg, self).__init__(idx, id, data_size)
+            super().__init__(idx, id, data_size)
 
     class FloatReg(FloatRegOp):
         def __init__(self, idx, id):
-            super(FloatReg, self).__init__('df', idx, 'IsFloating', id)
+            super().__init__('df', idx, 'IsFloating', id)
 
     class CCReg(CCRegOp):
         def __init__(self, idx, id):
-            super(CCReg, self).__init__('uqw', idx, None, id)
+            super().__init__('uqw', idx, None, id)
 
     class CCRegPred(CCRegOp):
         @overrideInOperand
@@ -100,13 +99,13 @@ let {{
         def destRegId(self):
             return f'({self.writePredicate}) ? {self.regId()} : RegId()'
         def __init__(self, idx, id, *, read_predicate, write_predicate):
-            super(CCRegPred, self).__init__('uqw', idx, None, id)
+            super().__init__('uqw', idx, None, id)
             self.attrs['readPredicate'] = read_predicate
             self.attrs['writePredicate'] = write_predicate
 
     class ControlReg(ControlRegOp):
         def __init__(self, idx, id, ctype='uqw'):
-            super(ControlReg, self).__init__(ctype, idx,
+            super().__init__(ctype, idx,
                 (None, None, ['IsSerializeAfter',
                               'IsSerializing',
                               'IsNonSpeculative']),
@@ -114,7 +113,7 @@ let {{
 
     class SquashCheckReg(ControlRegOp):
         def __init__(self, idx, id, check, ctype='uqw'):
-            super(SquashCheckReg, self).__init__(ctype, idx,
+            super().__init__(ctype, idx,
                 (None, None,
                  [f'(({check}) ? IsSquashAfter : IsSerializeAfter)',
                   'IsSerializing', 'IsNonSpeculative']),
@@ -122,16 +121,15 @@ let {{
 
     class SquashCReg(SquashCheckReg):
         def __init__(self, idx, id, ctype='uqw'):
-            super(SquashCReg, self).__init__(idx, id, 'true', ctype)
+            super().__init__(idx, id, 'true', ctype)
 
     class SquashCSReg(SquashCheckReg):
         def __init__(self, idx, id, ctype='uqw'):
-            super(SquashCSReg, self).__init__(
-                    idx, id, 'dest == X86ISA::segment_idx::Cs', ctype)
+            super().__init__(idx, id, 'dest == X86ISA::segment_idx::Cs', ctype)
 
     class SquashCR0Reg(SquashCheckReg):
         def __init__(self, idx, id, ctype='uqw'):
-            super(SquashCR0Reg, self).__init__(idx, id, 'dest == 0', ctype)
+            super().__init__(idx, id, 'dest == 0', ctype)
 }};
 
 def operands {{

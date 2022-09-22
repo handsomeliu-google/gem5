@@ -2,8 +2,6 @@
  * Copyright (c) 2014-2015 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -101,6 +99,27 @@ class LdsChunk
 
         T *p0 = (T *) (&(chunk.at(index)));
         *p0 = value;
+    }
+
+    /**
+     * an atomic operation
+     */
+    template<class T>
+    T
+    atomic(const uint32_t index, AtomicOpFunctorPtr amoOp)
+    {
+        /**
+         * Atomics that are outside the bounds of the LDS
+         * chunk allocated to this WG are dropped.
+         */
+        if (index >= chunk.size()) {
+            return (T)0;
+        }
+        T *p0 = (T *) (&(chunk.at(index)));
+        T tmp = *p0;
+
+       (*amoOp)((uint8_t *)p0);
+        return tmp;
     }
 
     /**

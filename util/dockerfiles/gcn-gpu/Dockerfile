@@ -25,11 +25,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt -y update
-RUN apt -y upgrade
-RUN apt -y install build-essential git m4 scons zlib1g zlib1g-dev \
+RUN apt -y update && apt -y upgrade && \
+    apt -y install build-essential git m4 scons zlib1g zlib1g-dev \
     libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev \
-    python3-dev python3-six python-is-python3 doxygen libboost-all-dev \
+    python3-dev python-is-python3 doxygen libboost-all-dev \
     libhdf5-serial-dev python3-pydot libpng-dev libelf-dev pkg-config
 
 # Requirements for ROCm
@@ -105,11 +104,11 @@ RUN apt install rocm-cmake
 RUN git clone -b rocm-4.0.0 \
     https://github.com/ROCmSoftwarePlatform/rocBLAS.git && mkdir rocBLAS/build
 
-ENV HCC_AMDGPU_TARGET=gfx801
+ENV HCC_AMDGPU_TARGET=gfx801,gfx803,gfx900,gfx902
 WORKDIR rocBLAS
-# rocBLAS needs to be built from source otherwise gfx801 gets an error in HIP
+# rocBLAS needs to be built from source otherwise certain gfx versions get errors in HIP
 # about there being no GPU binary available
-RUN ./install.sh -d -a all -i
+RUN ./install.sh -d -i
 WORKDIR /
 
 # MIOpen dependencies + MIOpen

@@ -2,8 +2,6 @@
  * Copyright (c) 2015-2021 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
- * For use for simulation and test purposes only
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -77,7 +75,10 @@ namespace VegaISA
             reg_sym = "flat_scratch_hi";
             break;
           case REG_VCC_LO:
-            reg_sym = "vcc";
+            reg_sym = "vcc_lo";
+            break;
+          case REG_VCC_HI:
+            reg_sym = "vcc_hi";
             break;
           case REG_M0:
             reg_sym = "m0";

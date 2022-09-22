@@ -69,11 +69,11 @@ namespace
 {
 
 /* Not applicable for SPARC */
-RegClass vecRegClass(VecRegClass, "vector", 1, debug::IntRegs);
-RegClass vecElemClass(VecElemClass, "vector_element", 2, debug::IntRegs);
-RegClass vecPredRegClass(VecPredRegClass, "vector_predicate", 1,
+RegClass vecRegClass(VecRegClass, VecRegClassName, 1, debug::IntRegs);
+RegClass vecElemClass(VecElemClass, VecElemClassName, 2, debug::IntRegs);
+RegClass vecPredRegClass(VecPredRegClass, VecPredRegClassName, 1,
         debug::IntRegs);
-RegClass ccRegClass(CCRegClass, "condition_code", 0, debug::IntRegs);
+RegClass ccRegClass(CCRegClass, CCRegClassName, 0, debug::IntRegs);
 
 } // anonymous namespace
 

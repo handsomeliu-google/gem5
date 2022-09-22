@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, 2016, 2019-2021 Arm Limited
+ * Copyright (c) 2010-2013, 2016, 2019-2022 Arm Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -61,20 +61,7 @@ namespace ArmISA {
 
 class TableWalker;
 class TLB;
-
-class TLBIALL;
-class ITLBIALL;
-class DTLBIALL;
-class TLBIALLEL;
-class TLBIVMALL;
-class TLBIALLN;
-class TLBIMVA;
-class ITLBIMVA;
-class DTLBIMVA;
-class TLBIASID;
-class ITLBIASID;
-class DTLBIASID;
-class TLBIMVAA;
+class TLBIOp;
 
 class TlbTestInterface
 {
@@ -115,9 +102,25 @@ class TlbTestInterface
 class TLB : public BaseTLB
 {
   protected:
-    TlbEntry* table;     // the Page Table
-    int size;            // TLB Size
-    bool isStage2;       // Indicates this TLB is part of the second stage MMU
+    TlbEntry* table;
+
+    /** TLB Size */
+    int size;
+
+    /** Indicates this TLB caches IPA->PA translations */
+    bool isStage2;
+
+    /**
+     * Hash map containing one entry per lookup level
+     * The TLB is caching partial translations from the key lookup level
+     * if the matching value is true.
+     */
+    std::unordered_map<enums::ArmLookupLevel, bool> partialLevels;
+
+    /**
+     * True if the TLB caches partial translations
+     */
+    bool _walkCache;
 
     TableWalker *tableWalker;
 
@@ -128,6 +131,7 @@ class TLB : public BaseTLB
         const TLB &tlb;
 
         // Access Stats
+        mutable statistics::Scalar partialHits;
         mutable statistics::Scalar instHits;
         mutable statistics::Scalar instMisses;
         mutable statistics::Scalar readHits;
@@ -136,9 +140,6 @@ class TLB : public BaseTLB
         mutable statistics::Scalar writeMisses;
         mutable statistics::Scalar inserts;
         mutable statistics::Scalar flushTlb;
-        mutable statistics::Scalar flushTlbMva;
-        mutable statistics::Scalar flushTlbMvaAsid;
-        mutable statistics::Scalar flushTlbAsid;
         mutable statistics::Scalar flushedEntries;
 
         statistics::Formula readAccesses;
@@ -186,6 +187,8 @@ class TLB : public BaseTLB
 
     int getsize() const { return size; }
 
+    bool walkCache() const { return _walkCache; }
+
     void setVMID(vmid_t _vmid) { vmid = _vmid; }
 
     /** Insert a PTE in the current TLB */
@@ -200,42 +203,9 @@ class TLB : public BaseTLB
     void flushAll() override;
 
 
-    /** Reset the entire TLB
+    /** Flush TLB entries
      */
-    void flush(const TLBIALL &tlbi_op);
-    void flush(const ITLBIALL &tlbi_op);
-    void flush(const DTLBIALL &tlbi_op);
-
-    /** Implementaton of AArch64 TLBI ALLE1(IS), ALLE2(IS), ALLE3(IS)
-     * instructions
-     */
-    void flush(const TLBIALLEL &tlbi_op);
-
-    /** Implementaton of AArch64 TLBI VMALLE1(IS)/VMALLS112E1(IS)
-     * instructions
-     */
-    void flush(const TLBIVMALL &tlbi_op);
-
-    /** Remove all entries in the non secure world, depending on whether they
-     *  were allocated in hyp mode or not
-     */
-    void flush(const TLBIALLN &tlbi_op);
-
-    /** Remove any entries that match both a va and asn
-     */
-    void flush(const TLBIMVA &tlbi_op);
-    void flush(const ITLBIMVA &tlbi_op);
-    void flush(const DTLBIMVA &tlbi_op);
-
-    /** Remove any entries that match the asn
-     */
-    void flush(const TLBIASID &tlbi_op);
-    void flush(const ITLBIASID &tlbi_op);
-    void flush(const DTLBIASID &tlbi_op);
-
-    /** Remove all entries that match the va regardless of asn
-     */
-    void flush(const TLBIMVAA &tlbi_op);
+    void flush(const TLBIOp &tlbi_op);
 
     Fault trickBoxCheck(const RequestPtr &req, BaseMMU::Mode mode,
                         TlbEntry::DomainType domain);
@@ -313,6 +283,10 @@ class TLB : public BaseTLB
      * data access or a data TLB entry on an instruction access:
      */
     void checkPromotion(TlbEntry *entry, BaseMMU::Mode mode);
+
+    /** Helper function looking up for a matching TLB entry
+     * Does not update stats; see lookup method instead */
+    TlbEntry *match(const Lookup &lookup_data);
 };
 
 } // namespace ArmISA

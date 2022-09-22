@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2019 ARM Limited
+ * Copyright (c) 2012-2019, 2021 ARM Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -80,56 +80,43 @@ typedef uint64_t PacketId;
 class ExtensionBase
 {
   public:
+    explicit ExtensionBase(const unsigned int id)
+        : extID(id) {}
 
     virtual ~ExtensionBase() = default;
 
     virtual ExtensionBase* clone() const = 0;
 
-    virtual unsigned int getExtensionID() const = 0;
-
-  protected:
     static unsigned int
-    makeExtensionID()
+    maxNumExtensions()
     {
-        static unsigned int id = 0;
-        return id++;
+        static unsigned int max_num = 0;
+        return ++max_num;
     }
+
+    unsigned int getExtensionID() { return extID; }
+
+  private:
+    const unsigned int extID;
 };
 
 /**
  * This is the extension for carrying additional information.
  * Each type of extension will have a unique extensionID.
- *
- * Example:
- *   class MyExtension : public Extension<MyExtension>
- *   {
- *     public:
- *       MyExtension();
- *       ExtensionBase* clone() const override;
- *   };
- *
- *   PacketPtr pkt;
- *   std::shared_ptr<MyExtension> sh_ptr(new MyExtension);
- *   pkt->setExtension(sh_ptr);
- *   std::shared_ptr<MyExtension> ext = pkt->getExtension<MyExtension>();
- *   pkt->removeExtension<MyExtension>();
+ * This extensionID will assign to base class for comparsion.
  */
 template <typename T>
 class Extension : public ExtensionBase
 {
   public:
+    Extension() : ExtensionBase(extensionID) {}
 
-    unsigned int
-    getExtensionID() const override
-    {
-        return extensionID;
-    }
-    static const unsigned int extensionID;
+    const static unsigned int extensionID;
 };
 
 template <typename T>
 const unsigned int Extension<T>::extensionID =
-    ExtensionBase::makeExtensionID();
+        ExtensionBase::maxNumExtensions() - 1;
 
 class MemCmd
 {
@@ -171,6 +158,10 @@ class MemCmd
         StoreCondReq,
         StoreCondFailReq,       // Failed StoreCondReq in MSHR (never sent)
         StoreCondResp,
+        LockedRMWReadReq,
+        LockedRMWReadResp,
+        LockedRMWWriteReq,
+        LockedRMWWriteResp,
         SwapReq,
         SwapResp,
         // MessageReq and MessageResp are deprecated.
@@ -199,6 +190,8 @@ class MemCmd
         HTMReq,
         HTMReqResp,
         HTMAbort,
+        // Tlb shootdown
+        TlbiExtSync,
         NUM_MEM_CMDS
     };
 
@@ -221,6 +214,7 @@ class MemCmd
         IsSWPrefetch,
         IsHWPrefetch,
         IsLlsc,         //!< Alpha/MIPS LL or SC access
+        IsLockedRMW,    //!< x86 locked RMW access
         HasData,        //!< There is an associated payload
         IsError,        //!< Error response
         IsPrint,        //!< Print state matching address (for debugging)
@@ -298,6 +292,7 @@ class MemCmd
      */
     bool hasData() const        { return testCmdAttrib(HasData); }
     bool isLLSC() const         { return testCmdAttrib(IsLlsc); }
+    bool isLockedRMW() const    { return testCmdAttrib(IsLockedRMW); }
     bool isSWPrefetch() const   { return testCmdAttrib(IsSWPrefetch); }
     bool isHWPrefetch() const   { return testCmdAttrib(IsHWPrefetch); }
     bool isPrefetch() const     { return testCmdAttrib(IsSWPrefetch) ||
@@ -665,8 +660,8 @@ class Packet : public Printable
     void
     setExtension(std::shared_ptr<T> ext)
     {
-        static_assert(std::is_base_of<Extension<T>, T>::value,
-                      "ext should inherit from Extension class.");
+        static_assert(std::is_base_of<ExtensionBase, T>::value,
+                      "Extension should inherit from ExtensionBase.");
         assert(ext.get() != nullptr);
 
         auto it = findExtension<T>();
@@ -690,8 +685,8 @@ class Packet : public Printable
     void
     removeExtension(void)
     {
-        static_assert(std::is_base_of<Extension<T>, T>::value,
-                      "ext should inherit from Extension class.");
+        static_assert(std::is_base_of<ExtensionBase, T>::value,
+                      "Extension should inherit from ExtensionBase.");
 
         auto it = findExtension<T>();
         if (it != extensions.end())
@@ -699,16 +694,14 @@ class Packet : public Printable
     }
 
     /**
-     * Get the extension pointer carried in the packet.
-     *
-     * @return The extension pointer.
+     * Get the extension pointer by linear search with the extensionID.
      */
     template <typename T>
     std::shared_ptr<T>
     getExtension()
     {
-        static_assert(std::is_base_of<Extension<T>, T>::value,
-                      "ext should inherit from Extension class.");
+        static_assert(std::is_base_of<ExtensionBase, T>::value,
+                      "Extension should inherit from ExtensionBase.");
         auto it = findExtension<T>();
         if (it == extensions.end())
             return nullptr;
@@ -750,6 +743,7 @@ class Packet : public Printable
         return resp_cmd.hasData();
     }
     bool isLLSC() const              { return cmd.isLLSC(); }
+    bool isLockedRMW() const         { return cmd.isLockedRMW(); }
     bool isError() const             { return cmd.isError(); }
     bool isPrint() const             { return cmd.isPrint(); }
     bool isFlush() const             { return cmd.isFlush(); }
@@ -1125,6 +1119,8 @@ class Packet : public Printable
             return MemCmd::SoftPFExReq;
         else if (req->isPrefetch())
             return MemCmd::SoftPFReq;
+        else if (req->isLockedRMW())
+            return MemCmd::LockedRMWReadReq;
         else
             return MemCmd::ReadReq;
     }
@@ -1144,6 +1140,8 @@ class Packet : public Printable
               MemCmd::InvalidateReq;
         } else if (req->isCacheClean()) {
             return MemCmd::CleanSharedReq;
+        } else if (req->isLockedRMW()) {
+            return MemCmd::LockedRMWWriteReq;
         } else
             return MemCmd::WriteReq;
     }

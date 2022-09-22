@@ -51,6 +51,7 @@
 #include "arch/generic/tlb.hh"
 #include "base/logging.hh"
 #include "base/types.hh"
+#include "cpu/regfile.hh"
 #include "cpu/thread_context.hh"
 #include "cpu/thread_state.hh"
 #include "debug/CCRegs.hh"
@@ -94,68 +95,6 @@ class SimpleThread : public ThreadState, public ThreadContext
     typedef ThreadContext::Status Status;
 
   protected:
-    class RegFile
-    {
-      private:
-        std::vector<uint8_t> data;
-        const size_t _size;
-        const size_t _regShift;
-        const size_t _regBytes;
-
-      public:
-        const RegClass &regClass;
-
-        RegFile(const RegClass &info) :
-            data(info.size() << info.regShift()), _size(info.size()),
-            _regShift(info.regShift()), _regBytes(info.regBytes()),
-            regClass(info)
-        {}
-
-        size_t size() const { return _size; }
-        size_t regShift() const { return _regShift; }
-        size_t regBytes() const { return _regBytes; }
-
-        template <typename Reg=RegVal>
-        Reg &
-        reg(size_t idx)
-        {
-            return *reinterpret_cast<Reg *>(data.data() + (idx << _regShift));
-        }
-        template <typename Reg=RegVal>
-        const Reg &
-        reg(size_t idx) const
-        {
-            return *reinterpret_cast<const Reg *>(
-                    data.data() + (idx << _regShift));
-        }
-
-        void *
-        ptr(size_t idx)
-        {
-            return data.data() + (idx << _regShift);
-        }
-
-        const void *
-        ptr(size_t idx) const
-        {
-            return data.data() + (idx << _regShift);
-        }
-
-        void
-        get(size_t idx, void *val) const
-        {
-            std::memcpy(val, ptr(idx), _regBytes);
-        }
-
-        void
-        set(size_t idx, const void *val)
-        {
-            std::memcpy(ptr(idx), val, _regBytes);
-        }
-
-        void clear() { std::fill(data.begin(), data.end(), 0); }
-    };
-
     std::array<RegFile, CCRegClass + 1> regFiles;
 
     BaseISA *const isa;    // one "instance" of the current ISA.
@@ -379,7 +318,6 @@ class SimpleThread : public ThreadState, public ThreadContext
         const auto &reg_file = regFiles[reg.classValue()];
         const auto &reg_class = reg_file.regClass;
 
-        assert(idx < reg_file.size());
         RegVal val = reg_file.reg(idx);
         DPRINTFV(reg_class.debug(), "Reading %s reg %s (%d) as %#x.\n",
                 reg.className(), reg_class.regName(arch_reg), idx, val);
@@ -417,13 +355,13 @@ class SimpleThread : public ThreadState, public ThreadContext
     {
         const RegId reg = arch_reg.flatten(*isa);
 
+        if (reg.is(InvalidRegClass))
+            return;
+
         const RegIndex idx = reg.index();
 
         auto &reg_file = regFiles[reg.classValue()];
         const auto &reg_class = reg_file.regClass;
-
-        if (reg.is(InvalidRegClass))
-            return;
 
         DPRINTFV(reg_class.debug(), "Setting %s register %s (%d) to %#x.\n",
                 reg.className(), reg_class.regName(arch_reg), idx, val);

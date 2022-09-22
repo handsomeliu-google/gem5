@@ -24,147 +24,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Multi channel "generic" DDR memory controllers
-"""
-
-import enum
-from math import log
-from ...utils.override import overrides
-from m5.util.convert import toMemorySize
-from ..boards.abstract_board import AbstractBoard
+from .memory import ChanneledMemory
 from .abstract_memory_system import AbstractMemorySystem
-from typing import Type, Sequence, Tuple, List, Optional
-from m5.objects import AddrRange, DRAMInterface, MemCtrl, Port
+
+from typing import Optional
+from .dram_interfaces.ddr3 import DDR3_1600_8x8, DDR3_2133_8x8
+from .dram_interfaces.ddr4 import DDR4_2400_8x8
+from .dram_interfaces.lpddr3 import LPDDR3_1600_1x32
+from .dram_interfaces.hbm import HBM_1000_4H_1x64
 
 
-def _isPow2(num):
-    log_num = int(log(num, 2))
-    if 2 ** log_num != num:
-        return False
-    else:
-        return True
-
-class MultiChannelMemory(AbstractMemorySystem):
-    """A class to implement multi-channel memory system
-
-    This class can take a DRAM Interface as a parameter to model a multi
-    channel DDR DRAM memory system.
+def DualChannelDDR3_1600(
+    size: Optional[str] = None,
+) -> AbstractMemorySystem:
     """
-    def __init__(
-        self,
-        dram_interface_class: Type[DRAMInterface],
-        num_channels: int,
-        interleaving_size: int,
-        size: Optional[str] = None,
-        addr_mapping: Optional[str] = None,
-    ) -> None:
-        """
-        :param dram_interface_class: The DRAM interface type to create with
-            this memory controller
-        :param num_channels: The number of channels that needs to be
-        simulated
-        :param size: Optionally specify the size of the DRAM controller's
-            address space. By default, it starts at 0 and ends at the size of
-            the DRAM device specified
-        :param add_mapping: Defines the address mapping scheme to be used.
-            By default, it is RoRaBaChCo
-        :param interleaving_size: Defines the interleaving size of the multi-
-            channel memory system. By default, it is equivalent to the atom
-            size, i.e., 64.
-        """
-        super().__init__()
-        self._dram_class = dram_interface_class
-        self._num_channels = num_channels
-
-        if not _isPow2(interleaving_size):
-            raise ValueError("Memory interleaving size should be a power of 2")
-        self._intlv_size = interleaving_size
-
-        if addr_mapping:
-            self._addr_mapping = addr_mapping
-        else:
-            self._addr_mapping = self._dram_class.addr_mapping.value
-
-        if size:
-            self._size = toMemorySize(size)
-        else:
-            self._size = self._get_dram_size(num_channels, self._dram_class)
-
-        self._dram = [
-            self._dram_class(addr_mapping=self._addr_mapping)
-            for _ in range(num_channels)
-        ]
-        self.mem_ctrl = [
-            MemCtrl(dram=self._dram[i]) for i in range(num_channels)
-        ]
+    A dual channel memory system using DDR3_1600_8x8 based DIMM
+    """
+    return ChanneledMemory(DDR3_1600_8x8, 2, 64, size=size)
 
 
-    def _get_dram_size(self, num_channels: int, dram: DRAMInterface) -> int:
-        return num_channels * (
-            dram.device_size.value
-            * dram.devices_per_rank.value
-            * dram.ranks_per_channel.value
-        )
+def DualChannelDDR3_2133(
+    size: Optional[str] = None,
+) -> AbstractMemorySystem:
+    """
+    A dual channel memory system using DDR3_2133_8x8 based DIMM
+    """
+    return ChanneledMemory(DDR3_2133_8x8, 2, 64, size=size)
 
-    def _interleave_addresses(self):
-        print(f"Memory is interleaving the address range {self._mem_range}"
-            f" using {self._intlv_size} as interleaving size.")
-        if self._addr_mapping == "RoRaBaChCo":
-            rowbuffer_size = (
-                self._dram_class.device_rowbuffer_size.value
-                * self._dram_class.devices_per_rank.value
-            )
-            intlv_low_bit = log(rowbuffer_size, 2)
-        elif self._addr_mapping in ["RoRaBaCoCh", "RoCoRaBaCh"]:
-            intlv_low_bit = log(self._intlv_size, 2)
-        else:
-            raise ValueError(
-                "Only these address mappings are supported: "
-                "RoRaBaChCo, RoRaBaCoCh, RoCoRaBaCh"
-            )
 
-        intlv_bits = log(self._num_channels, 2)
-        for i, ctrl in enumerate(self.mem_ctrl):
-            ctrl.dram.range = AddrRange(
-                start=self._mem_range.start,
-                end=self._mem_range.size(),
-                intlvHighBit = intlv_low_bit + intlv_bits - 1,
-                xorHighBit=0,
-                intlvBits=intlv_bits,
-                intlvMatch=i,
-            )
+def DualChannelDDR4_2400(
+    size: Optional[str] = None,
+) -> AbstractMemorySystem:
+    """
+    A dual channel memory system using DDR4_2400_8x8 based DIMM
+    """
+    return ChanneledMemory(DDR4_2400_8x8, 2, 64, size=size)
 
-    @overrides(AbstractMemorySystem)
-    def incorporate_memory(self, board: AbstractBoard) -> None:
-        if self._intlv_size < int(board.get_cache_line_size()):
-            raise ValueError("Memory interleaving size can not be smaller than"
-            " board's cache line size.\nBoard's cache line size: "
-            f"{board.get_cache_line_size()}\n, This memory's interleaving "
-            f"size: {self._intlv_size}")
 
-    @overrides(AbstractMemorySystem)
-    def get_mem_ports(self) -> Sequence[Tuple[AddrRange, Port]]:
-        return [(ctrl.dram.range, ctrl.port) for ctrl in self.mem_ctrl]
-
-    @overrides(AbstractMemorySystem)
-    def get_memory_controllers(self) -> List[MemCtrl]:
-        return [ctrl for ctrl in self.mem_ctrl]
-
-    @overrides(AbstractMemorySystem)
-    def get_size(self) -> int:
-        return self._size
-
-    @overrides(AbstractMemorySystem)
-    def set_memory_range(self, ranges: List[AddrRange]) -> None:
-        """Need to add support for non-contiguous non overlapping ranges in
-        the future.
-        """
-        if len(ranges) != 1 or ranges[0].size() != self._size:
-            raise Exception(
-                "Multi channel memory controller requires a single range "
-                "which matches the memory's size.\n"
-                f"The range size: {range[0].size()}\n"
-                f"This memory's size: {self._size}"
-            )
-        self._mem_range = ranges[0]
-        self._interleave_addresses()
+def DualChannelLPDDR3_1600(
+    size: Optional[str] = None,
+) -> AbstractMemorySystem:
+    return ChanneledMemory(LPDDR3_1600_1x32, 2, 64, size=size)

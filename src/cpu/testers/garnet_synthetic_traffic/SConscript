@@ -31,7 +31,7 @@ Import('*')
 if not env['CONF']['RUBY']:
     Return()
 
-SimObject('GarnetSyntheticTraffic.py')
+SimObject('GarnetSyntheticTraffic.py', sim_objects=['GarnetSyntheticTraffic'])
 
 Source('GarnetSyntheticTraffic.cc')
 

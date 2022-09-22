@@ -46,7 +46,7 @@ const int NumArchRegs = NumRegs;
 
 } // namespace float_reg
 
-inline constexpr RegClass floatRegClass(FloatRegClass, "floating_point",
+inline constexpr RegClass floatRegClass(FloatRegClass, FloatRegClassName,
         float_reg::NumRegs, debug::FloatRegs);
 
 } // namespace SparcISA

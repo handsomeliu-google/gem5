@@ -176,7 +176,10 @@ class CheckerCPU : public BaseCPU, public ExecContext
     RegVal
     getRegOperand(const StaticInst *si, int idx) override
     {
-        return thread->getReg(si->srcRegIdx(idx));
+        const RegId& id = si->srcRegIdx(idx);
+        if (id.is(InvalidRegClass))
+            return 0;
+        return thread->getReg(id);
     }
 
     void
@@ -194,17 +197,23 @@ class CheckerCPU : public BaseCPU, public ExecContext
     void
     setRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
-        RegId id = si->destRegIdx(idx);
-        thread->setReg(id, val);
-        result.emplace(id.regClass(), val);
+        const RegId& id = si->destRegIdx(idx);
+        if (id.is(InvalidRegClass))
+            return;
+        const RegId flat = id.flatten(*thread->getIsaPtr());
+        thread->setReg(flat, val);
+        result.emplace(flat.regClass(), val);
     }
 
     void
     setRegOperand(const StaticInst *si, int idx, const void *val) override
     {
-        RegId id = si->destRegIdx(idx);
-        thread->setReg(id, val);
-        result.emplace(id.regClass(), val);
+        const RegId& id = si->destRegIdx(idx);
+        if (id.is(InvalidRegClass))
+            return;
+        const RegId flat = id.flatten(*thread->getIsaPtr());
+        thread->setReg(flat, val);
+        result.emplace(flat.regClass(), val);
     }
 
     bool readPredicate() const override { return thread->readPredicate(); }
@@ -242,7 +251,7 @@ class CheckerCPU : public BaseCPU, public ExecContext
     };
 
     Fault
-    initiateHtmCmd(Request::Flags flags) override
+    initiateMemMgmtCmd(Request::Flags flags) override
     {
         panic("not yet supported!");
         return NoFault;

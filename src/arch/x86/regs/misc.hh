@@ -538,7 +538,7 @@ segAttr(int index)
 
 } // namespace misc_reg
 
-inline constexpr RegClass miscRegClass(MiscRegClass, "miscellaneous",
+inline constexpr RegClass miscRegClass(MiscRegClass, MiscRegClassName,
         misc_reg::NumRegs, debug::MiscRegs);
 
 /**

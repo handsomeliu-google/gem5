@@ -76,12 +76,12 @@ class IntRegClassOps : public RegClassOps
 inline constexpr IntRegClassOps intRegClassOps;
 
 inline constexpr RegClass intRegClass =
-    RegClass(IntRegClass, "integer", int_reg::NumRegs, debug::IntRegs).
+    RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs).
     ops(intRegClassOps).
     needsFlattening();
 
 inline constexpr RegClass flatIntRegClass =
-    RegClass(IntRegClass, "integer", int_reg::NumRegs, debug::IntRegs);
+    RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs);
 
 namespace int_reg
 {

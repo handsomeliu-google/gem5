@@ -328,34 +328,48 @@ TLB::translate(const RequestPtr &req,
 
     HandyM5Reg m5Reg = tc->readMiscRegNoEffect(misc_reg::M5Reg);
 
+    const Addr logAddrSize = (flags >> AddrSizeFlagShift) & AddrSizeFlagMask;
+    const int addrSize = 8 << logAddrSize;
+    const Addr addrMask = mask(addrSize);
+
     // If protected mode has been enabled...
     if (m5Reg.prot) {
         DPRINTF(TLB, "In protected mode.\n");
         // If we're not in 64-bit mode, do protection/limit checks
         if (m5Reg.mode != LongMode) {
             DPRINTF(TLB, "Not in long mode. Checking segment protection.\n");
-            // Check for a NULL segment selector.
-            if (!(seg == segment_idx::Tsg || seg == segment_idx::Idtr ||
-                        seg == segment_idx::Hs || seg == segment_idx::Ls)
-                    && !tc->readMiscRegNoEffect(misc_reg::segSel(seg)))
-                return std::make_shared<GeneralProtection>(0);
-            bool expandDown = false;
+
+            // CPUs won't know to use CS when building fetch requests, so we
+            // need to override the value of "seg" here if this is a fetch.
+            if (mode == BaseMMU::Execute)
+                seg = segment_idx::Cs;
+
             SegAttr attr = tc->readMiscRegNoEffect(misc_reg::segAttr(seg));
+            // Check for an unusable segment.
+            if (attr.unusable) {
+                DPRINTF(TLB, "Unusable segment.\n");
+                return std::make_shared<GeneralProtection>(0);
+            }
+            bool expandDown = false;
             if (seg >= segment_idx::Es && seg <= segment_idx::Hs) {
-                if (!attr.writable && (mode == BaseMMU::Write || storeCheck))
+                if (!attr.writable && (mode == BaseMMU::Write || storeCheck)) {
+                    DPRINTF(TLB, "Tried to write to unwritable segment.\n");
                     return std::make_shared<GeneralProtection>(0);
-                if (!attr.readable && mode == BaseMMU::Read)
+                }
+                if (!attr.readable && mode == BaseMMU::Read) {
+                    DPRINTF(TLB, "Tried to read from unreadble segment.\n");
                     return std::make_shared<GeneralProtection>(0);
+                }
                 expandDown = attr.expandDown;
 
             }
             Addr base = tc->readMiscRegNoEffect(misc_reg::segBase(seg));
             Addr limit = tc->readMiscRegNoEffect(misc_reg::segLimit(seg));
-            bool sizeOverride = (flags & (AddrSizeFlagBit << FlagShift));
-            unsigned logSize = sizeOverride ? (unsigned)m5Reg.altAddr
-                                            : (unsigned)m5Reg.defAddr;
-            int size = (1 << logSize) * 8;
-            Addr offset = bits(vaddr - base, size - 1, 0);
+            Addr offset;
+            if (mode == BaseMMU::Execute)
+                offset = vaddr - base;
+            else
+                offset = (vaddr - base) & addrMask;
             Addr endOffset = offset + req->getSize() - 1;
             if (expandDown) {
                 DPRINTF(TLB, "Checking an expand down segment.\n");
@@ -363,12 +377,14 @@ TLB::translate(const RequestPtr &req,
                 if (offset <= limit || endOffset <= limit)
                     return std::make_shared<GeneralProtection>(0);
             } else {
-                if (offset > limit || endOffset > limit)
+                if (offset > limit || endOffset > limit) {
+                    DPRINTF(TLB, "Segment limit check failed, "
+                            "offset = %#x limit = %#x.\n", offset, limit);
                     return std::make_shared<GeneralProtection>(0);
+                }
             }
         }
-        if (m5Reg.submode != SixtyFourBitMode ||
-                (flags & (AddrSizeFlagBit << FlagShift)))
+        if (m5Reg.submode != SixtyFourBitMode && addrSize != 64)
             vaddr &= mask(32);
         // If paging is enabled, do the translation.
         if (m5Reg.paging) {
@@ -421,8 +437,7 @@ TLB::translate(const RequestPtr &req,
             DPRINTF(TLB, "Entry found with paddr %#x, "
                     "doing protection checks.\n", entry->paddr);
             // Do paging protection checks.
-            bool inUser = (m5Reg.cpl == 3 &&
-                    !(flags & (CPL0FlagBit << FlagShift)));
+            bool inUser = m5Reg.cpl == 3 && !(flags & CPL0FlagBit);
             CR0 cr0 = tc->readMiscRegNoEffect(misc_reg::Cr0);
             bool badWrite = (!entry->writable && (inUser || cr0.wp));
             if ((inUser && !entry->user) ||

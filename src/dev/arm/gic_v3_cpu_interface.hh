@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ARM Limited
+ * Copyright (c) 2019, 2022 ARM Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -204,6 +204,7 @@ class Gicv3CPUInterface : public ArmISA::BaseISADevice, public Serializable
     static const AddrRange GICH_APR;
     static const AddrRange GICH_LR;
 
+  public:
     BitUnion64(ICH_HCR_EL2)
         Bitfield<63, 32> res0_2;
         Bitfield<31, 27> EOIcount;
@@ -224,6 +225,7 @@ class Gicv3CPUInterface : public ArmISA::BaseISADevice, public Serializable
         Bitfield<0>      En;
     EndBitUnion(ICH_HCR_EL2)
 
+  protected:
     BitUnion64(ICH_LR_EL2)
         Bitfield<63, 62> State;
         Bitfield<61>     HW;
@@ -309,7 +311,7 @@ class Gicv3CPUInterface : public ArmISA::BaseISADevice, public Serializable
 
     void activateIRQ(uint32_t intid, Gicv3::GroupId group);
     void generateSGI(RegVal val, Gicv3::GroupId group);
-    int currEL() const;
+    ArmISA::ExceptionLevel currEL() const;
     void deactivateIRQ(uint32_t intid, Gicv3::GroupId group);
     void dropPriority(Gicv3::GroupId group);
     uint64_t eoiMaintenanceInterruptStatus() const;
@@ -359,6 +361,9 @@ class Gicv3CPUInterface : public ArmISA::BaseISADevice, public Serializable
     Gicv3CPUInterface(Gicv3 * gic, uint32_t cpu_id);
 
     void init();
+
+  public:
+    void copy(Gicv3Registers *from, Gicv3Registers *to);
 
   public: // BaseISADevice
     RegVal readMiscReg(int misc_reg) override;

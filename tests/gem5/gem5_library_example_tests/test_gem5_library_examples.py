@@ -33,17 +33,16 @@ import re
 import os
 
 hello_verifier = verifier.MatchRegex(re.compile(r"Hello world!"))
+save_checkpoint_verifier = verifier.MatchRegex(
+    re.compile(r"Done taking a checkpoint")
+)
 
 gem5_verify_config(
     name="test-gem5-library-example-arm-hello",
     fixtures=(),
     verifiers=(hello_verifier,),
     config=joinpath(
-        config.base_dir,
-        "configs",
-        "example",
-        "gem5_library",
-        "arm-hello.py",
+        config.base_dir, "configs", "example", "gem5_library", "arm-hello.py"
     ),
     config_args=[],
     valid_isas=(constants.arm_tag,),
@@ -51,12 +50,47 @@ gem5_verify_config(
     length=constants.quick_tag,
 )
 
+gem5_verify_config(
+    name="test-gem5-library-riscv-hello-save-checkpoint",
+    fixtures=(),
+    verifiers=(save_checkpoint_verifier,),
+    config=joinpath(
+        config.base_dir,
+        "configs",
+        "example",
+        "gem5_library",
+        "checkpoints",
+        "riscv-hello-save-checkpoint.py",
+    ),
+    config_args=[],
+    valid_isas=(constants.riscv_tag,),
+    valid_hosts=constants.supported_hosts,
+    length=constants.quick_tag,
+)
+
+gem5_verify_config(
+    name="test-gem5-library-riscv-hello-restore-checkpoint",
+    fixtures=(),
+    verifiers=(hello_verifier,),
+    config=joinpath(
+        config.base_dir,
+        "configs",
+        "example",
+        "gem5_library",
+        "checkpoints",
+        "riscv-hello-restore-checkpoint.py",
+    ),
+    config_args=[],
+    valid_isas=(constants.riscv_tag,),
+    valid_hosts=constants.supported_hosts,
+    length=constants.quick_tag,
+)
 
 if os.access("/dev/kvm", mode=os.R_OK | os.W_OK):
     # The x86-ubuntu-run uses KVM cores, this test will therefore only be run
     # on systems that support KVM.
     gem5_verify_config(
-        name="test-gem5-library-example-x86-ubuntu-run",
+        name="test-gem5-library-example-x86-ubuntu-run-with-kvm",
         fixtures=(),
         verifiers=(),
         config=joinpath(
@@ -64,11 +98,148 @@ if os.access("/dev/kvm", mode=os.R_OK | os.W_OK):
             "configs",
             "example",
             "gem5_library",
-            "x86-ubuntu-run.py",
+            "x86-ubuntu-run-with-kvm.py",
         ),
         config_args=[],
         valid_isas=(constants.x86_tag,),
-        protocol="MESI_Two_Level",
-        valid_hosts=constants.supported_hosts,
+        valid_hosts=(constants.host_x86_64_tag,),
         length=constants.long_tag,
+        uses_kvm=True,
     )
+
+gem5_verify_config(
+    name="test-gem5-library-example-x86-ubuntu-run",
+    fixtures=(),
+    verifiers=(),
+    config=joinpath(
+        config.base_dir,
+        "configs",
+        "example",
+        "gem5_library",
+        "x86-ubuntu-run.py",
+    ),
+    config_args=[],
+    valid_isas=(constants.x86_tag,),
+    valid_hosts=constants.supported_hosts,
+    length=constants.long_tag,
+)
+
+if os.access("/dev/kvm", mode=os.R_OK | os.W_OK):
+    # The x86-parsec-benchmarks uses KVM cores, this test will therefore only
+    # be run on systems that support KVM.
+    gem5_verify_config(
+        name="test-gem5-library-example-x86-parsec-benchmarks",
+        fixtures=(),
+        verifiers=(),
+        config=joinpath(
+            config.base_dir,
+            "configs",
+            "example",
+            "gem5_library",
+            "x86-parsec-benchmarks.py",
+        ),
+        config_args=["--benchmark", "blackscholes", "--size", "simsmall"],
+        valid_isas=(constants.x86_tag,),
+        protocol="MESI_Two_Level",
+        valid_hosts=(constants.host_x86_64_tag,),
+        length=constants.long_tag,
+        uses_kvm=True,
+    )
+
+if os.access("/dev/kvm", mode=os.R_OK | os.W_OK):
+    # The x86-npb-benchmarks uses KVM cores, this test will therefore only be
+    # run on systems that support KVM.
+    gem5_verify_config(
+        name="test-gem5-library-example-x86-npb-benchmarks",
+        fixtures=(),
+        verifiers=(),
+        config=joinpath(
+            config.base_dir,
+            "configs",
+            "example",
+            "gem5_library",
+            "x86-npb-benchmarks.py",
+        ),
+        config_args=[
+            "--benchmark",
+            "bt",
+            "--size",
+            "A",
+            "--ticks",
+            "5000000000",
+        ],
+        valid_isas=(constants.x86_tag,),
+        protocol="MESI_Two_Level",
+        valid_hosts=(constants.host_x86_64_tag,),
+        length=constants.long_tag,
+        uses_kvm=True,
+    )
+
+if os.access("/dev/kvm", mode=os.R_OK | os.W_OK):
+    # The x86-gapbs-benchmarks uses KVM cores, this test will therefore only
+    # be run on systems that support KVM.
+    gem5_verify_config(
+        name="test-gem5-library-example-x86-gapbs-benchmarks",
+        fixtures=(),
+        verifiers=(),
+        config=joinpath(
+            config.base_dir,
+            "configs",
+            "example",
+            "gem5_library",
+            "x86-gapbs-benchmarks.py",
+        ),
+        config_args=["--benchmark", "bfs", "--synthetic", "1", "--size", "1"],
+        valid_isas=(constants.x86_tag,),
+        protocol="MESI_Two_Level",
+        valid_hosts=(constants.host_x86_64_tag,),
+        length=constants.long_tag,
+        uses_kvm=True,
+    )
+
+gem5_verify_config(
+    name="test-gem5-library-example-riscv-ubuntu-run",
+    fixtures=(),
+    verifiers=(),
+    config=joinpath(
+        config.base_dir,
+        "configs",
+        "example",
+        "gem5_library",
+        "riscv-ubuntu-run.py",
+    ),
+    config_args=[],
+    valid_isas=(constants.riscv_tag,),
+    valid_hosts=constants.supported_hosts,
+    length=constants.long_tag,
+)
+
+gem5_verify_config(
+    name="test-lupv-example",
+    fixtures=(),
+    verifiers=(),
+    config=joinpath(
+        config.base_dir, "configs", "example", "lupv", "run_lupv.py"
+    ),
+    config_args=["timing", "1", "--max-ticks", "1000000000"],
+    valid_isas=(constants.riscv_tag,),
+    valid_hosts=constants.supported_hosts,
+    length=constants.long_tag,
+)
+
+gem5_verify_config(
+    name="test-gem5-library-example-arm-ubuntu-boot-test",
+    fixtures=(),
+    verifiers=(),
+    config=joinpath(
+        config.base_dir,
+        "configs",
+        "example",
+        "gem5_library",
+        "arm-ubuntu-boot-exit.py",
+    ),
+    config_args=[],
+    valid_isas=(constants.arm_tag,),
+    valid_hosts=constants.supported_hosts,
+    length=constants.long_tag,
+)
