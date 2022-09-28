@@ -36,7 +36,7 @@
 namespace gem5
 {
 
-namespace Trace {
+namespace trace {
 
 NativeTrace::NativeTrace(const Params &p)
     : ExeTracer(p), native_listener(listenSocketInetConfig(8000).build(p.name))
@@ -50,7 +50,7 @@ NativeTrace::NativeTrace(const Params &p)
 }
 
 void
-Trace::NativeTraceRecord::dump()
+NativeTraceRecord::dump()
 {
     //Don't print what happens for each micro-op, just print out
     //once at the last op, and for regular instructions.
@@ -58,5 +58,5 @@ Trace::NativeTraceRecord::dump()
         parent->check(this);
 }
 
-} // namespace Trace
+} // namespace trace
 } // namespace gem5

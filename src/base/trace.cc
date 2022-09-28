@@ -55,7 +55,7 @@ name()
 namespace gem5
 {
 
-namespace Trace
+namespace trace
 {
 
 // This variable holds the output logger for debug information.  Other
@@ -169,5 +169,5 @@ OstreamLogger::logMessage(Tick when, const std::string &name,
     }
 }
 
-} // namespace Trace
+} // namespace trace
 } // namespace gem5

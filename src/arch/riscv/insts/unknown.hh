@@ -57,7 +57,7 @@ class Unknown : public RiscvStaticInst
     {}
 
     Fault
-    execute(ExecContext *, Trace::InstRecord *) const override
+    execute(ExecContext *, trace::InstRecord *) const override
     {
         return std::make_shared<UnknownInstFault>(machInst.instBits);
     }
