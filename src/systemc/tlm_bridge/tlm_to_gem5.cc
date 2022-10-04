@@ -233,6 +233,29 @@ TlmToGem5Bridge<BITWIDTH>::handleBeginReq(tlm::tlm_generic_payload &trans)
 
     trans.acquire();
 
+    MemBackdoor::Flags flags;
+    switch (trans.get_command()) {
+      case tlm::TLM_READ_COMMAND:
+        flags = MemBackdoor::Readable;
+        break;
+      case tlm::TLM_WRITE_COMMAND:
+        flags = MemBackdoor::Writeable;
+        break;
+      default:
+        panic("TlmToGem5Bridge: "
+                "received transaction with unsupported command");
+    }
+    Addr start_addr = trans.get_address();
+    Addr length = trans.get_data_length();
+
+    MemBackdoorReq req({start_addr, start_addr + length}, flags);
+    MemBackdoorPtr backdoor = nullptr;
+
+    bmp.sendMemBackdoorReq(req, backdoor);
+
+    if (backdoor)
+        trans.set_dmi_allowed(true);
+
     auto [pkt, pkt_created] = payload2packet(_id, trans);
     pkt->pushSenderState(new Gem5SystemC::TlmSenderState(trans));
 
@@ -573,12 +596,12 @@ TlmToGem5Bridge<BITWIDTH>::before_end_of_elaboration()
         DPRINTF(TlmBridge, "register blocking interface");
         socket.register_b_transport(
                 this, &TlmToGem5Bridge<BITWIDTH>::b_transport);
-        socket.register_get_direct_mem_ptr(
-                this, &TlmToGem5Bridge<BITWIDTH>::get_direct_mem_ptr);
     } else {
         panic("gem5 operates neither in Timing nor in Atomic mode");
     }
 
+    socket.register_get_direct_mem_ptr(
+            this, &TlmToGem5Bridge<BITWIDTH>::get_direct_mem_ptr);
     socket.register_transport_dbg(
             this, &TlmToGem5Bridge<BITWIDTH>::transport_dbg);
 
