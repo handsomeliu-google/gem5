@@ -74,7 +74,7 @@ bool
 isSecure(ThreadContext *tc)
 {
     CPSR cpsr = tc->readMiscReg(MISCREG_CPSR);
-    if (ArmSystem::haveEL(tc, EL3) && !cpsr.width && currEL(tc) == EL3)
+    if (ArmSystem::haveEL(tc, EL3) && !cpsr.width && currEL(cpsr) == EL3)
         return true;
     if (ArmSystem::haveEL(tc, EL3) && cpsr.width  && cpsr.mode == MODE_MON)
         return true;
