@@ -78,7 +78,7 @@ def EnvDefaults(env):
         "INCLUDE_SERVER_",  # distcc pump server settings
         "M5",  # M5 configuration (e.g., path to kernels)
         "NIX_",  # wrapped binaries if using nix package manager
-        "TMPDIR",  # temporary directory for compiler to put intermediate files
+        "TMPDIR",  # default temporary directory
     ]
 
     for key, val in sorted(os.environ.items()):
