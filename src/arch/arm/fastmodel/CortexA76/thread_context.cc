@@ -51,8 +51,7 @@ CortexA76TC::translateAddress(Addr &paddr, Addr vaddr)
 {
     // Determine what memory spaces are currently active.
     Iris::CanonicalMsn in_msn;
-    ArmISA::CPSR cpsr = readMiscRegNoEffect(ArmISA::MISCREG_CPSR);
-    switch (ArmISA::currEL(cpsr)) {
+    switch (ArmISA::currEL(this)) {
       case ArmISA::EL3:
         in_msn = Iris::SecureMonitorMsn;
         break;
