@@ -185,7 +185,7 @@ class BaseRemoteGDB
             return nullptr;
     }
 
-  private:
+  protected:
     /*
      * Connection to the external GDB.
      */
