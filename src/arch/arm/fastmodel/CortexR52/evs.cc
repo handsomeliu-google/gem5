@@ -79,6 +79,7 @@ ScxEvsCortexR52<Types>::CorePins::CorePins(Evs *_evs, int _cpu) :
     core_reset(name + ".core_reset", 0),
     poweron_reset(name + ".poweron_reset", 0),
     halt(name + ".halt", 0),
+    standbywfi(name + ".standbywfi"),
     cfgvectable((name + "cfgvectable").c_str())
 {
     for (int i = 0; i < Evs::PpiCount; i++) {
@@ -88,9 +89,9 @@ ScxEvsCortexR52<Types>::CorePins::CorePins(Evs *_evs, int _cpu) :
     core_reset.signal_out.bind(evs->core_reset[cpu]);
     poweron_reset.signal_out.bind(evs->poweron_reset[cpu]);
     halt.signal_out.bind(evs->halt[cpu]);
+    evs->standbywfi[cpu].bind(standbywfi.signal_in);
     cfgvectable.bind(evs->cfgvectable[cpu]);
 }
-
 
 template <class Types>
 ScxEvsCortexR52<Types>::ScxEvsCortexR52(
@@ -143,6 +144,8 @@ ScxEvsCortexR52<Types>::gem5_getPort(const std::string &if_name, int idx)
         return this->corePins.at(idx)->poweron_reset;
     } else if (if_name == "halt") {
         return this->corePins.at(idx)->halt;
+    } else if (if_name == "standbywfi") {
+        return this->corePins.at(idx)->standbywfi.getSignalOut(0);
     } else if (if_name == "ext_slave") {
         return this->ext_slave;
     } else if (if_name == "top_reset") {
