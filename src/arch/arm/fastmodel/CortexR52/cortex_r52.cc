@@ -99,8 +99,6 @@ CortexR52::getPort(const std::string &if_name, PortID idx)
         // index. Also verify that that index is not being used.
         assert(idx == InvalidPortID);
         return evs->gem5_getPort(if_name, num);
-    } else if (if_name == "standbywfi") {
-        return evs->gem5_getPort(if_name, num);
     } else {
         return SimObject::getPort(if_name, idx);
     }

@@ -110,7 +110,6 @@ class ScxEvsCortexR52 : public Types::Base, public Iris::BaseCpuEvs
         SignalSender core_reset;
         SignalSender poweron_reset;
         SignalSender halt;
-        SignalReceiverInt standbywfi;
 
         SignalInitiator<uint64_t> cfgvectable;
     };
