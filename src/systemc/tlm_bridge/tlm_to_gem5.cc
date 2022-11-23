@@ -207,14 +207,6 @@ void
 TlmToGem5Bridge<BITWIDTH>::sendBeginResp(tlm::tlm_generic_payload &trans,
                                          sc_core::sc_time &delay)
 {
-    Gem5SystemC::Gem5Extension *extension = nullptr;
-    trans.get_extension(extension);
-    panic_if(extension == nullptr,
-             "Missing gem5 extension when sending BEGIN_RESP");
-    auto pkt = extension->getPacket();
-
-    setPayloadResponse(trans, pkt);
-
     tlm::tlm_phase phase = tlm::BEGIN_RESP;
 
     auto status = socket->nb_transport_bw(trans, phase, delay);
@@ -251,6 +243,7 @@ TlmToGem5Bridge<BITWIDTH>::handleBeginReq(tlm::tlm_generic_payload &trans)
         sendEndReq(trans);
         if (!needsResponse) {
             auto delay = sc_core::SC_ZERO_TIME;
+            setPayloadResponse(trans, pkt);
             sendBeginResp(trans, delay);
         }
         trans.release();
@@ -480,6 +473,8 @@ TlmToGem5Bridge<BITWIDTH>::recvTimingResp(PacketPtr pkt)
     sc_assert(tlmSenderState != nullptr);
 
     auto &trans = tlmSenderState->trans;
+    setPayloadResponse(trans, pkt);
+    sendBeginResp(trans, delay);
 
     Gem5SystemC::Gem5Extension *extension = nullptr;
     trans.get_extension(extension);
@@ -492,7 +487,6 @@ TlmToGem5Bridge<BITWIDTH>::recvTimingResp(PacketPtr pkt)
     if (extension == nullptr)
         destroyPacket(pkt);
 
-    sendBeginResp(trans, delay);
     trans.release();
 
     return true;
@@ -511,12 +505,12 @@ TlmToGem5Bridge<BITWIDTH>::recvReqRetry()
     bool needsResponse = pendingPacket->needsResponse();
     if (bmp.sendTimingReq(pendingPacket)) {
         waitForRetry = false;
-        pendingPacket = nullptr;
 
         auto &trans = *pendingRequest;
         sendEndReq(trans);
         if (!needsResponse) {
             auto delay = sc_core::SC_ZERO_TIME;
+            setPayloadResponse(trans, pendingPacket);
             sendBeginResp(trans, delay);
         }
         trans.release();
