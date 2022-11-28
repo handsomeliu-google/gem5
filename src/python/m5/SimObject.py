@@ -573,7 +573,7 @@ class SimObjectCliWrapper(object):
                     setattr(sim_object, key, val)
                 else:
                     raise SimObjectCliWrapperException(
-                        "tried to set or unsettable" "object parameter: " + key
+                        "tried to set or unsettableobject parameter: " + key
                     )
             else:
                 raise SimObjectCliWrapperException(

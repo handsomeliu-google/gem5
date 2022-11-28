@@ -1516,7 +1516,7 @@ class MetaEnum(MetaParamValue):
                 cls.map[val] = idx
         else:
             raise TypeError(
-                "Enum-derived class must define " "attribute 'map' or 'vals'"
+                "Enum-derived class must define attribute 'map' or 'vals'"
             )
 
         if cls.is_class:
