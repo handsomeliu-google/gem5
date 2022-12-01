@@ -135,9 +135,10 @@ RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
         }
 
         // Set fault cause, privilege, and return PC
+        // Interrupt is indicated on the MSB of cause (bit 63 in RV64)
         uint64_t _cause = _code;
         if (isInterrupt()) {
-           _cause |= CAUSE_INTERRUPT_MASK;
+           _cause |= (1L << 63);
         }
         tc->setMiscReg(cause, _cause);
         tc->setMiscReg(epc, tc->pcState().instAddr());

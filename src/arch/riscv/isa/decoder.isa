@@ -65,15 +65,13 @@ decode QUADRANT default Unknown::unknown() {
                          CIMM3 << 3 |
                          CIMM2<0:0> << 6;
             }}, {{
-                Rp2_sx = Mem_sw;
+                Rp2_sd = Mem_sw;
             }}, {{
                 EA = Rp1 + offset;
             }});
             0x3: c_ld({{
                 offset = CIMM3 << 3 | CIMM2 << 6;
             }}, {{
-                // TODO: This should be c.flw in rv32.
-                ILLEGAL_INST_IN_RV32();
                 Rp2_sd = Mem_sd;
             }}, {{
                 EA = Rp1 + offset;
@@ -104,9 +102,7 @@ decode QUADRANT default Unknown::unknown() {
             0x7: c_sd({{
                 offset = CIMM3 << 3 | CIMM2 << 6;
             }}, {{
-                // TODO: This should be c.fsw in rv32.
-                ILLEGAL_INST_IN_RV32();
-                Mem_ud = Rp2_ud;
+                    Mem_ud = Rp2_ud;
             }}, {{
                 EA = Rp1 + offset;
             }});
@@ -128,15 +124,13 @@ decode QUADRANT default Unknown::unknown() {
                                 "immediate = 0", machInst);
                     }
                 }
-                Rc1_sx = Rc1_sx + imm;
+                Rc1_sd = Rc1_sd + imm;
             }});
             0x1: c_addiw({{
                 imm = CIMM5;
                 if (CIMM1 > 0)
                     imm |= ~((uint64_t)0x1F);
             }}, {{
-                // TODO: This should be c.jal in rv32.
-                ILLEGAL_INST_IN_RV32();
                 if (RC1 == 0) {
                     return std::make_shared<IllegalInstFault>(
                             "source reg x0", machInst);
@@ -152,7 +146,7 @@ decode QUADRANT default Unknown::unknown() {
                     return std::make_shared<IllegalInstFault>(
                             "source reg x0", machInst);
                 }
-                Rc1_sx = imm;
+                Rc1_sd = imm;
             }});
             0x3: decode RC1 {
                 0x2: c_addi16sp({{
@@ -167,7 +161,7 @@ decode QUADRANT default Unknown::unknown() {
                         return std::make_shared<IllegalInstFault>(
                                 "immediate = 0", machInst);
                     }
-                    sp_sx = sp_sx + imm;
+                    sp_sd = sp_sd + imm;
                 }});
                 default: c_lui({{
                     imm = CIMM5 << 12;
@@ -182,7 +176,7 @@ decode QUADRANT default Unknown::unknown() {
                         return std::make_shared<IllegalInstFault>(
                                 "immediate = 0", machInst);
                     }
-                    Rc1_sx = imm;
+                    Rc1_sd = imm;
                 }});
             }
         }
@@ -191,10 +185,6 @@ decode QUADRANT default Unknown::unknown() {
                 0x0: c_srli({{
                     imm = CIMM5 | (CIMM1 << 5);
                 }}, {{
-                    if (CIMM1 && IS_RV32()) {
-                        return std::make_shared<IllegalInstFault>(
-                                "shmat[5] != 0", machInst);
-                    }
                     if (imm == 0) {
                         return std::make_shared<IllegalInstFault>(
                                 "immediate = 0", machInst);
@@ -204,15 +194,11 @@ decode QUADRANT default Unknown::unknown() {
                 0x1: c_srai({{
                     imm = CIMM5 | (CIMM1 << 5);
                 }}, {{
-                    if (CIMM1 && IS_RV32()) {
-                        return std::make_shared<IllegalInstFault>(
-                                "shmat[5] != 0", machInst);
-                    }
                     if (imm == 0) {
                         return std::make_shared<IllegalInstFault>(
                                 "immediate = 0", machInst);
                     }
-                    Rp1_sx = Rp1_sx >> imm;
+                    Rp1_sd = Rp1_sd >> imm;
                 }}, uint64_t);
                 0x2: c_andi({{
                     imm = CIMM5;
@@ -240,11 +226,9 @@ decode QUADRANT default Unknown::unknown() {
                     }
                     0x1: decode CFUNCT2LOW {
                         0x0: c_subw({{
-                            ILLEGAL_INST_IN_RV32();
                             Rp1_sd = (int32_t)Rp1_sd - Rp2_sw;
                         }});
                         0x1: c_addw({{
-                            ILLEGAL_INST_IN_RV32();
                             Rp1_sd = (int32_t)Rp1_sd + Rp2_sw;
                         }});
                     }
@@ -273,10 +257,6 @@ decode QUADRANT default Unknown::unknown() {
         0x0: CIOp::c_slli({{
             imm = CIMM5 | (CIMM1 << 5);
         }}, {{
-            if (CIMM1 && IS_RV32()) {
-                return std::make_shared<IllegalInstFault>(
-                        "shmat[5] != 0", machInst);
-            }
             if (imm == 0) {
                 return std::make_shared<IllegalInstFault>(
                         "immediate = 0", machInst);
@@ -306,7 +286,7 @@ decode QUADRANT default Unknown::unknown() {
                     return std::make_shared<IllegalInstFault>(
                             "source reg x0", machInst);
                 }
-                Rc1_sx = Mem_sw;
+                Rc1_sd = Mem_sw;
             }}, {{
                 EA = sp + offset;
             }});
@@ -315,8 +295,6 @@ decode QUADRANT default Unknown::unknown() {
                          CIMM1 << 5 |
                          CIMM5<2:0> << 6;
             }}, {{
-                // TODO: This should be c.flwsp in rv32.
-                ILLEGAL_INST_IN_RV32();
                 if (RC1 == 0) {
                     return std::make_shared<IllegalInstFault>(
                             "source reg x0", machInst);
@@ -361,7 +339,7 @@ decode QUADRANT default Unknown::unknown() {
                         NPC = Rc1;
                     }}, IsIndirectControl, IsUncondControl, IsCall);
                     default: CompressedROp::c_add({{
-                        Rc1_sx = Rc1_sx + Rc2_sx;
+                        Rc1_sd = Rc1_sd + Rc2_sd;
                     }});
                 }
             }
@@ -387,8 +365,6 @@ decode QUADRANT default Unknown::unknown() {
                 offset = CIMM6<5:3> << 3 |
                          CIMM6<2:0> << 6;
             }}, {{
-                // TODO: This should be c.fswsp in rv32.
-                ILLEGAL_INST_IN_RV32();
                 Mem = Rc2;
             }}, {{
                 EA = sp + offset;
@@ -399,16 +375,15 @@ decode QUADRANT default Unknown::unknown() {
         0x00: decode FUNCT3 {
             format Load {
                 0x0: lb({{
-                    Rd_sx = Mem_sb;
+                    Rd_sd = Mem_sb;
                 }});
                 0x1: lh({{
-                    Rd_sx = Mem_sh;
+                    Rd_sd = Mem_sh;
                 }});
                 0x2: lw({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }});
                 0x3: ld({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }});
                 0x4: lbu({{
@@ -418,7 +393,6 @@ decode QUADRANT default Unknown::unknown() {
                     Rd = Mem_uh;
                 }});
                 0x6: lwu({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd = Mem_uw;
                 }});
             }
@@ -547,10 +521,10 @@ decode QUADRANT default Unknown::unknown() {
 
             format IOp {
                 0x0: addi({{
-                    Rd_sx = Rs1_sx + imm;
+                    Rd_sd = Rs1_sd + imm;
                 }});
                 0x2: slti({{
-                    Rd = (Rs1_sx < imm) ? 1 : 0;
+                    Rd = (Rs1_sd < imm) ? 1 : 0;
                 }});
                 0x3: sltiu({{
                     Rd = (Rs1 < imm) ? 1 : 0;
@@ -575,7 +549,7 @@ decode QUADRANT default Unknown::unknown() {
                         Rd = result;
                     }}, imm_type = uint64_t, imm_code = {{ imm = SHAMT6; }});
                     0x8: srai({{
-                        Rd_sx = Rs1_sx >> imm;
+                        Rd_sd = Rs1_sd >> imm;
                     }}, imm_type = uint64_t, imm_code = {{ imm = SHAMT6; }});
                     0x9: bexti({{
                         uint64_t index = imm & (64 - 1);
@@ -620,12 +594,10 @@ decode QUADRANT default Unknown::unknown() {
         0x06: decode FUNCT3 {
             format IOp {
                 0x0: addiw({{
-                    ILLEGAL_INST_IN_RV32();
-                    Rd_sw = (int32_t)(Rs1_sw + imm);
+                    Rd_sd = Rs1_sw + imm;
                 }}, int32_t);
                 0x1: decode FS3 {
                     0x0: slliw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = Rs1_sw << imm;
                     }}, imm_type = uint64_t, imm_code = {{ imm = SHAMT5; }});
                     0x1: slli_uw({{
@@ -645,11 +617,9 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x5: decode FS3 {
                     0x0: srliw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = (int32_t)(Rs1_uw >> imm);
                     }}, imm_type = uint64_t, imm_code = {{ imm = SHAMT5; }});
                     0x8: sraiw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = Rs1_sw >> imm;
                     }}, imm_type = uint64_t, imm_code = {{ imm = SHAMT5; }});
                     0xc: roriw({{
@@ -671,7 +641,6 @@ decode QUADRANT default Unknown::unknown() {
                     Mem_uw = Rs2_uw;
                 }});
                 0x3: sd({{
-                    ILLEGAL_INST_IN_RV32();
                     Mem_ud = Rs2_ud;
                 }});
             }
@@ -709,7 +678,7 @@ decode QUADRANT default Unknown::unknown() {
         0x0b: decode FUNCT3 {
             0x2: decode AMOFUNCT {
                 0x2: LoadReserved::lr_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, mem_flags=LLSC);
                 0x3: StoreCond::sc_w({{
                     Mem_uw = Rs2_uw;
@@ -717,63 +686,63 @@ decode QUADRANT default Unknown::unknown() {
                     Rd = result;
                 }}, inst_flags=IsStoreConditional, mem_flags=LLSC);
                 0x0: AtomicMemOp::amoadd_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<int32_t> *amo_op =
                           new AtomicGenericOp<int32_t>(Rs2_sw,
                                   [](int32_t* b, int32_t a){ *b += a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x1: AtomicMemOp::amoswap_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<uint32_t> *amo_op =
                           new AtomicGenericOp<uint32_t>(Rs2_uw,
                                   [](uint32_t* b, uint32_t a){ *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x4: AtomicMemOp::amoxor_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<uint32_t> *amo_op =
                           new AtomicGenericOp<uint32_t>(Rs2_uw,
                                   [](uint32_t* b, uint32_t a){ *b ^= a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x8: AtomicMemOp::amoor_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<uint32_t> *amo_op =
                           new AtomicGenericOp<uint32_t>(Rs2_uw,
                                   [](uint32_t* b, uint32_t a){ *b |= a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0xc: AtomicMemOp::amoand_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<uint32_t> *amo_op =
                           new AtomicGenericOp<uint32_t>(Rs2_uw,
                                   [](uint32_t* b, uint32_t a){ *b &= a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x10: AtomicMemOp::amomin_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<int32_t> *amo_op =
                       new AtomicGenericOp<int32_t>(Rs2_sw,
                         [](int32_t* b, int32_t a){ if (a < *b) *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x14: AtomicMemOp::amomax_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<int32_t> *amo_op =
                       new AtomicGenericOp<int32_t>(Rs2_sw,
                         [](int32_t* b, int32_t a){ if (a > *b) *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x18: AtomicMemOp::amominu_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<uint32_t> *amo_op =
                       new AtomicGenericOp<uint32_t>(Rs2_uw,
                         [](uint32_t* b, uint32_t a){ if (a < *b) *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x1c: AtomicMemOp::amomaxu_w({{
-                    Rd_sx = Mem_sw;
+                    Rd_sd = Mem_sw;
                 }}, {{
                     TypedAtomicOpFunctor<uint32_t> *amo_op =
                       new AtomicGenericOp<uint32_t>(Rs2_uw,
@@ -782,17 +751,14 @@ decode QUADRANT default Unknown::unknown() {
             }
             0x3: decode AMOFUNCT {
                 0x2: LoadReserved::lr_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, mem_flags=LLSC);
                 0x3: StoreCond::sc_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Mem = Rs2;
                 }}, {{
                     Rd = result;
                 }}, mem_flags=LLSC, inst_flags=IsStoreConditional);
                 0x0: AtomicMemOp::amoadd_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<int64_t> *amo_op =
@@ -800,7 +766,6 @@ decode QUADRANT default Unknown::unknown() {
                                   [](int64_t* b, int64_t a){ *b += a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x1: AtomicMemOp::amoswap_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<uint64_t> *amo_op =
@@ -808,7 +773,6 @@ decode QUADRANT default Unknown::unknown() {
                                   [](uint64_t* b, uint64_t a){ *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x4: AtomicMemOp::amoxor_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<uint64_t> *amo_op =
@@ -816,7 +780,6 @@ decode QUADRANT default Unknown::unknown() {
                                  [](uint64_t* b, uint64_t a){ *b ^= a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x8: AtomicMemOp::amoor_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<uint64_t> *amo_op =
@@ -824,7 +787,6 @@ decode QUADRANT default Unknown::unknown() {
                                  [](uint64_t* b, uint64_t a){ *b |= a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0xc: AtomicMemOp::amoand_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<uint64_t> *amo_op =
@@ -832,7 +794,6 @@ decode QUADRANT default Unknown::unknown() {
                                  [](uint64_t* b, uint64_t a){ *b &= a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x10: AtomicMemOp::amomin_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<int64_t> *amo_op =
@@ -840,7 +801,6 @@ decode QUADRANT default Unknown::unknown() {
                         [](int64_t* b, int64_t a){ if (a < *b) *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x14: AtomicMemOp::amomax_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<int64_t> *amo_op =
@@ -848,7 +808,6 @@ decode QUADRANT default Unknown::unknown() {
                         [](int64_t* b, int64_t a){ if (a > *b) *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x18: AtomicMemOp::amominu_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<uint64_t> *amo_op =
@@ -856,7 +815,6 @@ decode QUADRANT default Unknown::unknown() {
                         [](uint64_t* b, uint64_t a){ if (a < *b) *b = a; });
                 }}, mem_flags=ATOMIC_RETURN_OP);
                 0x1c: AtomicMemOp::amomaxu_d({{
-                    ILLEGAL_INST_IN_RV32();
                     Rd_sd = Mem_sd;
                 }}, {{
                     TypedAtomicOpFunctor<uint64_t> *amo_op =
@@ -870,15 +828,15 @@ decode QUADRANT default Unknown::unknown() {
                 0x0: decode KFUNCT5 {
                     0x00: decode BS {
                         0x0: add({{
-                            Rd = Rs1_sx + Rs2_sx;
+                            Rd = Rs1_sd + Rs2_sd;
                         }});
                         0x1: sub({{
-                            Rd = Rs1_sx - Rs2_sx;
+                            Rd = Rs1_sd - Rs2_sd;
                         }});
                     }
                     0x01: decode BS {
                         0x0: mul({{
-                            Rd = Rs1_sx * Rs2_sx;
+                            Rd = Rs1_sd * Rs2_sd;
                         }}, IntMultOp);
                     }
                     0x18: sm4ed({{
@@ -913,29 +871,28 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x1: decode FUNCT7 {
                     0x0: sll({{
-                        Rd = Rs1 << (Rs2 & gem5::mask(IS_RV32() ? 5 : 6));
+                        Rd = Rs1 << Rs2<5:0>;
                     }});
                     0x1: mulh({{
-                        const uint64_t hlen = IS_RV32() ? 16 : 32;
-                        const uint64_t hmask = gem5::mask(hlen);
-                        bool negate = (Rs1_sx < 0) != (Rs2_sx < 0);
+                        bool negate = (Rs1_sd < 0) != (Rs2_sd < 0);
 
-                        uint64_t Rs1_lo = Rs1_sx & hmask;
-                        uint64_t Rs1_hi = (Rs1_sx >> hlen) & hmask;
-                        uint64_t Rs2_lo = Rs2_sx & hmask;
-                        uint64_t Rs2_hi = (Rs2_sx >> hlen) & hmask;
+                        uint64_t Rs1_lo = (uint32_t)std::abs(Rs1_sd);
+                        uint64_t Rs1_hi = (uint64_t)std::abs(Rs1_sd) >> 32;
+                        uint64_t Rs2_lo = (uint32_t)std::abs(Rs2_sd);
+                        uint64_t Rs2_hi = (uint64_t)std::abs(Rs2_sd) >> 32;
 
-                        uint64_t hi = Rs1_hi * Rs2_hi;
-                        uint64_t mid1 = Rs1_hi * Rs2_lo;
-                        uint64_t mid2 = Rs1_lo * Rs2_hi;
-                        uint64_t lo = Rs2_lo * Rs1_lo;
-                        uint64_t carry = ((mid1 & hmask) +
-                                          (mid2 & hmask) +
-                                          (lo >> hlen)) >> hlen;
+                        uint64_t hi = Rs1_hi*Rs2_hi;
+                        uint64_t mid1 = Rs1_hi*Rs2_lo;
+                        uint64_t mid2 = Rs1_lo*Rs2_hi;
+                        uint64_t lo = Rs2_lo*Rs1_lo;
+                        uint64_t carry = ((uint64_t)(uint32_t)mid1
+                                + (uint64_t)(uint32_t)mid2 + (lo >> 32)) >> 32;
 
-                        uint64_t res = hi + (mid1 >> hlen) + (mid2 >> hlen) + \
+                        uint64_t res = hi +
+                                       (mid1 >> 32) +
+                                       (mid2 >> 32) +
                                        carry;
-                        Rd = negate ? ~res + (Rs1_sx * Rs2_sx == 0 ? 1 : 0)
+                        Rd = negate ? ~res + (Rs1_sd*Rs2_sd == 0 ? 1 : 0)
                                     : res;
                     }}, IntMultOp);
                     0x5: clmul({{
@@ -966,29 +923,27 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x2: decode FUNCT7 {
                     0x0: slt({{
-                        Rd = (Rs1_sx < Rs2_sx) ? 1 : 0;
+                        Rd = (Rs1_sd < Rs2_sd) ? 1 : 0;
                     }});
                     0x1: mulhsu({{
-                        const uint64_t hlen = IS_RV32() ? 16 : 32;
-                        const uint64_t hmask = gem5::mask(hlen);
-                        bool negate = Rs1_sx < 0;
+                        bool negate = Rs1_sd < 0;
+                        uint64_t Rs1_lo = (uint32_t)std::abs(Rs1_sd);
+                        uint64_t Rs1_hi = (uint64_t)std::abs(Rs1_sd) >> 32;
+                        uint64_t Rs2_lo = (uint32_t)Rs2;
+                        uint64_t Rs2_hi = Rs2 >> 32;
 
-                        uint64_t Rs1_lo = Rs1_sx & hmask;
-                        uint64_t Rs1_hi = (Rs1_sx >> hlen) & hmask;
-                        uint64_t Rs2_lo = Rs2 & hmask;
-                        uint64_t Rs2_hi = (Rs2 >> hlen) & hmask;
+                        uint64_t hi = Rs1_hi*Rs2_hi;
+                        uint64_t mid1 = Rs1_hi*Rs2_lo;
+                        uint64_t mid2 = Rs1_lo*Rs2_hi;
+                        uint64_t lo = Rs1_lo*Rs2_lo;
+                        uint64_t carry = ((uint64_t)(uint32_t)mid1
+                                + (uint64_t)(uint32_t)mid2 + (lo >> 32)) >> 32;
 
-                        uint64_t hi = Rs1_hi * Rs2_hi;
-                        uint64_t mid1 = Rs1_hi * Rs2_lo;
-                        uint64_t mid2 = Rs1_lo * Rs2_hi;
-                        uint64_t lo = Rs2_lo * Rs1_lo;
-                        uint64_t carry = ((mid1 & hmask) +
-                                          (mid2 & hmask) +
-                                          (lo >> hlen)) >> hlen;
-
-                        uint64_t res = hi + (mid1 >> hlen) + (mid2 >> hlen) + \
+                        uint64_t res = hi +
+                                       (mid1 >> 32) +
+                                       (mid2 >> 32) +
                                        carry;
-                        Rd = negate ? ~res + (Rs1_sx * Rs2 == 0 ? 1 : 0) : res;
+                        Rd = negate ? ~res + (Rs1_sd*Rs2 == 0 ? 1 : 0) : res;
                     }}, IntMultOp);
                     0x5: clmulr({{
                         uint64_t result = 0;
@@ -1011,23 +966,19 @@ decode QUADRANT default Unknown::unknown() {
                         Rd = (Rs1 < Rs2) ? 1 : 0;
                     }});
                     0x1: mulhu({{
-                        const uint64_t hlen = IS_RV32() ? 16 : 32;
-                        const uint64_t hmask = gem5::mask(hlen);
+                        uint64_t Rs1_lo = (uint32_t)Rs1;
+                        uint64_t Rs1_hi = Rs1 >> 32;
+                        uint64_t Rs2_lo = (uint32_t)Rs2;
+                        uint64_t Rs2_hi = Rs2 >> 32;
 
-                        uint64_t Rs1_lo = Rs1 & hmask;
-                        uint64_t Rs1_hi = (Rs1 >> hlen) & hmask;
-                        uint64_t Rs2_lo = Rs2 & hmask;
-                        uint64_t Rs2_hi = (Rs2 >> hlen) & hmask;
+                        uint64_t hi = Rs1_hi*Rs2_hi;
+                        uint64_t mid1 = Rs1_hi*Rs2_lo;
+                        uint64_t mid2 = Rs1_lo*Rs2_hi;
+                        uint64_t lo = Rs1_lo*Rs2_lo;
+                        uint64_t carry = ((uint64_t)(uint32_t)mid1
+                                + (uint64_t)(uint32_t)mid2 + (lo >> 32)) >> 32;
 
-                        uint64_t hi = Rs1_hi * Rs2_hi;
-                        uint64_t mid1 = Rs1_hi * Rs2_lo;
-                        uint64_t mid2 = Rs1_lo * Rs2_hi;
-                        uint64_t lo = Rs2_lo * Rs1_lo;
-                        uint64_t carry = ((mid1 & hmask) +
-                                          (mid2 & hmask) +
-                                          (lo >> hlen)) >> hlen;
-
-                        Rd = hi + (mid1 >> hlen) + (mid2 >> hlen) + carry;
+                        Rd = hi + (mid1 >> 32) + (mid2 >> 32) + carry;
                     }}, IntMultOp);
                     0x5: clmulh({{
                         uint64_t result = 0;
@@ -1044,14 +995,14 @@ decode QUADRANT default Unknown::unknown() {
                         Rd = Rs1 ^ Rs2;
                     }});
                     0x1: div({{
-                        constexpr decltype(Rs1_sx) kRsMin = \
-                            std::numeric_limits<decltype(Rs1_sx)>::min();
-                        if (Rs2_sx == 0) {
-                            Rd_sx = -1;
-                        } else if (Rs1_sx == kRsMin && Rs2_sx == -1) {
-                            Rd_sx = kRsMin;
+                        if (Rs2_sd == 0) {
+                            Rd_sd = -1;
+                        } else if (
+                                Rs1_sd == std::numeric_limits<int64_t>::min()
+                                && Rs2_sd == -1) {
+                            Rd_sd = std::numeric_limits<int64_t>::min();
                         } else {
-                            Rd_sx = Rs1_sx/Rs2_sx;
+                            Rd_sd = Rs1_sd/Rs2_sd;
                         }
                     }}, IntDivOp);
                     0x5: min({{
@@ -1069,18 +1020,17 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x5: decode FUNCT7 {
                     0x0: srl({{
-                        Rd = Rs1 >> (Rs2 & gem5::mask(IS_RV32() ? 5 : 6));
+                        Rd = Rs1 >> Rs2<5:0>;
                     }});
                     0x1: divu({{
                         if (Rs2 == 0) {
-                            Rd = std::numeric_limits<decltype(Rd)>::max();
+                            Rd = std::numeric_limits<uint64_t>::max();
                         } else {
                             Rd = Rs1/Rs2;
                         }
                     }}, IntDivOp);
                     0x20: sra({{
-                        Rd_sx = Rs1_sx >>
-                                (Rs2 & gem5::mask(IS_RV32() ? 5 : 6));
+                        Rd_sd = Rs1_sd >> Rs2<5:0>;
                     }});
                     0x5: minu({{
                         Rd = Rs1 < Rs2 ? Rs1 : Rs2;
@@ -1099,14 +1049,14 @@ decode QUADRANT default Unknown::unknown() {
                         Rd = Rs1 | Rs2;
                     }});
                     0x1: rem({{
-                        constexpr decltype(Rs1_sx) kRsMin = \
-                            std::numeric_limits<decltype(Rs1_sx)>::min();
-                        if (Rs2_sx == 0) {
-                            Rd = Rs1_sx;
-                        } else if (Rs1_sx == kRsMin && Rs2_sx == -1) {
+                        if (Rs2_sd == 0) {
+                            Rd = Rs1_sd;
+                        } else if (
+                                Rs1_sd == std::numeric_limits<int64_t>::min()
+                                && Rs2_sd == -1) {
                             Rd = 0;
                         } else {
-                            Rd = Rs1_sx%Rs2_sx;
+                            Rd = Rs1_sd%Rs2_sd;
                         }
                     }}, IntDivOp);
                     0x5: max({{
@@ -1141,31 +1091,27 @@ decode QUADRANT default Unknown::unknown() {
         }
 
         0x0d: UOp::lui({{
-            Rd = (sext<20>(imm) << 12);
+            Rd = (uint64_t)(sext<20>(imm) << 12);
         }});
 
         0x0e: decode FUNCT3 {
             format ROp {
                 0x0: decode FUNCT7 {
                     0x0: addw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = Rs1_sw + Rs2_sw;
                     }});
                     0x1: mulw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = (int32_t)(Rs1_sw*Rs2_sw);
                     }}, IntMultOp);
                     0x4: add_uw({{
                         Rd = Rs1_uw + Rs2;
                     }});
                     0x20: subw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = Rs1_sw - Rs2_sw;
                     }});
                 }
                 0x1: decode FUNCT7 {
                     0x0: sllw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = Rs1_sw << Rs2<4:0>;
                     }});
                     0x30: rolw({{
@@ -1180,7 +1126,6 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x4: decode FUNCT7 {
                     0x1: divw({{
-                        ILLEGAL_INST_IN_RV32();
                         if (Rs2_sw == 0) {
                             Rd_sd = -1;
                         } else if (Rs1_sw == std::numeric_limits<int32_t>::min()
@@ -1199,11 +1144,9 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x5: decode FUNCT7 {
                     0x0: srlw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = (int32_t)(Rs1_uw >> Rs2<4:0>);
                     }});
                     0x1: divuw({{
-                        ILLEGAL_INST_IN_RV32();
                         if (Rs2_uw == 0) {
                             Rd_sd = std::numeric_limits<uint64_t>::max();
                         } else {
@@ -1211,7 +1154,6 @@ decode QUADRANT default Unknown::unknown() {
                         }
                     }}, IntDivOp);
                     0x20: sraw({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd_sd = Rs1_sw >> Rs2<4:0>;
                     }});
                     0x30: rorw({{
@@ -1221,7 +1163,6 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x6:  decode FUNCT7 {
                     0x1: remw({{
-                        ILLEGAL_INST_IN_RV32();
                         if (Rs2_sw == 0) {
                             Rd_sd = Rs1_sw;
                         } else if (Rs1_sw == std::numeric_limits<int32_t>::min()
@@ -1236,7 +1177,6 @@ decode QUADRANT default Unknown::unknown() {
                     }});
                 }
                 0x7: remuw({{
-                    ILLEGAL_INST_IN_RV32();
                     if (Rs2_uw == 0) {
                         Rd_sd = (int32_t)Rs1_uw;
                     } else {
@@ -1695,7 +1635,7 @@ decode QUADRANT default Unknown::unknown() {
                 0x60: decode CONV_SGN {
                     0x0: fcvt_w_s({{
                         RM_REQUIRED;
-                        Rd_sx = sext<32>(f32_to_i32(f32(freg(Fs1_bits)), rm,
+                        Rd_sd = sext<32>(f32_to_i32(f32(freg(Fs1_bits)), rm,
                                                     true));
                     }}, FloatCvtOp);
                     0x1: fcvt_wu_s({{
@@ -1704,12 +1644,10 @@ decode QUADRANT default Unknown::unknown() {
                                                   true));
                     }}, FloatCvtOp);
                     0x2: fcvt_l_s({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         Rd_sd = f32_to_i64(f32(freg(Fs1_bits)), rm, true);
                     }}, FloatCvtOp);
                     0x3: fcvt_lu_s({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         Rd = f32_to_ui64(f32(freg(Fs1_bits)), rm, true);
                     }}, FloatCvtOp);
@@ -1717,7 +1655,7 @@ decode QUADRANT default Unknown::unknown() {
                 0x61: decode CONV_SGN {
                     0x0: fcvt_w_d({{
                         RM_REQUIRED;
-                        Rd_sx = sext<32>(f64_to_i32(f64(freg(Fs1_bits)), rm,
+                        Rd_sd = sext<32>(f64_to_i32(f64(freg(Fs1_bits)), rm,
                                                     true));
                     }}, FloatCvtOp);
                     0x1: fcvt_wu_d({{
@@ -1726,12 +1664,10 @@ decode QUADRANT default Unknown::unknown() {
                                                   true));
                     }}, FloatCvtOp);
                     0x2: fcvt_l_d({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         Rd_sd = f64_to_i64(f64(freg(Fs1_bits)), rm, true);
                     }}, FloatCvtOp);
                     0x3: fcvt_lu_d({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         Rd = f64_to_ui64(f64(freg(Fs1_bits)), rm, true);
                     }}, FloatCvtOp);
@@ -1739,7 +1675,7 @@ decode QUADRANT default Unknown::unknown() {
                 0x62: decode CONV_SGN {
                     0x0: fcvt_w_h({{
                         RM_REQUIRED;
-                        Rd_sx = sext<32>(f16_to_i32(f16(freg(Fs1_bits)), rm,
+                        Rd_sd = sext<32>(f16_to_i32(f16(freg(Fs1_bits)), rm,
                                                     true));
                     }}, FloatCvtOp);
                     0x1: fcvt_wu_h({{
@@ -1770,14 +1706,12 @@ decode QUADRANT default Unknown::unknown() {
                         Fd_bits = fd.v;
                         }}, FloatCvtOp);
                     0x2: fcvt_s_l({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         freg_t fd;
                         fd = freg(i64_to_f32(Rs1_ud));
                         Fd_bits = fd.v;
                         }}, FloatCvtOp);
                     0x3: fcvt_s_lu({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         freg_t fd;
                         fd = freg(ui64_to_f32(Rs1));
@@ -1794,12 +1728,10 @@ decode QUADRANT default Unknown::unknown() {
                         Fd = (double)Rs1_uw;
                     }}, FloatCvtOp);
                     0x2: fcvt_d_l({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         Fd = (double)Rs1_sd;
                     }}, FloatCvtOp);
                     0x3: fcvt_d_lu({{
-                        ILLEGAL_INST_IN_RV32();
                         RM_REQUIRED;
                         Fd = (double)Rs1;
                     }}, FloatCvtOp);
@@ -1832,7 +1764,10 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x70: decode ROUND_MODE {
                     0x0: fmv_x_w({{
-                        Rd = sext<32>((uint32_t)Fs1_bits);
+                        Rd = (uint32_t)Fs1_bits;
+                        if ((Rd&0x80000000) != 0) {
+                            Rd |= (0xFFFFFFFFULL << 32);
+                        }
                     }}, FloatCvtOp);
                     0x1: fclass_s({{
                         Rd = f32_classify(f32(freg(Fs1_bits)));
@@ -1840,11 +1775,9 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x71: decode ROUND_MODE {
                     0x0: fmv_x_d({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd = freg(Fs1_bits).v;
                     }}, FloatCvtOp);
                     0x1: fclass_d({{
-                        ILLEGAL_INST_IN_RV32();
                         Rd = f64_classify(f64(freg(Fs1_bits)));
                     }}, FloatMiscOp);
                 }
@@ -1866,7 +1799,6 @@ decode QUADRANT default Unknown::unknown() {
                     Fd_bits = fd.v;
                 }}, FloatCvtOp);
                 0x79: fmv_d_x({{
-                    ILLEGAL_INST_IN_RV32();
                     freg_t fd;
                     fd = freg(f64(Rs1));
                     Fd_bits = fd.v;
@@ -1896,14 +1828,14 @@ decode QUADRANT default Unknown::unknown() {
                     }
                 }}, IsDirectControl, IsCondControl);
                 0x4: blt({{
-                    if (Rs1_sx < Rs2_sx) {
+                    if (Rs1_sd < Rs2_sd) {
                         NPC = PC + imm;
                     } else {
                         NPC = NPC;
                     }
                 }}, IsDirectControl, IsCondControl);
                 0x5: bge({{
-                    if (Rs1_sx >= Rs2_sx) {
+                    if (Rs1_sd >= Rs2_sd) {
                         NPC = PC + imm;
                     } else {
                         NPC = NPC;
