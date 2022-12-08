@@ -1364,17 +1364,6 @@ MemCtrl::recvFunctional(PacketPtr pkt)
              pkt->print());
 }
 
-void
-MemCtrl::recvMemBackdoorReq(const MemBackdoorReq &req,
-        MemBackdoorPtr &backdoor)
-{
-    panic_if(!dram->getAddrRange().contains(req.range().start()),
-            "Can't handle address range for backdoor %s.",
-            req.range().to_string());
-
-    dram->getBackdoor(backdoor);
-}
-
 bool
 MemCtrl::recvFunctionalLogic(PacketPtr pkt, MemInterface* mem_intr)
 {
@@ -1483,13 +1472,6 @@ MemCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
     }
 
     pkt->popLabel();
-}
-
-void
-MemCtrl::MemoryPort::recvMemBackdoorReq(const MemBackdoorReq &req,
-        MemBackdoorPtr &backdoor)
-{
-    ctrl.recvMemBackdoorReq(req, backdoor);
 }
 
 Tick
