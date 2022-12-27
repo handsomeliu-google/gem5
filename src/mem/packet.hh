@@ -1103,6 +1103,16 @@ class Packet : public Printable, public Extensible<Packet>
     }
 
     /**
+     * Accessor functions for the cache bypass flags. The cache bypass
+     * can specify which levels in the hierarchy to bypass. If GLC_BIT
+     * is set, the requests are globally coherent and bypass TCP.
+     * If SLC_BIT is set, then the requests are system level coherent
+     * and bypass both TCP and TCC.
+     */
+    bool isGLCSet() const { return req->isGLCSet();}
+    bool isSLCSet() const { return req->isSLCSet();}
+
+    /**
      * Check if packet corresponds to a given block-aligned address and
      * address space.
      *
