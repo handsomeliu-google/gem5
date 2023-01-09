@@ -141,11 +141,7 @@ def scx_get_min_sync_latency(arg=None):
 
 
 # This should be called once per simulation
-def setup_simulation(
-    sim_name, min_sync_latency=100.0 / 100000000, exit_on_dmi_warning=False
-):
+def setup_simulation(sim_name, min_sync_latency=100.0 / 100000000):
     set_armlmd_license_file()
     scx_initialize(sim_name)
     scx_set_min_sync_latency(min_sync_latency)
-    if exit_on_dmi_warning:
-        _m5.arm_fast_model.gem5.enable_exit_on_dmi_warning_handler()
