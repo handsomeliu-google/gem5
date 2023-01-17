@@ -245,6 +245,33 @@ class MinorDefaultMiscFU(MinorFU):
     opLat = 1
 
 
+class MinorDefaultVecFU(MinorFU):
+    opClasses = minorMakeOpClassSet(
+        [
+            "VectorUnitStrideLoad",
+            "VectorUnitStrideStore",
+            "VectorUnitStrideMaskLoad",
+            "VectorUnitStrideMaskStore",
+            "VectorStridedLoad",
+            "VectorStridedStore",
+            "VectorIndexedLoad",
+            "VectorIndexedStore",
+            "VectorUnitStrideFaultOnlyFirstLoad",
+            "VectorWholeRegisterLoad",
+            "VectorWholeRegisterStore",
+            "VectorIntegerArith",
+            "VectorFloatArith",
+            "VectorFloatConvert",
+            "VectorIntegerReduce",
+            "VectorFloatReduce",
+            "VectorMisc",
+            "VectorIntegerExtension",
+            "VectorConfig",
+        ]
+    )
+    opLat = 1
+
+
 class MinorDefaultFUPool(MinorFUPool):
     funcUnits = [
         MinorDefaultIntFU(),
@@ -255,6 +282,7 @@ class MinorDefaultFUPool(MinorFUPool):
         MinorDefaultPredFU(),
         MinorDefaultMemFU(),
         MinorDefaultMiscFU(),
+        MinorDefaultVecFU(),
     ]
 
 
