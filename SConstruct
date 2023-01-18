@@ -657,7 +657,8 @@ for variant_path in variant_paths:
         if env['GCC'] or env['CLANG']:
             env.Append(CCFLAGS=['-fsanitize=%s' % sanitizers,
                                  '-fno-omit-frame-pointer'],
-                        LINKFLAGS='-fsanitize=%s' % sanitizers)
+                        LINKFLAGS=['-fsanitize=%s' % sanitizers,
+                                   '-static-libasan'])
         else:
             warning("Don't know how to enable %s sanitizer(s) for your "
                     "compiler." % sanitizers)
