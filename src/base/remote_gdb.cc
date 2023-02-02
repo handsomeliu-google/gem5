@@ -393,7 +393,7 @@ std::map<Addr, HardBreakpoint *> hardBreakMap;
 BaseRemoteGDB::BaseRemoteGDB(System *_system,
         ListenSocketConfig _listen_config) :
         incomingConnectionEvent(nullptr), incomingDataEvent(nullptr),
-        fd(-1), sys(_system), connectEvent(this), disconnectEvent(this),
+        fd(-1), sys(_system), connectEvent(*this), disconnectEvent(*this),
         trapEvent(this), singleStepEvent(*this)
 {
     listener = _listen_config.build(name());
