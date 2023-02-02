@@ -273,8 +273,8 @@ class BaseRemoteGDB
 
     BaseGdbRegCache *regCachePtr = nullptr;
 
-    EventWrapper<BaseRemoteGDB, &BaseRemoteGDB::connect> connectEvent;
-    EventWrapper<BaseRemoteGDB, &BaseRemoteGDB::detach>  disconnectEvent;
+    MemberEventWrapper<&BaseRemoteGDB::connect> connectEvent;
+    MemberEventWrapper<&BaseRemoteGDB::detach>  disconnectEvent;
 
     class TrapEvent : public Event
     {
@@ -307,7 +307,7 @@ class BaseRemoteGDB
 
     // Single step.
     void singleStep();
-    EventWrapper<BaseRemoteGDB, &BaseRemoteGDB::singleStep> singleStepEvent;
+    MemberEventWrapper<&BaseRemoteGDB::singleStep> singleStepEvent;
 
     void clearSingleStep();
     void setSingleStep();
