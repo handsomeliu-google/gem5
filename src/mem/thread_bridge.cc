@@ -64,12 +64,6 @@ ThreadBridge::IncomingPort::recvRespRetry()
 
 // AtomicResponseProtocol
 Tick
-ThreadBridge::IncomingPort::recvAtomicBackdoor(PacketPtr pkt,
-                                               MemBackdoorPtr &backdoor)
-{
-    panic("ThreadBridge only supports atomic/functional access.");
-}
-Tick
 ThreadBridge::IncomingPort::recvAtomic(PacketPtr pkt)
 {
     EventQueue::ScopedMigration migrate(device_.eventQueue());
