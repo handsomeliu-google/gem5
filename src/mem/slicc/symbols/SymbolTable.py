@@ -40,7 +40,7 @@ def makeDir(path):
         if not os.path.isdir(path):
             raise AttributeError("%s exists but is not directory" % path)
     else:
-        os.mkdir(path)
+        os.makedirs(path, exist_ok=True)
 
 
 class SymbolTable(object):
