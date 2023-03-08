@@ -135,6 +135,12 @@ AddOption('--gprof', action='store_true',
           help='Enable support for the gprof profiler')
 AddOption('--pprof', action='store_true',
           help='Enable support for the pprof profiler')
+# Default to --no-duplicate-sources, but keep --duplicate-sources to opt-out
+# of this new build behaviour in case it introduces regressions. We could use
+# action=argparse.BooleanOptionalAction here once Python 3.9 is required.
+AddOption('--duplicate-sources', action='store_true',
+          dest='duplicate_sources',
+          help='Create symlinks to sources in the build directory')
 AddOption('--no-duplicate-sources', action='store_false', default=True,
           dest='duplicate_sources',
           help='Do not create symlinks to sources in the build directory')
