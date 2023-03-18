@@ -403,7 +403,7 @@ BaseRemoteGDB::connect()
 
     pollQueue.remove(incomingConnectionEvent);
 
-    int sfd = listener.accept(true);
+    int sfd = listener.accept();
 
     if (sfd != -1) {
         if (isAttached())
