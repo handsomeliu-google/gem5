@@ -382,7 +382,7 @@ BaseRemoteGDB::listen()
         return;
     }
 
-    while (!listener.listen(_port, true)) {
+    while (!listener.listen(_port)) {
         DPRINTF(GDBMisc, "Can't bind port %d\n", _port);
         _port++;
     }
