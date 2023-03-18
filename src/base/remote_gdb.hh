@@ -161,7 +161,7 @@ class BaseRemoteGDB
     void listen();
     void connect();
 
-    int port() const;
+    const ListenSocket &hostSocket() const;
 
     void attach(int fd);
     void detach();
@@ -229,7 +229,6 @@ class BaseRemoteGDB
     IncomingDataEvent *incomingDataEvent;
 
     ListenSocket listener;
-    int _port;
 
     // The socket commands come in through.
     int fd;
