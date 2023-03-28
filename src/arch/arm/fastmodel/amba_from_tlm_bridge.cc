@@ -109,8 +109,29 @@ AmbaFromTlmBridge64::syncControlExtension(amba_pv::amba_pv_transaction &trans)
 
     amba_pv::amba_pv_extension *amba_ex = nullptr;
     trans.get_extension(amba_ex);
+
     if (!amba_ex) {
-        return;
+        amba_ex = new amba_pv::amba_pv_extension();
+
+        // Codes are copied from amba_pv_from_tlm_bridge header.
+        // It tries to initiate a new amba_pv extension correctly.
+        unsigned int l = trans.get_data_length();
+        unsigned int w = amba_pv_m.get_bus_width_bytes();
+        if (l > w) {
+            amba_ex->set_size(w);
+            amba_ex->set_length(l / w);
+            if (trans.get_streaming_width() < l) {
+                amba_ex->set_burst(amba_pv::AMBA_PV_FIXED);
+            }
+        } else {
+            amba_ex->set_size(l);
+        }
+
+        if (trans.has_mm()) {
+            trans.set_auto_extension(amba_ex);
+        } else {
+            trans.set_extension(amba_ex);
+        }
     }
 
     amba_ex->set_privileged(control_ex->isPrivileged());
