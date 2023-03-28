@@ -197,6 +197,11 @@ AmbaToTlmBridge64::setupControlExtension(amba_pv::amba_pv_transaction &trans)
         control_ex->setStreamId(amba_ex->get_id());
     }
 
+    control_ex->setBufferable(amba_ex->is_bufferable());
+    control_ex->setModifiable(amba_ex->is_modifiable());
+    control_ex->setReadAllocate(amba_ex->is_read_allocate());
+    control_ex->setWriteAllocate(amba_ex->is_write_allocate());
+
     if (trans.has_mm()) {
         trans.set_auto_extension(control_ex);
     } else {

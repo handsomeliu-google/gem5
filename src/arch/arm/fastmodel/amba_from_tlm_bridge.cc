@@ -116,6 +116,19 @@ AmbaFromTlmBridge64::syncControlExtension(amba_pv::amba_pv_transaction &trans)
     amba_ex->set_privileged(control_ex->isPrivileged());
     amba_ex->set_non_secure(!control_ex->isSecure());
     amba_ex->set_instruction(control_ex->isInstruction());
+
+    if (control_ex->hasBufferable()) {
+        amba_ex->set_bufferable(control_ex->getBufferable().value());
+    }
+    if (control_ex->hasModifiable()) {
+        amba_ex->set_modifiable(control_ex->getModifiable().value());
+    }
+    if (control_ex->hasReadAllocate()) {
+        amba_ex->set_read_allocate(control_ex->getReadAllocate().value());
+    }
+    if (control_ex->hasWriteAllocate()) {
+        amba_ex->set_write_allocate(control_ex->getWriteAllocate().value());
+    }
 }
 
 } // namespace fastmodel
