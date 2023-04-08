@@ -95,19 +95,20 @@ DmaPort::handleResp(DmaReqState *state, Addr addr, Addr size, Tick delay)
     state->numBytes += size;
     assert(state->totBytes >= state->numBytes);
 
+    bool all_bytes = (state->totBytes == state->numBytes);
     if (state->aborted) {
         // If this request was aborted, check to see if its in flight accesses
         // have finished. There may be packets for more than one request in
         // flight at a time, so check for finished requests, or no more
         // packets.
-        if (state->gen.done() || pendingCount == 0) {
+        if (all_bytes || pendingCount == 0) {
             // If yes, signal its abort event (if any) and delete the state.
             if (state->abortEvent) {
                 device->schedule(state->abortEvent, curTick());
             }
             delete state;
         }
-    } else if (state->gen.done()) {
+    } else if (all_bytes) {
         // If we have reached the end of this DMA request, then signal the
         // completion and delete the sate.
         if (state->completionEvent) {
