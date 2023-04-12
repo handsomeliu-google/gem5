@@ -135,7 +135,7 @@ AddOption('--gprof', action='store_true',
           help='Enable support for the gprof profiler')
 AddOption('--pprof', action='store_true',
           help='Enable support for the pprof profiler')
-AddOption('--no-duplicate-sources', action='store_false',
+AddOption('--no-duplicate-sources', action='store_false', default=True,
           dest='duplicate_sources',
           help='Do not create symlinks to sources in the build directory')
 
@@ -405,7 +405,8 @@ main.Append(CPPPATH=[Dir('ext')])
 
 # Add shared top-level headers
 main.Prepend(CPPPATH=Dir('include'))
-main.Prepend(CPPPATH=Dir('src'))
+if not GetOption('duplicate_sources'):
+    main.Prepend(CPPPATH=Dir('src'))
 
 
 ########################################################################
