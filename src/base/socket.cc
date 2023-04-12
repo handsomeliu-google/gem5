@@ -249,15 +249,12 @@ listenSocketInetConfig(int port)
     });
 }
 
-std::string
-ListenSocketUnix::truncate(const std::string &original, size_t max_len)
+void
+ListenSocketUnix::checkPathLength(const std::string &original, size_t max_len)
 {
-    if (original.size() <= max_len)
-        return original;
-
-    std::string truncated = original.substr(0, max_len);
-    warn("%s: Truncated \"%s\" to \"%s\"", name(), original, truncated);
-    return truncated;
+    fatal_if(original.size() > max_len,
+            "Length of socket path '%s' is %d, greater than max %d.",
+            original, original.size(), max_len);
 }
 
 void
@@ -291,9 +288,9 @@ ListenSocketUnix::listen()
 
 ListenSocketUnixFile::ListenSocketUnixFile(const std::string &_name,
         const std::string &_dir, const std::string &_fname) :
-    ListenSocketUnix(_name), dir(_dir),
-    fname(truncate(_fname, sizeof(sockaddr_un::sun_path) - 1))
+    ListenSocketUnix(_name), dir(_dir), fname(_fname)
 {
+    checkPathLength(fname, sizeof(sockaddr_un::sun_path) - 1);
 }
 
 ListenSocketUnixFile::~ListenSocketUnixFile()
@@ -373,9 +370,9 @@ ListenSocketUnixAbstract::prepSockaddrUn(sockaddr_un &addr) const
 
 ListenSocketUnixAbstract::ListenSocketUnixAbstract(
         const std::string &_name, const std::string &_path) :
-    ListenSocketUnix(_name),
-    path(truncate(_path, sizeof(sockaddr_un::sun_path) - 1))
+    ListenSocketUnix(_name), path(_path)
 {
+    checkPathLength(path, sizeof(sockaddr_un::sun_path) - 1);
 }
 
 void
