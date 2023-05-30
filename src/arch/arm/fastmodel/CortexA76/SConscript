@@ -25,19 +25,24 @@
 
 Import('*')
 
+if env['CONF']['FASTMODEL_CORTEXA76']:
+    env.TagImplies('fastmodel cortexa76', 'arm fastmodel')
+
 protocol_dir = Dir('..').Dir('protocol')
 
 for name in ('x1', 'x2', 'x3', 'x4'):
     ArmFastModelComponent(Dir(name).File(name + '.sgproj'),
                           Dir(name).File(name + '.lisa'),
                           protocol_dir.File(
-                              'ExportedClockRateControlProtocol.lisa')
+                              'ExportedClockRateControlProtocol.lisa'),
+                          tags='fastmodel cortexa76'
                           ).prepare_env(env)
 
-SimObject('FastModelCortexA76.py', sim_objects=[
-    'FastModelCortexA76', 'FastModelCortexA76Cluster'] +
-    [f'FastModelScxEvsCortexA76x{num}' for num in (1, 2, 3, 4)],
-    tags='arm fastmodel')
-Source('cortex_a76.cc', tags='arm fastmodel')
-Source('evs.cc', tags='arm fastmodel')
-Source('thread_context.cc', tags='arm fastmodel')
+if env['CONF']['FASTMODEL_CORTEXA76']:
+    SimObject('FastModelCortexA76.py', sim_objects=[
+        'FastModelCortexA76', 'FastModelCortexA76Cluster'] +
+        [f'FastModelScxEvsCortexA76x{num}' for num in (1, 2, 3, 4)],
+        tags='fastmodel cortexa76')
+Source('cortex_a76.cc', tags='fastmodel cortexa76')
+Source('evs.cc', tags='fastmodel cortexa76')
+Source('thread_context.cc', tags='fastmodel cortexa76')
