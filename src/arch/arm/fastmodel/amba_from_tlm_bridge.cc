@@ -49,7 +49,8 @@ AmbaFromTlmBridge64::AmbaFromTlmBridge64(
     targetProxy.register_b_transport(this, &AmbaFromTlmBridge64::bTransport);
     targetProxy.register_get_direct_mem_ptr(
         this, &AmbaFromTlmBridge64::getDirectMemPtr);
-    targetProxy.register_transport_dbg(this, &AmbaFromTlmBridge64::transportDbg);
+    targetProxy.register_transport_dbg(this,
+                                       &AmbaFromTlmBridge64::transportDbg);
     initiatorProxy.register_invalidate_direct_mem_ptr(
         this, &AmbaFromTlmBridge64::invalidateDirectMemPtr);
     initiatorProxy(tlm_s);
@@ -73,6 +74,11 @@ AmbaFromTlmBridge64::bTransport(amba_pv::amba_pv_transaction &trans,
                                 sc_core::sc_time &t)
 {
     syncControlExtension(trans);
+    auto resp = trans.get_response_status();
+    if (resp != tlm::TLM_INCOMPLETE_RESPONSE &&
+        resp != tlm::TLM_OK_RESPONSE) {
+        return;
+    }
     return initiatorProxy->b_transport(trans, t);
 }
 
@@ -87,6 +93,11 @@ unsigned int
 AmbaFromTlmBridge64::transportDbg(amba_pv::amba_pv_transaction &trans)
 {
     syncControlExtension(trans);
+    auto resp = trans.get_response_status();
+    if (resp != tlm::TLM_INCOMPLETE_RESPONSE &&
+        resp != tlm::TLM_OK_RESPONSE) {
+        return 0;
+    }
     return initiatorProxy->transport_dbg(trans);
 }
 
@@ -124,6 +135,46 @@ AmbaFromTlmBridge64::syncControlExtension(amba_pv::amba_pv_transaction &trans)
             }
         } else {
             amba_ex->set_size(l);
+        }
+
+        // Check the extension meets fastmodel requirements
+        bool has_error = true;
+        do {
+            if (trans.get_address() & (amba_ex->get_size() - 1)) {
+                trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+                break;
+            }
+
+            if (l > w) {
+                if (l % w != 0) {
+                    trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
+                    break;
+                }
+                if (trans.get_streaming_width() < l) {
+                    if (trans.get_streaming_width() != w) {
+                        trans.set_response_status(
+                            tlm::TLM_BURST_ERROR_RESPONSE);
+                        break;
+                    }
+                }
+            }
+
+            if (trans.is_read() && (trans.get_byte_enable_ptr() != nullptr)) {
+                trans.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
+                break;
+            }
+
+            if (trans.is_write() && (trans.get_byte_enable_ptr() != nullptr) &&
+                (trans.get_byte_enable_length() % amba_ex->get_size()) != 0) {
+                trans.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
+                break;
+            }
+            has_error = false;
+        } while (0);
+
+        if (has_error) {
+            delete amba_ex;
+            return;
         }
 
         if (trans.has_mm()) {
