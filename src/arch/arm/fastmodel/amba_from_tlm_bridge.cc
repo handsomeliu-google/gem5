@@ -44,7 +44,8 @@ AmbaFromTlmBridge64::AmbaFromTlmBridge64(
     targetProxy("target_proxy"),
     initiatorProxy("initiator_proxy"),
     tlmWrapper(targetProxy, std::string(name) + ".tlm", -1),
-    ambaWrapper(amba_pv_m, std::string(name) + ".amba", -1)
+    ambaWrapper(amba_pv_m, std::string(name) + ".amba", -1),
+    busWidth(params.bus_width)
 {
     targetProxy.register_b_transport(this, &AmbaFromTlmBridge64::bTransport);
     targetProxy.register_get_direct_mem_ptr(
@@ -126,7 +127,7 @@ AmbaFromTlmBridge64::syncControlExtension(amba_pv::amba_pv_transaction &trans)
         // Codes are copied from amba_pv_from_tlm_bridge header.
         // It tries to initiate a new amba_pv extension correctly.
         unsigned int l = trans.get_data_length();
-        unsigned int w = amba_pv_m.get_bus_width_bytes();
+        unsigned int w = busWidth / 8;
         if (l > w) {
             amba_ex->set_size(w);
             amba_ex->set_length(l / w);

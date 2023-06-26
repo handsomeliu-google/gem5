@@ -70,6 +70,8 @@ class AmbaFromTlmBridge64 : public amba_pv::amba_pv_from_tlm_bridge<64>
         AmbaFromTlmBridge64, 64, tlm::tlm_base_protocol_types> initiatorProxy;
     sc_gem5::TlmTargetWrapper<64> tlmWrapper;
     AmbaInitiator ambaWrapper;
+
+    uint32_t busWidth;
 };
 
 } // namespace fastmodel

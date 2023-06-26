@@ -120,3 +120,5 @@ class AmbaFromTlmBridge64(SystemC_ScModule):
 
     tlm = TlmTargetSocket(64, "TLM target socket")
     amba = AmbaInitiatorSocket(64, "AMBA PV initiator socket")
+
+    bus_width = Param.UInt32(64, "Real bus width of this bridge")
