@@ -30,13 +30,14 @@ if env['CONF']['FASTMODEL_CORTEXA76']:
 
 protocol_dir = Dir('..').Dir('protocol')
 
-for name in ('x1', 'x2', 'x3', 'x4'):
-    ArmFastModelComponent(Dir(name).File(name + '.sgproj'),
-                          Dir(name).File(name + '.lisa'),
-                          protocol_dir.File(
-                              'ExportedClockRateControlProtocol.lisa'),
-                          tags='fastmodel cortexa76'
-                          ).prepare_env(env)
+if env['CONF']['FASTMODEL_CORTEXA76']:
+    for name in ('x1', 'x2', 'x3', 'x4'):
+        ArmFastModelComponent(Dir(name).File(name + '.sgproj'),
+                              Dir(name).File(name + '.lisa'),
+                              protocol_dir.File(
+                                  'ExportedClockRateControlProtocol.lisa'),
+                              tags='fastmodel cortexa76'
+                              ).prepare_env(env)
 
 if env['CONF']['FASTMODEL_CORTEXA76']:
     SimObject('FastModelCortexA76.py', sim_objects=[
