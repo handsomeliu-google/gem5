@@ -76,8 +76,7 @@ AmbaFromTlmBridge64::bTransport(amba_pv::amba_pv_transaction &trans,
 {
     syncControlExtension(trans);
     auto resp = trans.get_response_status();
-    if (resp != tlm::TLM_INCOMPLETE_RESPONSE &&
-        resp != tlm::TLM_OK_RESPONSE) {
+    if (resp != tlm::TLM_INCOMPLETE_RESPONSE) {
         return;
     }
     return initiatorProxy->b_transport(trans, t);
@@ -95,8 +94,7 @@ AmbaFromTlmBridge64::transportDbg(amba_pv::amba_pv_transaction &trans)
 {
     syncControlExtension(trans);
     auto resp = trans.get_response_status();
-    if (resp != tlm::TLM_INCOMPLETE_RESPONSE &&
-        resp != tlm::TLM_OK_RESPONSE) {
+    if (resp != tlm::TLM_INCOMPLETE_RESPONSE) {
         return 0;
     }
     return initiatorProxy->transport_dbg(trans);
