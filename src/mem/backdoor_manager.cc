@@ -50,6 +50,25 @@ BackdoorManager::BackdoorManager(const std::vector<AddrRange> &original_ranges,
 {
 }
 
+void
+BackdoorManager::updateAddrRange(
+    const std::vector<AddrRange> &original_ranges,
+    const std::vector<AddrRange> &remapped_ranges)
+{
+    /* The entries in the map is not erased, so we don't need to re-register
+     * the callback when the same backdoor is returned again.
+     */
+    for (auto &pair : backdoorMap) {
+        auto &backdoor_list = pair.second;
+        for (auto &backdoor_ptr : backdoor_list) {
+            backdoor_ptr->invalidate();
+        }
+        backdoor_list.clear();
+    }
+    originalRanges = original_ranges;
+    remappedRanges = remapped_ranges;
+}
+
 MemBackdoorPtr
 BackdoorManager::getRevertedBackdoor(MemBackdoorPtr backdoor,
                                      const AddrRange &pkt_range)

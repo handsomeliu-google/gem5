@@ -39,6 +39,10 @@ namespace backdoor_manager_test
 {
 const std::vector<AddrRange> kOriginalRange({AddrRange(0x0, 0x1000)});
 const std::vector<AddrRange> kRemappedRange({AddrRange(0x1000, 0x2000)});
+const std::vector<AddrRange>
+    kUpdatedOriginalRange({AddrRange(0x2000, 0x3000)});
+const std::vector<AddrRange>
+    kUpdatedRemappedRange({AddrRange(0x4000, 0x5000)});
 
 class BackdoorManagerTest : public BackdoorManager, public ::testing::Test
 {
@@ -136,6 +140,36 @@ TEST_F(BackdoorManagerTest, ReuseTest)
 
     remapped_backdoor.invalidate();
 }
+
+TEST_F(BackdoorManagerTest, UpdateRangeTest)
+{
+    /**
+     * The backdoor range is remappedRanges[0], and should be reverted into
+     * originalRanges[0].
+     */
+    AddrRange pkt_range = originalRanges[0];
+
+    uint8_t *ptr = nullptr;
+    MemBackdoor remapped_backdoor(remappedRanges[0], ptr,
+                                  MemBackdoor::Flags::Readable);
+    MemBackdoorPtr reverted_backdoor =
+        getRevertedBackdoor(&remapped_backdoor, pkt_range);
+
+    EXPECT_EQ(reverted_backdoor->range(), originalRanges[0]);
+    EXPECT_EQ(reverted_backdoor->ptr(), ptr);
+    ASSERT_EQ(backdoorMap[&remapped_backdoor].size(), 1);
+    EXPECT_EQ(backdoorMap[&remapped_backdoor].begin()->get(),
+              reverted_backdoor);
+
+    /**
+     * After the address ranges are updated, all managed backdoor should be
+     * removed.
+     */
+    updateAddrRange(kUpdatedOriginalRange, kUpdatedRemappedRange);
+    EXPECT_NE(backdoorMap.find(&remapped_backdoor), backdoorMap.end());
+    EXPECT_EQ(backdoorMap[&remapped_backdoor].size(), 0);
+}
+
 
 }  // namespace backdoor_manager_test
 }  // namespace gem5

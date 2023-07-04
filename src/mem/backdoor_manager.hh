@@ -60,6 +60,11 @@ class BackdoorManager
 
     MemBackdoorPtr getRevertedBackdoor(MemBackdoorPtr backdoor,
                                        const AddrRange &pkt_range);
+    /**
+     * This function invalidates and remove all managed backdoors.
+     */
+    void updateAddrRange(const std::vector<AddrRange> &original_ranges,
+                         const std::vector<AddrRange> &remapped_ranges);
 
   protected:
     /**
@@ -75,8 +80,8 @@ class BackdoorManager
      */
     MemBackdoorPtr findBackdoor(const AddrRange &pkt_range) const;
 
-    const std::vector<AddrRange> &originalRanges;
-    const std::vector<AddrRange> &remappedRanges;
+    std::vector<AddrRange> originalRanges;
+    std::vector<AddrRange> remappedRanges;
 
     /**
      * In this vector, each entry contains a list of backdoors that in the
