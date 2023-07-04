@@ -66,7 +66,8 @@ MemBackdoorPtr
 BackdoorManager::createRevertedBackdoor(MemBackdoorPtr backdoor,
                                         const AddrRange &pkt_range)
 {
-    std::unique_ptr<MemBackdoor> reverted_backdoor = std::make_unique<MemBackdoor>();
+    std::unique_ptr<MemBackdoor> reverted_backdoor =
+        std::make_unique<MemBackdoor>();
     reverted_backdoor->flags(backdoor->flags());
     reverted_backdoor->ptr(backdoor->ptr());
 
