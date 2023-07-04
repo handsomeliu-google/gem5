@@ -62,6 +62,15 @@ void
 MemoryManager::free(gp *payload)
 {
     payload->reset(); // clears all extensions
+    payload->set_address(0);
+    payload->set_command(tlm::TLM_IGNORE_COMMAND);
+    payload->set_data_ptr(0);
+    payload->set_data_length(0);
+    payload->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+    payload->set_dmi_allowed(false);
+    payload->set_byte_enable_ptr(0);
+    payload->set_byte_enable_length(0);
+    payload->set_streaming_width(0);
     freePayloads.push_back(payload);
 }
 
