@@ -82,7 +82,8 @@ class BackdoorManager
      * In this vector, each entry contains a list of backdoors that in the
      * range in original address view.
      */
-    std::vector<std::list<std::unique_ptr<MemBackdoor>>> backdoorLists;
+    std::map<const MemBackdoor*, std::list<std::unique_ptr<MemBackdoor>>>
+        backdoorMap;
 };
 }  // namespace gem5
 
