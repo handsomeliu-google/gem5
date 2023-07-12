@@ -698,10 +698,15 @@ for variant_path in variant_paths:
     if sanitizers:
         sanitizers = ','.join(sanitizers)
         if env['GCC'] or env['CLANG']:
+            libsan = (
+                ['-static-libubsan', '-static-libasan']
+                if env['GCC']
+                else ['-static-libsan']
+            )
             env.Append(CCFLAGS=['-fsanitize=%s' % sanitizers,
                                  '-fno-omit-frame-pointer'],
-                        LINKFLAGS=['-fsanitize=%s' % sanitizers,
-                                   '-static-libasan'])
+                       LINKFLAGS=['-fsanitize=%s' % sanitizers] + libsan)
+
             if main["BIN_TARGET_ARCH"] == "x86_64":
                 # Sanitizers can enlarge binary size drammatically, north of
                 # 2GB.  This can prevent successful linkage due to symbol
