@@ -341,12 +341,12 @@ class BaseXBar : public ClockedObject
 
     /**
      * Find which port connected to this crossbar (if any) should be
-     * given a packet with this address range.
+     * given a packet.
      *
-     * @param addr_range Address range to find port for.
+     * @param pkt Packet containing the address range to find port for.
      * @return id of port that the packet should be sent out of.
      */
-    PortID findPort(AddrRange addr_range);
+    PortID findPort(PacketPtr pkt);
 
     /**
      * Return the address ranges the crossbar is responsible for.
