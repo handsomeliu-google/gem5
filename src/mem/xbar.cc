@@ -45,9 +45,6 @@
 
 #include "mem/xbar.hh"
 
-#include <memory>
-#include <string>
-
 #include "base/logging.hh"
 #include "base/trace.hh"
 #include "debug/AddrRanges.hh"
@@ -331,9 +328,8 @@ BaseXBar::Layer<SrcType, DstType>::recvRetry()
 }
 
 PortID
-BaseXBar::findPort(PacketPtr pkt)
+BaseXBar::findPort(AddrRange addr_range)
 {
-    AddrRange addr_range = pkt->getAddrRange();
     // we should never see any address lookups before we've got the
     // ranges of all connected CPU-side-port modules
     assert(gotAllAddrRanges);
@@ -357,13 +353,10 @@ BaseXBar::findPort(PacketPtr pkt)
         return defaultPortID;
     }
 
-    // We should use the range for the default port and it did not match,
-    // or the default port is not set. Dump out the port trace before fatal.
-    std::shared_ptr<TracingExtension> ext =
-        pkt->getExtension<TracingExtension>();
-    std::string port_trace = ext ? ext->getTraceInString() : "";
-    fatal("Unable to find destination for %s on %s\n%s\n",
-          addr_range.to_string(), name(), port_trace);
+    // we should use the range for the default port and it did not
+    // match, or the default port is not set
+    fatal("Unable to find destination for %s on %s\n", addr_range.to_string(),
+          name());
 }
 
 /** Function called by the port when the crossbar is receiving a range change.*/
