@@ -25,11 +25,17 @@
 
 Import('*')
 
+tag = 'fastmodel gic'
+if env['CONF']['FASTMODEL_GIC']:
+    env.TagImplies(tag, 'arm fastmodel')
+
 protocol_dir = Dir('..').Dir('protocol')
 
-ArmFastModelComponent(File('GIC.sgproj'), File('GIC.lisa'),
-                      protocol_dir.File('SignalInterruptProtocol.lisa')
-                      ).prepare_env(env)
+if env['CONF']['FASTMODEL_GIC']:
+    ArmFastModelComponent(File('GIC.sgproj'), File('GIC.lisa'),
+                          protocol_dir.File('SignalInterruptProtocol.lisa'),
+                          tags=tag
+                          ).prepare_env(env)
 SimObject('FastModelGIC.py', sim_objects=['SCFastModelGIC', 'FastModelGIC'],
-        tags='arm fastmodel')
-Source('gic.cc', tags='arm fastmodel')
+        tags=tag)
+Source('gic.cc', tags=tag)
