@@ -232,7 +232,7 @@ def parse_options():
     option(
         "--dot-config",
         metavar="FILE",
-        default="config.dot",
+        default=None,
         help="Create DOT & pdf outputs of the configuration [Default: %default]",
     )
     option(
