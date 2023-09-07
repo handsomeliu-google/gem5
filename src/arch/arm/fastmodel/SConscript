@@ -91,20 +91,36 @@ arm_singleton_registry_lib = env.Command(
             pvlib_lib_dir.File(arm_singleton_registry_name),
             MakeAction("cp ${SOURCE} ${TARGET}", Transform('COPY')))
 
+arm_ctmodel_name = 'libarmctmodel.so'
+arm_ctmodel_lib = env.Command(
+            Dir(env['BUILDDIR']).File(arm_ctmodel_name),
+            pvlib_lib_dir.File(arm_ctmodel_name),
+            MakeAction("cp ${SOURCE} ${TARGET}", Transform('COPY')))
 
-def staticify(env, name):
-    ''' Check for a static version of the library named 'name', and if it
-        exists return a File node for it explicitly. Otherwise pass 'name'
+scx_framework_name = 'libscxframework.so'
+scx_framework_lib = env.Command(
+            Dir(env['BUILDDIR']).File(scx_framework_name),
+            pvlib_lib_dir.File(scx_framework_name),
+            MakeAction("cp ${SOURCE} ${TARGET}", Transform('COPY')))
+
+
+def get_arm_lib_file(env, name, is_static=True):
+    ''' Check for a static/shared version of the library named 'name', and if
+        it exists return a File node for it explicitly. Otherwise pass 'name'
         through for normal processing.'''
 
-    static_name = env.subst('${LIBPREFIX}' + name + '${LIBSUFFIX}')
+    lib_prefix = env.subst('${LIBPREFIX}') if is_static \
+        else env.subst('${SHLIBPREFIX}')
+    lib_suffix = env.subst('${LIBSUFFIX}') if is_static \
+        else env.subst('${SHLIBSUFFIX}')
+    lib_name = lib_prefix + name + lib_suffix
 
     for path in env.Flatten(env['LIBPATH']):
-        full_name = Dir(path).File(static_name).get_abspath()
+        full_name = Dir(path).File(lib_name).get_abspath()
         if os.path.isfile(full_name):
             return File(full_name)
     if env['CONF']['USE_ARM_FASTMODEL']:
-        warning("Failed to find FM static lib: " + name)
+        warning("Failed to find FM static/shared lib: " + name)
     return name
 
 # Adjust the build environment to support building in Fast Models.
@@ -137,12 +153,17 @@ env.Append(LIBPATH=lib_paths)
 fm_static_libs = (
     'components',
     'pvbus',
-    'armctmodel',
-    'fmruntime',
+    'scxruntime',
     'IrisSupport',
 )
 for lib in fm_static_libs:
-    SourceLib(staticify(env, lib), tags='arm fastmodel')
+    SourceLib(get_arm_lib_file(env, lib, is_static=True), tags='arm fastmodel')
+
+fm_shared_libs = [
+    'scxframework'
+]
+for lib in fm_shared_libs:
+    SourceLib(get_arm_lib_file(env, lib, is_static=False), tags='arm fastmodel')
 
 SourceLib('atomic', tags='arm fastmodel')
 SourceLib('dl', tags='arm fastmodel')
@@ -351,7 +372,6 @@ class ArmFastModelComponent(object):
                         '${SHLIBPREFIX}%s${SHLIBSUFFIX}' % name))
 
         static_libs = [
-            'scx-%s-%s' % (tlc, config_name),
             'scx',
         ]
         shared_libs = [
@@ -377,10 +397,10 @@ class ArmFastModelComponent(object):
         self.libs = static_lib_nodes + shared_libs
         self.libpaths = [simgen_dir]
         # Simgen also puts required share library under the project folder.
-        self.rpaths = [simgen_dir, project_file_dir]
+        self.rpaths = [simgen_dir, Dir(env['BUILDDIR'])]
         self.log = gen_dir.File('build_%s.log' % tlc)
         self.simgen_cmd = env.subst('${CONF["SIMGEN"]} -p %s '
-            '--configuration %s -b --verbose off --num-build-cpus %d -I %s %s '
+            '--configuration %s --verbose off --num-build-cpus %d -I %s %s '
             '--build-dir %s >%s') % \
             (shlex.quote(project_file.srcnode().abspath),
              shlex.quote(config_name),
@@ -389,6 +409,25 @@ class ArmFastModelComponent(object):
              simgen_command_line,
              shlex.quote(simgen_dir.abspath),
              shlex.quote(self.log.abspath))
+        self.replace_from_str = "-lsystemc"
+        self.replace_to_str = ""
+        self.makefile_name = '%s_gcc_Makefile.sg' % tlc
+        self.makefile_path = simgen_dir.File(self.makefile_name)
+        self.replace_cmd = env.subst('${CONF["SIMGEN"]} --replace-strings '
+            '"%s" "%s" -- %s') % \
+            (self.replace_from_str,
+             self.replace_to_str,
+             shlex.quote(self.makefile_path.abspath))
+        self.make_targes = ['scx', f'lib{tlc}-{config_name}.so']
+        self.make_cmds = [
+            'make -C %s -f %s -j %d %s >> %s' % \
+            (simgen_dir.abspath,
+             self.makefile_name,
+             GetOption('num_jobs'),
+             target,
+             shlex.quote(self.log.abspath)) for target in self.make_targes
+        ]
+        self.commands = [self.simgen_cmd, self.replace_cmd] + self.make_cmds
 
         sources = [project_file]
         sources.extend(extra_deps)
@@ -412,6 +451,8 @@ class ArmFastModelComponent(object):
         # (introduced in 11.16) alongside the executable.
         Depends(lib_nodes[0], simulation_engine_lib)
         Depends(lib_nodes[0], arm_singleton_registry_lib)
+        Depends(lib_nodes[0], arm_ctmodel_lib)
+        Depends(lib_nodes[0], scx_framework_lib)
 
     def prepare_env(self, env):
         env.Append(LIBPATH=self.libpaths)
@@ -422,14 +463,16 @@ class ArmFastModelComponent(object):
             SourceLib(lib, priority=1, tags=self.tags)
 
     def simgen_builder(self, target, source, env):
-        cmd = self.simgen_cmd
-        if not GetOption('verbose'):
-            cmd = "@" + cmd
-        res = env.Execute(cmd)
-        # Print output when execution return non-zero or in verbose mode.
-        if res or GetOption('verbose'):
-            env.Execute('@cat %s' % self.log.abspath)
-        return res
+        for cmd in self.commands:
+            if not GetOption('verbose'):
+                cmd = "@" + cmd
+            res = env.Execute(cmd)
+            # Print output when execution return non-zero or in verbose mode.
+            if res or GetOption('verbose'):
+                env.Execute('@cat %s' % self.log.abspath)
+            if res:
+                return res
+        return 0
 
 
 Export('ArmFastModelComponent')

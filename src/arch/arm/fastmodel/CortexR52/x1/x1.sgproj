@@ -6,7 +6,7 @@ ACTIVE_CONFIG_WINDOWS  = "Win64-Release-VC2015";
 config "gcc"
 {
     ADDITIONAL_COMPILER_SETTINGS = "-O3 -Wall -std=c++14 -Wno-deprecated -Wno-unused-function";
-    ADDITIONAL_LINKER_SETTINGS = "-Wl,--no-undefined";
+    ADDITIONAL_LINKER_SETTINGS = "";
     BUILD_DIR = "./gcc";
     COMPILER = "gcc-7.3";
     CONFIG_DESCRIPTION = "";
@@ -14,7 +14,7 @@ config "gcc"
     PLATFORM = "Linux64";
     PREPROCESSOR_DEFINES = "NDEBUG";
     SIMGEN_COMMAND_LINE = "--num-comps-file 50";
-    TARGET_SYSTEMC = "1";
+    TARGET_SYSTEMC_DSO = "1";
     TARGET_SYSTEMC_AUTO = "1";
 }
 files
