@@ -94,6 +94,11 @@ class ISA : public BaseISA
     */
     unsigned elen;
 
+    /** The combination of privilege modes
+     *  in Privilege Levels section of RISC-V privileged spec
+     */
+    PrivilegeModeSet _privilegeModeSet;
+
   public:
     using Params = RiscvISAParams;
 
@@ -124,7 +129,7 @@ class ISA : public BaseISA
     virtual const std::unordered_map<int, RegVal>&
     getCSRMaskMap() const
     {
-        return CSRMasks[_rvType];
+        return CSRMasks[_rvType][_privilegeModeSet];
     }
 
     bool alignmentCheckEnabled() const { return checkAlignment; }
@@ -162,6 +167,8 @@ class ISA : public BaseISA
     unsigned getVecLenInBits() { return vlen; }
     unsigned getVecLenInBytes() { return vlen >> 3; }
     unsigned getVecElemLenInBits() { return elen; }
+
+    PrivilegeModeSet getPrivilegeModeSet() { return _privilegeModeSet; }
 };
 
 } // namespace RiscvISA
