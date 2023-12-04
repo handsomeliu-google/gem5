@@ -341,12 +341,9 @@ TLB::translate(const RequestPtr &req, ThreadContext *tc,
 
     if (FullSystem) {
         PrivilegeMode pmode = getMemPriv(tc, mode);
-        MISA misa = tc->readMiscRegNoEffect(MISCREG_ISA);
         SATP satp = tc->readMiscReg(MISCREG_SATP);
-        if (!misa.rvs || pmode == PrivilegeMode::PRV_M ||
-            satp.mode == AddrXlateMode::BARE) {
+        if (pmode == PrivilegeMode::PRV_M || satp.mode == AddrXlateMode::BARE)
             req->setFlags(Request::PHYSICAL);
-        }
 
         Fault fault;
         if (req->getFlags() & Request::PHYSICAL) {
@@ -437,9 +434,8 @@ TLB::translateFunctional(const RequestPtr &req, ThreadContext *tc,
         MMU *mmu = static_cast<MMU *>(tc->getMMUPtr());
 
         PrivilegeMode pmode = mmu->getMemPriv(tc, mode);
-        MISA misa = tc->readMiscRegNoEffect(MISCREG_ISA);
         SATP satp = tc->readMiscReg(MISCREG_SATP);
-        if (misa.rvs && pmode != PrivilegeMode::PRV_M &&
+        if (pmode != PrivilegeMode::PRV_M &&
             satp.mode != AddrXlateMode::BARE) {
             Walker *walker = mmu->getDataWalker();
             unsigned logBytes;

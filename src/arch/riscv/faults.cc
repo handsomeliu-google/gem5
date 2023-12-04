@@ -67,7 +67,6 @@ RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     if (FullSystem) {
         PrivilegeMode pp = (PrivilegeMode)tc->readMiscReg(MISCREG_PRV);
         PrivilegeMode prv = PRV_M;
-        MISA misa = tc->readMiscRegNoEffect(MISCREG_ISA);
         STATUS status = tc->readMiscReg(MISCREG_STATUS);
 
         // According to riscv-privileged-v1.11, if a NMI occurs at the middle
@@ -83,18 +82,18 @@ RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
         } else if (isInterrupt()) {
             if (pp != PRV_M &&
                 bits(tc->readMiscReg(MISCREG_MIDELEG), _code) != 0) {
-                prv = (misa.rvs) ? PRV_S : ((misa.rvn) ? PRV_U : PRV_M);
+                prv = PRV_S;
             }
-            if (pp == PRV_U && misa.rvs && misa.rvn &&
+            if (pp == PRV_U &&
                 bits(tc->readMiscReg(MISCREG_SIDELEG), _code) != 0) {
                 prv = PRV_U;
             }
         } else {
             if (pp != PRV_M &&
                 bits(tc->readMiscReg(MISCREG_MEDELEG), _code) != 0) {
-                prv = (misa.rvs) ? PRV_S : ((misa.rvn) ? PRV_U : PRV_M);
+                prv = PRV_S;
             }
-            if (pp == PRV_U && misa.rvs && misa.rvn &&
+            if (pp == PRV_U &&
                 bits(tc->readMiscReg(MISCREG_SEDELEG), _code) != 0) {
                 prv = PRV_U;
             }
