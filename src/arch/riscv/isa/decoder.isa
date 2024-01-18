@@ -2341,10 +2341,11 @@ decode QUADRANT default Unknown::unknown() {
                 }
                 0x70: decode ROUND_MODE {
                     0x0: fmv_x_w({{
-                        Rd = (uint32_t)Fs1_bits;
-                        if ((Rd&0x80000000) != 0) {
-                            Rd |= (0xFFFFFFFFULL << 32);
+                        uint64_t result = (uint32_t)Fs1_bits;
+                        if ((result&0x80000000) != 0) {
+                            result |= (0xFFFFFFFFULL << 32);
                         }
+                        Rd = result;
                     }}, FloatCvtOp);
                     0x1: fclass_s({{
                         Rd = rvSext(f32_classify(f32(freg(Fs1_bits))));
@@ -2445,7 +2446,7 @@ decode QUADRANT default Unknown::unknown() {
                     for (uint32_t i = 0; i < microVl; i++) {
                         uint32_t ei = i + vs1_idx * vs1_elems + vs1_bias;
                         if (this->vm || elem_mask(v0, ei)) {
-                            const uint16_t idx = Vs1_uh[i + vs1_bias]
+                            const uint32_t idx = Vs1_uh[i + vs1_bias]
                                 - vs2_elems * vs2_idx;
                             auto res = (Vs1_uh[i + vs1_bias] >= vlmax) ? 0
                                 : (idx < vs2_elems) ? Vs2_vu[idx]
@@ -4655,7 +4656,7 @@ decode QUADRANT default Unknown::unknown() {
                                 tc->quiesce();
                             }
                         }}, IsNonSpeculative, IsQuiesce,
-                            IsSerializeAfter, No_OpClass);
+                            IsSerializeAfter, No_OpClass, IsSquashAfter);
                     }
                     0x9: sfence_vma({{
                         MISA misa = xc->readMiscReg(MISCREG_ISA);

@@ -45,11 +45,11 @@ import sys
 import tempfile
 import textwrap
 
-from gem5_scons.util import get_termcap
-from gem5_scons.configure import Configure
-from gem5_scons.defaults import EnvDefaults
 import SCons.Node.Python
 import SCons.Script
+from gem5_scons.configure import Configure
+from gem5_scons.defaults import EnvDefaults
+from gem5_scons.util import get_termcap
 
 termcap = get_termcap()
 
@@ -89,7 +89,7 @@ def TempFileSpawn(scons_env):
 # Generate a string of the form:
 #   common/path/prefix/src1, src2 -> tgt1, tgt2
 # to print while building.
-class Transform(object):
+class Transform:
     # all specific color settings should be here and nowhere else
     tool_color = termcap.Normal
     pfx_color = termcap.Yellow
@@ -262,12 +262,16 @@ def parse_build_path(target):
     # for a legacy "build/${VARIANT}/${TARGET}" style build path, where the
     # variant selects a default config to use.
     while path_dirs:
-        dot_gem5 = os.path.join('/', *path_dirs, "gem5.build")
-        if os.path.isdir(dot_gem5) or \
-                len(path_dirs) > 1 and path_dirs[-2] == "build":
+        dot_gem5 = os.path.join("/", *path_dirs, "gem5.build")
+        if (
+            os.path.isdir(dot_gem5)
+            or len(path_dirs) > 1
+            and path_dirs[-2] == "build"
+        ):
             return os.path.join("/", *path_dirs)
         path_dirs.pop()
     error(f"No existing build directory and no variant for {target}")
+
 
 # The MakeAction wrapper, and a SCons tool to set up the *COMSTR variables.
 if SCons.Script.GetOption("verbose"):

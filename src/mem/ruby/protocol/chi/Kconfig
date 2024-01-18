@@ -1,4 +1,4 @@
-# Copyright 2022 Google, Inc.
+# Copyright 2022 Google LLC
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -24,12 +24,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 config PROTOCOL
-    default "CHI" if RubyProtocolChi
+    default "CHI" if RUBY_PROTOCOL_CHI
 
 config NEED_PARTIAL_FUNC_READS
-    default y if RubyProtocolChi
+    default y if RUBY_PROTOCOL_CHI
 
 cont_choice "Ruby protocol"
-    config RubyProtocolChi
+    config RUBY_PROTOCOL_CHI
         bool "CHI"
 endchoice

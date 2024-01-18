@@ -1,4 +1,4 @@
-# Copyright 2022 Google, Inc.
+# Copyright 2022 Google LLC
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -24,9 +24,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 config PROTOCOL
-    default "MSI" if RubyProtocolMsi
+    default "MSI" if RUBY_PROTOCOL_MSI
 
 cont_choice "Ruby protocol"
-    config RubyProtocolMsi
+    config RUBY_PROTOCOL_MSI
         bool "MSI"
 endchoice

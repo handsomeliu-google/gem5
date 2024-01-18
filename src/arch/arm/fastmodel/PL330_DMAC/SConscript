@@ -25,6 +25,9 @@
 
 Import('*')
 
+if not env['CONF']['USE_ARM_FASTMODEL']:
+    Return()
+
 if env['CONF']['FASTMODEL_PL330']:
     env.TagImplies('fastmodel pl330', 'arm fastmodel')
 

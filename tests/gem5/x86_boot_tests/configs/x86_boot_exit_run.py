@@ -28,24 +28,23 @@
 This script will run a simple boot exit test.
 """
 
-import m5
-
-from gem5.runtime import get_runtime_coherence_protocol
-from gem5.isas import ISA
-from gem5.utils.requires import requires
-from gem5.coherence_protocol import CoherenceProtocol
-from gem5.components.boards.x86_board import X86Board
-from gem5.components.processors.cpu_types import (
-    get_cpu_types_str_set,
-    get_cpu_type_from_str,
-)
-from gem5.components.processors.simple_processor import SimpleProcessor
-from gem5.simulate.simulator import Simulator
-from gem5.resources.workload import Workload
-
 import argparse
 import importlib
 
+import m5
+
+from gem5.coherence_protocol import CoherenceProtocol
+from gem5.components.boards.x86_board import X86Board
+from gem5.components.processors.cpu_types import (
+    get_cpu_type_from_str,
+    get_cpu_types_str_set,
+)
+from gem5.components.processors.simple_processor import SimpleProcessor
+from gem5.isas import ISA
+from gem5.resources.resource import obtain_resource
+from gem5.runtime import get_runtime_coherence_protocol
+from gem5.simulate.simulator import Simulator
+from gem5.utils.requires import requires
 
 parser = argparse.ArgumentParser(
     description="A script to run the gem5 boot test. This test boots the "
@@ -184,7 +183,7 @@ if args.boot_type == "init":
     kernal_args.append("init=/root/exit.sh")
 
 # Set the workload.
-workload = Workload(
+workload = obtain_resource(
     "x86-ubuntu-18.04-boot", resource_directory=args.resource_directory
 )
 workload.set_parameter("kernel_args", kernal_args)

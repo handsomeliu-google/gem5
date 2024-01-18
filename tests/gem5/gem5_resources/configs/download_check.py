@@ -24,19 +24,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gem5.resources.downloader import (
-    list_resources,
-    get_resource,
-)
-
-from gem5.resources.client import get_resource_json_obj
-
-from gem5.resources.md5_utils import md5
-
+import argparse
 import os
 import shutil
-import argparse
 from pathlib import Path
+
+from gem5.resources.client import get_resource_json_obj
+from gem5.resources.downloader import (
+    get_resource,
+    list_resources,
+)
+from gem5.resources.md5_utils import md5
 
 parser = argparse.ArgumentParser(
     description="A script that will checks that input resource IDs will "
@@ -50,6 +48,14 @@ parser.add_argument(
     type=str,
     help="The resource IDs to check. If not set, all resources will be "
     "checked",
+)
+
+parser.add_argument(
+    "--skip",
+    nargs="+",  # Accepts 1 or more arguments.
+    type=str,
+    help="The resource IDs to skip. If not set, no resources will be skipped.",
+    required=False,
 )
 
 parser.add_argument(
@@ -83,9 +89,11 @@ if len(ids) == 0:
 
 # We log all the errors as they occur then dump them at the end. This means we
 # can be aware of all download errors in a single failure.
-errors = str()
+errors = ""
 
 for id in ids:
+    if args.skip and id in args.skip:
+        continue
     if id not in resource_list:
         errors += (
             f"Resource with ID '{id}' not found in "
@@ -127,9 +135,14 @@ for id in ids:
                 + f"({md5(Path(download_path))}) differs to that recorded in "
                 + f" gem5-resources ({resource_json['md5sum']}).{os.linesep}"
             )
+        # Remove the downloaded resource.
+        if os.path.isfile(download_path):
+            os.remove(download_path)
+        elif os.path.isdir(download_path):
+            shutil.rmtree(download_path, ignore_errors=True)
+        else:
+            raise Exception("{download_path} is not a file or directory.")
 
-# Remove the downloaded resource.
-shutil.rmtree(args.download_directory, ignore_errors=True)
 
 # If errors exist, raise an exception highlighting them.
 if errors:

@@ -1,4 +1,4 @@
-# Copyright 2022 Google, Inc.
+# Copyright 2022 Google LLC
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -24,38 +24,38 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 config PROTOCOL
-    default "GPU_VIPER" if RubyProtocolGpuViper
-    default "MOESI_AMD_Base" if RubyProtocolMoesiAmdBase
-    default "MESI_Two_Level" if RubyProtocolMesiTwoLevel
-    default "MESI_Three_Level" if RubyProtocolMesiThreeLevel
-    default "MESI_Three_Level_HTM" if RubyProtocolMesiThreeLevelHtm
-    default "MI_example" if RubyProtocolMiExample
-    default "MOESI_CMP_directory" if RubyProtocolMoesiCmpDirectory
-    default "MOESI_CMP_token" if RubyProtocolMoesiCmpToken
-    default "MOESI_hammer" if RubyProtocolMoesiHammer
-    default "Garnet_standalone" if RubyProtocolGarnetStandalone
+    default "GPU_VIPER" if RUBY_PROTOCOL_GPU_VIPER
+    default "MOESI_AMD_Base" if RUBY_PROTOCOL_MOESI_AMD_BASE
+    default "MESI_Two_Level" if RUBY_PROTOCOL_MESI_TWO_LEVEL
+    default "MESI_Three_Level" if RUBY_PROTOCOL_MESI_THREE_LEVEL
+    default "MESI_Three_Level_HTM" if RUBY_PROTOCOL_MESI_THREE_LEVEL_HTM
+    default "MI_example" if RUBY_PROTOCOL_MI_EXAMPLE
+    default "MOESI_CMP_directory" if RUBY_PROTOCOL_MOESI_CMP_DIRECTORY
+    default "MOESI_CMP_token" if RUBY_PROTOCOL_MOESI_CMP_TOKEN
+    default "MOESI_hammer" if RUBY_PROTOCOL_MOESI_HAMMER
+    default "Garnet_standalone" if RUBY_PROTOCOL_GARNET_STANDALONE
 
 cont_choice "Ruby protocol"
-    config RubyProtocolGpuViper
+    config RUBY_PROTOCOL_GPU_VIPER
         bool "GPU VIPER"
         depends on BUILD_GPU
-    config RubyProtocolMoesiAmdBase
+    config RUBY_PROTOCOL_MOESI_AMD_BASE
         bool "MOESI AMD base"
-    config RubyProtocolMesiTwoLevel
+    config RUBY_PROTOCOL_MESI_TWO_LEVEL
         bool "MESI two level"
-    config RubyProtocolMesiThreeLevel
+    config RUBY_PROTOCOL_MESI_THREE_LEVEL
         bool "MESI three level"
-    config RubyProtocolMesiThreeLevelHtm
+    config RUBY_PROTOCOL_MESI_THREE_LEVEL_HTM
         bool "MESI three level HTM"
-    config RubyProtocolMiExample
+    config RUBY_PROTOCOL_MI_EXAMPLE
         bool "MI example"
-    config RubyProtocolMoesiCmpDirectory
+    config RUBY_PROTOCOL_MOESI_CMP_DIRECTORY
         bool "MOESI CMP directory"
-    config RubyProtocolMoesiCmpToken
+    config RUBY_PROTOCOL_MOESI_CMP_TOKEN
         bool "MOESI CMP token"
-    config RubyProtocolMoesiHammer
+    config RUBY_PROTOCOL_MOESI_HAMMER
         bool "MOESI hammer"
-    config RubyProtocolGarnetStandalone
+    config RUBY_PROTOCOL_GARNET_STANDALONE
         bool "Garnet standalone"
 endchoice
 

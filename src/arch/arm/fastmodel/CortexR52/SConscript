@@ -25,6 +25,9 @@
 
 Import('*')
 
+if not env['CONF']['USE_ARM_FASTMODEL']:
+    Return()
+
 if env['CONF']['FASTMODEL_CORTEXR52']:
     env.TagImplies('fastmodel cortexr52', 'arm fastmodel')
 

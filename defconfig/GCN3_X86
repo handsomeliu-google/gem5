@@ -1,4 +1,0 @@
-RUBY=y
-X86_ISA=y
-BUILD_GPU=y
-GCN3_GPU_ISA=y

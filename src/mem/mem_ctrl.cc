@@ -1380,17 +1380,6 @@ MemCtrl::recvFunctional(PacketPtr pkt)
              pkt->print());
 }
 
-void
-MemCtrl::recvMemBackdoorReq(const MemBackdoorReq &req,
-        MemBackdoorPtr &backdoor)
-{
-    panic_if(!dram->getAddrRange().contains(req.range().start()),
-            "Can't handle address range for backdoor %s.",
-            req.range().to_string());
-
-    dram->getBackdoor(backdoor);
-}
-
 bool
 MemCtrl::recvFunctionalLogic(PacketPtr pkt, MemInterface* mem_intr)
 {
@@ -1496,16 +1485,14 @@ MemCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
         // calls recvAtomic() and throws away the latency; we can save a
         // little here by just not calculating the latency.
         ctrl.recvFunctional(pkt);
+    } else {
+        // The packet's request is satisfied by the queue, but queue
+        // does not call makeResponse.
+        // Here, change the packet to the corresponding response
+        pkt->makeResponse();
     }
 
     pkt->popLabel();
-}
-
-void
-MemCtrl::MemoryPort::recvMemBackdoorReq(const MemBackdoorReq &req,
-        MemBackdoorPtr &backdoor)
-{
-    ctrl.recvMemBackdoorReq(req, backdoor);
 }
 
 Tick

@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Copyright 2022 Google, Inc.
+# Copyright 2022 Google LLC
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -30,22 +30,26 @@ import argparse
 from code_formatter import code_formatter
 
 parser = argparse.ArgumentParser()
-parser.add_argument('output', help='path of generated base Kconfig file')
-parser.add_argument('main', help='relative path to the main gem5 Kconfig file')
-parser.add_argument('extras_dirs', nargs='*', help='EXTRAS paths')
+parser.add_argument("output", help="path of generated base Kconfig file")
+parser.add_argument("main", help="relative path to the main gem5 Kconfig file")
+parser.add_argument("extras_dirs", nargs="*", help="EXTRAS paths")
 
 args = parser.parse_args()
 
 code = code_formatter()
 
-code(f'''# Automatically generated base Kconfig file, DO NOT EDIT!
+code(
+    f"""# Automatically generated base Kconfig file, DO NOT EDIT!
 
 source "{args.main}"
-''')
+"""
+)
 
 for extras_dir in args.extras_dirs:
-    code(f'''
+    code(
+        f"""
 osource "{extras_dir}/Kconfig"
-''')
+"""
+    )
 
 code.write(args.output)

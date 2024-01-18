@@ -89,7 +89,7 @@ class AddrMapper : public SimObject
      * reverting logic is probably required in this function.
      *
      * @param backdoor the backdoor obtained from target
-     * @param pkt the initiator request to be fulfilled
+     * @param range the initiator request to be fulfilled
      * @return a backdoor that fulfill the initiator request
      */
     virtual MemBackdoorPtr getRevertedBackdoor(MemBackdoorPtr &backdoor,

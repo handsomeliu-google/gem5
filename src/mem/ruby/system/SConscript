@@ -45,7 +45,7 @@ if not env['CONF']['RUBY']:
 
 env.Append(CPPDEFINES=['PROTOCOL_' + env['CONF']['PROTOCOL']])
 
-if env['CONF']['PROTOCOL'] in env['NEED_PARTIAL_FUNC_READS']:
+if env['CONF']['NEED_PARTIAL_FUNC_READS']:
     env.Append(CPPDEFINES=['PARTIAL_FUNC_READS'])
 
 if env['CONF']['BUILD_GPU']:

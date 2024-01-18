@@ -43,12 +43,18 @@ def test_parsec(
     size: str,
     length: str,
 ):
-
     if (boot_cpu == "kvm" or detailed_cpu == "kvm") and not os.access(
         "/dev/kvm", mode=os.R_OK | os.W_OK
     ):
         # Don't run the tests if KVM is unavailable.
         return
+
+    print(
+        "WARNING: PARSEC tests are disabled. This is due to our GitHub "
+        "Actions self-hosted runners only having 60GB of disk space. The "
+        "PARSEC Disk image is too big to use."
+    )
+    return  # Remove this line to re-enable PARSEC tests.
 
     gem5_verify_config(
         name="{}-boot-cpu_{}-detailed-cpu_{}-cores_{}_{}_{}_parsec-test".format(
