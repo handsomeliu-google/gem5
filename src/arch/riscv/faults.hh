@@ -93,7 +93,7 @@ enum ExceptionCode : uint64_t
     INT_EXT_USER = 8,
     INT_EXT_SUPER = 9,
     INT_EXT_MACHINE = 11,
-    NumInterruptTypes = 256,
+    NumInterruptTypes,
     // INT_NMI does not exist in the spec, it's a modeling artifact for NMI. We
     // intentionally set it to be NumInterruptTypes so it can never conflict
     // with any real INT_NUM in used.
