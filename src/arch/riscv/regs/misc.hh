@@ -245,12 +245,6 @@ enum MiscRegIndex
     MISCREG_HPMCOUNTER30H,
     MISCREG_HPMCOUNTER31H,
 
-    // Exists if the CLIC is implemented
-    MISCREG_MTVT,
-    MISCREG_MNXTI,
-    MISCREG_MINTSTATUS,
-    MISCREG_MSCRATCHCSW,
-
     NUM_MISCREGS
 };
 
