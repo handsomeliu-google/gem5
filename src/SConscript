@@ -685,7 +685,7 @@ if env['GCC']:
         envs[target].Append(LINKFLAGS=['-O3', '${LTO_LINKFLAGS}'])
 
 elif env['CLANG']:
-    envs['debug'].Append(CCFLAGS=['-g', '-O0'])
+    envs['debug'].Append(CCFLAGS=['-glldb', '-O0'])
     # opt and fast share the same cc flags
     for target in ['opt', 'fast']:
         envs[target].Append(CCFLAGS=['-O3'])
