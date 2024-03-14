@@ -201,6 +201,8 @@ AmbaToTlmBridge64::setupControlExtension(amba_pv::amba_pv_transaction &trans)
     control_ex->setReadAllocate(amba_ex->is_read_allocate());
     control_ex->setWriteAllocate(amba_ex->is_write_allocate());
 
+    control_ex->setDomain(amba_ex->get_domain());
+
     if (trans.has_mm()) {
         trans.set_auto_extension(control_ex);
     } else {

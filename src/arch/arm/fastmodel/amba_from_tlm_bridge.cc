@@ -199,6 +199,10 @@ AmbaFromTlmBridge64::syncControlExtension(amba_pv::amba_pv_transaction &trans)
     if (control_ex->hasWriteAllocate()) {
         amba_ex->set_write_allocate(control_ex->getWriteAllocate().value());
     }
+    if (control_ex->hasDomain()) {
+        amba_ex->set_domain(static_cast<amba_pv::amba_pv_domain_t>(
+            control_ex->getDomain().value()));
+    }
 }
 
 } // namespace fastmodel
