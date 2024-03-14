@@ -315,4 +315,102 @@ ControlExtension::setSubstreamId(std::optional<uint32_t> s)
     substream_id = std::move(s);
 }
 
+bool
+ControlExtension::hasBufferable() const
+{
+    return bufferable.has_value();
+}
+
+std::optional<bool>
+ControlExtension::getBufferable() const
+{
+    return bufferable;
+}
+
+void
+ControlExtension::setBufferable(std::optional<bool> b)
+{
+    bufferable = std::move(b);
+}
+
+bool
+ControlExtension::hasModifiable() const
+{
+    return modifiable.has_value();
+}
+
+std::optional<bool>
+ControlExtension::getModifiable() const
+{
+    return modifiable;
+}
+
+void
+ControlExtension::setModifiable(std::optional<bool> m)
+{
+    modifiable = std::move(m);
+}
+
+bool
+ControlExtension::hasReadAllocate() const
+{
+    return read_allocate.has_value();
+}
+
+std::optional<bool>
+ControlExtension::getReadAllocate() const
+{
+    return read_allocate;
+}
+
+void
+ControlExtension::setReadAllocate(std::optional<bool> ra)
+{
+    read_allocate = std::move(ra);
+}
+
+bool
+ControlExtension::hasWriteAllocate() const
+{
+    return write_allocate.has_value();
+}
+
+std::optional<bool>
+ControlExtension::getWriteAllocate() const
+{
+    return write_allocate;
+}
+
+void
+ControlExtension::setWriteAllocate(std::optional<bool> wa)
+{
+    write_allocate = std::move(wa);
+}
+
+void
+ControlExtension::setAXI4CacheAttributesFromFlag(uint32_t axi4_flag)
+{
+    setBufferable((axi4_flag >> 0) & 1);
+    setModifiable((axi4_flag >> 1) & 1);
+    setReadAllocate((axi4_flag >> 2) & 1);
+    setWriteAllocate((axi4_flag >> 3) & 1);
+}
+
+bool
+ControlExtension::hasDomain() const
+{
+    return domain.has_value();
+}
+
+std::optional<uint32_t>
+ControlExtension::getDomain() const
+{
+    return domain;
+}
+
+void
+ControlExtension::setDomain(std::optional<uint32_t> d)
+{
+    domain = std::move(d);
+}
 }  // namespace Gem5SystemC
