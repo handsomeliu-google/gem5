@@ -97,6 +97,14 @@ scx_framework_lib = env.Command(
             pvlib_lib_dir.File(scx_framework_name),
             MakeAction("cp ${SOURCE} ${TARGET}", Transform('COPY')))
 
+plugin_dir = pvlib_home.Dir('plugins').Dir(pvlib_flavor)
+
+newt_name = 'newt.so'
+newt_plugin = env.Command(
+            Dir(env['BUILDDIR']).File(newt_name),
+            plugin_dir.File(newt_name),
+            MakeAction("cp ${SOURCE} ${TARGET}", Transform('COPY')))
+
 
 def get_arm_lib_file(env, name, is_static=True):
     ''' Check for a static/shared version of the library named 'name', and if
@@ -445,6 +453,7 @@ class ArmFastModelComponent(object):
         Depends(lib_nodes[0], arm_singleton_registry_lib)
         Depends(lib_nodes[0], arm_ctmodel_lib)
         Depends(lib_nodes[0], scx_framework_lib)
+        Depends(lib_nodes[0], newt_plugin)
 
     def prepare_env(self, env):
         env.Append(LIBPATH=self.libpaths)
