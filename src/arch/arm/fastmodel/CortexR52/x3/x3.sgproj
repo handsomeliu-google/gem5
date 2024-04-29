@@ -8,7 +8,7 @@ config "gcc"
     ADDITIONAL_COMPILER_SETTINGS = "-march=core2 -O3 -Wall -std=c++14 -Wno-deprecated -Wno-unused-function";
     ADDITIONAL_LINKER_SETTINGS = "";
     BUILD_DIR = "./gcc";
-    COMPILER = "gcc-7.3";
+    COMPILER = "gcc-10.3";
     CONFIG_DESCRIPTION = "";
     CONFIG_NAME = "gcc";
     PLATFORM = "Linux64";
