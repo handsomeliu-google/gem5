@@ -423,6 +423,18 @@ class Executable(TopLevelBase):
 
         return [executable, stripped]
 
+def check_build_targets(build_targets, target_keywords):
+    def decorator(cls, *args, **kwargs):
+        def wrapper(*args, **kwargs):
+            for target in build_targets:
+                for keyword in target_keywords:
+                    if keyword in target:
+                        return cls(*args, **kwargs)
+            return None
+        return wrapper
+    return decorator
+
+@check_build_targets(BUILD_TARGETS, ["gem5.opt", "gem5.debug", "gem5.fast"])
 class Gem5(Executable):
     '''Base class for the main gem5 executable.'''
 
@@ -435,7 +447,7 @@ class Gem5(Executable):
 
         return super().declare(env, objs)
 
-
+@check_build_targets(BUILD_TARGETS, ["unittests.opt", ".test", "test."])
 class GTest(Executable):
     '''Create a unit test based on the google test framework.'''
     all = []
