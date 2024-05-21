@@ -638,6 +638,16 @@ for variant_path in variant_paths:
         # Add the appropriate Link-Time Optimization (LTO) flags if
         # `--with-lto` is set.
         if GetOption('with_lto'):
+            # Add the Warning related flags to LINKFLAGS to enable warning in
+            # link time optimization
+            env.Append(LINKFLAGS=['-Wall', '-Wundef', '-Wextra',
+                                  '-Wno-sign-compare', '-Wno-unused-parameter'])
+            env.Append(LINKFLAGS=['-Werror',
+                                  '-Wno-error=deprecated-declarations',
+                                  '-Wno-error=deprecated',
+                                  '-Wno-error=lto-type-mismatch',
+                                  '-Wno-error=odr',
+                                  '-Wno-error=stringop-overflow'])
             # g++ uses "make" to parallelize LTO. The program can be overriden
             # with the environment variable "MAKE", but we currently make no
             # attempt to plumb that variable through.
@@ -674,6 +684,16 @@ for variant_path in variant_paths:
 
         # Set the Link-Time Optimization (LTO) flags if enabled.
         if GetOption('with_lto'):
+            # Add the Warning related flags to LINKFLAGS to enable warning in
+            # link time optimization
+            env.Append(LINKFLAGS=['-Wall', '-Wundef', '-Wextra',
+                                  '-Wno-sign-compare', '-Wno-unused-parameter'])
+            env.Append(LINKFLAGS=['-Werror',
+                                  '-Wno-error=deprecated-declarations',
+                                  '-Wno-error=deprecated',
+                                  '-Wno-error=lto-type-mismatch',
+                                  '-Wno-error=odr',
+                                  '-Wno-error=stringop-overflow'])
             for var in 'LTO_CCFLAGS', 'LTO_LINKFLAGS':
                 env[var] = ['-flto']
 
