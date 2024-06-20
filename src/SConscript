@@ -427,6 +427,12 @@ def check_build_targets(build_targets, target_keywords):
     def decorator(cls, *args, **kwargs):
         def wrapper(*args, **kwargs):
             for target in build_targets:
+                index = target.find("unittests.opt")
+                if index != -1:
+                    target_substring = target[index + len("unittests.opt"):]
+                    if target_substring in Dir('.').get_abspath():
+                        return cls(*args, **kwargs)
+                    return None
                 for keyword in target_keywords:
                     if keyword in target:
                         return cls(*args, **kwargs)
