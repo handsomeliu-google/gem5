@@ -752,6 +752,10 @@ for variant_path in variant_paths:
             env.Append(CCFLAGS=['-fsanitize=%s' % sanitizers,
                                  '-fno-omit-frame-pointer'],
                        LINKFLAGS=['-fsanitize=%s' % sanitizers] + libsan)
+            # Append -Wno-error=maybe-uninitialized if we enable sanitizer.
+            # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105562#c26.
+            env.Append(CCFLAGS=['-Wno-error=maybe-uninitialized'],
+                       LINKFLAGS=['-Wno-error=maybe-uninitialized'])
 
             if main["BIN_TARGET_ARCH"] == "x86_64":
                 # Sanitizers can enlarge binary size drammatically, north of
