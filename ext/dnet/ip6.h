@@ -32,7 +32,7 @@ typedef struct ip6_addr {
 /*
  * IPv6 header
  */
-struct ip6_hdr {
+struct dnet_ip6_hdr {
         union {
                 struct ip6_hdr_ctl {
                         uint32_t	ip6_un1_flow; /* 20 bits of flow ID */
@@ -161,7 +161,7 @@ struct ip6_ext_hdr {
         "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
 
 #define ip6_pack_hdr(hdr, fc, fl, plen, nxt, hlim, src, dst) do {	\
-        struct ip6_hdr *ip6 = (struct ip6_hdr *)(hdr);			\
+        struct dnet_ip6_hdr *ip6 = (struct dnet_ip6_hdr *)(hdr);			\
         ip6->ip6_flow = htonl(((uint32_t)(fc) << 28) &			\
             (IP6_FLOWLABEL_MASK | (fl)));				\
         ip6->ip6_vfc = (IP6_VERSION | ((fc) >> 4));			\

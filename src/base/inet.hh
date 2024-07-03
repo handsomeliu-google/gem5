@@ -453,7 +453,7 @@ struct IpOpt : public ip_opt
  * Ip6 Classes
  */
 struct Ip6Opt;
-struct Ip6Hdr : public ip6_hdr
+struct Ip6Hdr : public dnet_ip6_hdr
 {
     uint8_t version() const { return ip6_vfc; }
     uint32_t flow() const { return ntohl(ip6_flow); }
