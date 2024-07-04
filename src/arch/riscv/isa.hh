@@ -98,6 +98,14 @@ class ISA : public BaseISA
      */
     PrivilegeModeSet _privilegeModeSet;
 
+    /**
+     * Enable Zcd extensions.
+     * Set the option to false implies the Zcmp and Zcmt is enable as c.fsdsp
+     * is overlap with them.
+     * Refs: https://github.com/riscv/riscv-isa-manual/blob/main/src/zc.adoc
+     */
+    bool _enableZcd;
+
   public:
     using Params = RiscvISAParams;
 
@@ -167,6 +175,8 @@ class ISA : public BaseISA
     unsigned getVecElemLenInBits() { return elen; }
 
     PrivilegeModeSet getPrivilegeModeSet() { return _privilegeModeSet; }
+
+    bool enableZcd() { return _enableZcd; }
 
     virtual Addr getFaultHandlerAddr(
         RegIndex idx, uint64_t cause, bool intr) const;
