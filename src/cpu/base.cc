@@ -191,12 +191,6 @@ BaseCPU::BaseCPU(const Params &p, bool is_checker)
     modelResetPort.onChange([this](const bool &new_val) {
         setReset(new_val);
     });
-
-    for (int i = 0; i < params().port_cpu_idle_pins_connection_count; i++) {
-      cpuIdlePins.emplace_back(new IntSourcePin<BaseCPU>(
-        csprintf("%s.cpu_idle_pins[%d]", name(), i), i, this));
-    }
-
     // create a stat group object for each thread on this core
     fetchStats.reserve(numThreads);
     executeStats.reserve(numThreads);
@@ -469,8 +463,6 @@ BaseCPU::getPort(const std::string &if_name, PortID idx)
         return getInstPort();
     else if (if_name == "model_reset")
         return modelResetPort;
-    else if (if_name == "cpu_idle_pins")
-        return *cpuIdlePins[idx];
     else
         return ClockedObject::getPort(if_name, idx);
 }
@@ -545,11 +537,6 @@ BaseCPU::activateContext(ThreadID thread_num)
 
     DPRINTF(Thread, "activate contextId %d\n",
             threadContexts[thread_num]->contextId());
-
-    if (thread_num < cpuIdlePins.size()) {
-      cpuIdlePins[thread_num]->lower();
-    }
-
     // Squash enter power gating event while cpu gets activated
     if (enterPwrGatingEvent.scheduled())
         deschedule(enterPwrGatingEvent);
@@ -564,11 +551,6 @@ BaseCPU::suspendContext(ThreadID thread_num)
 {
     DPRINTF(Thread, "suspend contextId %d\n",
             threadContexts[thread_num]->contextId());
-
-    if (thread_num < cpuIdlePins.size()) {
-      cpuIdlePins[thread_num]->raise();
-    }
-
     // Check if all threads are suspended
     for (auto t : threadContexts) {
         if (t->status() != ThreadContext::Suspended) {
