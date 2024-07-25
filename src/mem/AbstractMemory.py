@@ -85,3 +85,8 @@ class AbstractMemory(ClockedObject):
         "with multiple `System` objects without a "
         "`SysBridge`.",
     )
+
+    allow_inst_fetch_write_packet = Param.Bool(
+        False,
+        "Allow instruction fetch write packet"
+    )
