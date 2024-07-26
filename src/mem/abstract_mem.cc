@@ -64,8 +64,7 @@ AbstractMemory::AbstractMemory(const Params &p) :
                  MemBackdoor::Readable)),
     confTableReported(p.conf_table_reported), inAddrMap(p.in_addr_map),
     kvmMap(p.kvm_map), writeable(p.writeable), collectStats(p.collect_stats),
-    allowInstFetchWritePacket(p.allow_inst_fetch_write_packet), _system(NULL),
-    stats(*this)
+    _system(NULL), stats(*this)
 {
     panic_if(!range.valid() || !range.size(),
              "Memory range %s must be valid with non-zero size.",
@@ -470,9 +469,7 @@ AbstractMemory::access(PacketPtr pkt)
                 DPRINTF(MemoryAccess, "%s write due to %s\n",
                         __func__, pkt->print());
             }
-            if (!allowInstFetchWritePacket) {
-              assert(!pkt->req->isInstFetch());
-            }
+            assert(!pkt->req->isInstFetch());
             TRACE_PACKET("Write");
             if (collectStats) {
                 stats.numWrites[pkt->req->requestorId()]++;

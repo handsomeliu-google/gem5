@@ -135,9 +135,6 @@ class AbstractMemory : public ClockedObject
     // Should collect traffic statistics
     const bool collectStats;
 
-    // Allow instruction fetch write packet
-    const bool allowInstFetchWritePacket;
-
     std::list<LockedAddr> lockedAddrList;
 
     // helper function for checkLockedAddrs(): we really want to
