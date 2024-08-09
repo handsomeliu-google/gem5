@@ -5,6 +5,7 @@
  * Copyright (c) 2016 RISC-V Foundation
  * Copyright (c) 2016 The University of Virginia
  * Copyright (c) 2020 Barkhausen Institut
+ * Coypright (c) 2024 University of Rostock
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,6 +100,15 @@ class ISA : public BaseISA
     PrivilegeModeSet _privilegeModeSet;
 
     /**
+     * The WFI instruction can halt the execution of a hart.
+     * If this variable is set true, the execution resumes if
+     * an interrupt becomes pending. If this variable is set
+     * to false, the execution only resumes if an locally enabled
+     * interrupt becomes pending.
+    */
+    const bool _wfiResumeOnPending;
+
+    /**
      * Enable Zcd extensions.
      * Set the option to false implies the Zcmp and Zcmt is enable as c.fsdsp
      * is overlap with them.
@@ -177,6 +187,8 @@ class ISA : public BaseISA
     PrivilegeModeSet getPrivilegeModeSet() { return _privilegeModeSet; }
 
     bool enableZcd() { return _enableZcd; }
+
+    bool resumeOnPending() { return _wfiResumeOnPending; }
 
     virtual Addr getFaultHandlerAddr(
         RegIndex idx, uint64_t cause, bool intr) const;
