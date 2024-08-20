@@ -75,7 +75,7 @@ class PCState : public GenericISA::UPCState<4>
         _vtype(other._vtype), _vl(other._vl)
     {}
     PCState &operator=(const PCState &other) = default;
-    PCState() { _rvType = RV64; };
+    PCState() = default;
     explicit PCState(Addr addr) { set(addr); }
     explicit PCState(Addr addr, RiscvType rvType, uint64_t vlenb)
     {
@@ -91,25 +91,11 @@ class PCState : public GenericISA::UPCState<4>
     {
         Base::update(other);
         auto &pcstate = other.as<PCState>();
-        _pc = zext(pcstate._pc);
-        _npc = zext(pcstate._npc);
         _compressed = pcstate._compressed;
         _rvType = pcstate._rvType;
         _vlenb = pcstate._vlenb;
         _vtype = pcstate._vtype;
         _vl = pcstate._vl;
-    }
-
-    void
-    set(Addr val) override
-    {
-        Base::set(zext(val));
-    }
-
-    void
-    setNPC(Addr val)
-    {
-        Base::setNPC(zext(val));
     }
 
     void compressed(bool c) { _compressed = c; }
@@ -128,13 +114,6 @@ class PCState : public GenericISA::UPCState<4>
     uint32_t vl() const { return _vl; }
 
     uint64_t size() const { return _compressed ? 2 : 4; }
-
-    Addr zext(Addr val) const {
-        if (_rvType == RV32) {
-          val = bits(val, 31, 0);
-        }
-        return val;
-    }
 
     bool
     branching() const override
